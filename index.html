@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>CS — C, Python, R</title>
+<style>
+:root{
+  --bg:#EFF1F4; --surface:#FFFFFF; --border:#DBDFE6; --text:#191D24; --text-dim:#5A6270;
+  --accent:#3F4A5A; --line-strong:#B0B6C0; --text-strong:#0F1319;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --disp:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]){
+    --bg:#06080B; --surface:#0E1218; --border:#212832; --text:#E3E8EF; --text-dim:#94A0B0;
+    --accent:#9FB2CA; --line-strong:#333C48; --text-strong:#F2F5F9;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EFF1F4; --surface:#FFFFFF; --border:#DBDFE6; --text:#191D24; --text-dim:#5A6270;
+  --accent:#3F4A5A; --line-strong:#B0B6C0; --text-strong:#0F1319;
+}
+:root[data-theme="dark"]{
+  --bg:#06080B; --surface:#0E1218; --border:#212832; --text:#E3E8EF; --text-dim:#94A0B0;
+  --accent:#9FB2CA; --line-strong:#333C48; --text-strong:#F2F5F9;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+     font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin-inline:auto;padding:clamp(32px,7vh,80px) clamp(18px,5vw,44px) 90px}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(34px,6vw,54px);
+   letter-spacing:-.035em;line-height:1.02;margin:0 0 16px;color:var(--text-strong)}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{color:var(--text-dim);max-width:62ch;margin:0 0 10px;font-size:16px}
+.rule{height:1px;background:var(--border);margin:32px 0}
+.cards{display:grid;gap:16px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--border);border-left:3px solid var(--ac);border-radius:12px;
+  padding:22px 24px;transition:border-color .15s ease, transform .15s ease}
+a.card:hover{border-color:var(--ac);transform:translateY(-1px)}
+.card-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card-name{font-family:var(--disp);font-weight:800;font-size:27px;letter-spacing:-.02em;
+  color:var(--text-strong)}
+.card-sub{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ac)}
+.card p{margin:9px 0 0;color:var(--text-dim);max-width:70ch}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  border:1px solid var(--border);color:var(--text-dim);padding:3px 8px;border-radius:99px}
+.cov{margin-top:14px}
+.covbar{height:5px;border-radius:99px;background:var(--border);overflow:hidden}
+.covbar>i{display:block;height:100%;background:var(--ac);width:0}
+.covtext{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:6px}
+code{font-family:var(--mono);font-size:.88em;background:var(--border);
+     padding:1px 5px;border-radius:4px}
+.note{border:1px solid var(--border);border-radius:11px;padding:16px 20px;
+      background:var(--surface);color:var(--text-dim);font-size:14px;margin-top:26px}
+.note b{color:var(--text)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(22px,3.2vw,30px);
+   letter-spacing:-.025em;margin:44px 0 12px;color:var(--text-strong)}
+.prim{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:18px}
+.prim article{background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:17px 19px}
+.prim h3{margin:0 0 7px;font-size:15.5px;color:var(--text-strong)}
+.prim p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.prim a{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+.foot{margin-top:34px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{appearance:none;background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  font-family:var(--mono);font-size:11px;padding:6px 11px;border-radius:6px;cursor:pointer}
+button:hover{color:var(--text);border-color:var(--line-strong)}
+.reentry{border:1px solid var(--accent);border-radius:12px;background:var(--surface);
+  padding:17px 20px;margin:26px 0 0}
+.re-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.re-head b{font-size:15px;color:var(--text-strong)}
+.re-lede{margin:6px 0 10px;color:var(--text-dim);font-size:13.5px;line-height:1.55}
+.re-list{margin:0;padding-left:20px;font-size:13.5px;line-height:1.6}
+.re-list li{margin:0 0 6px}
+.re-list b{color:var(--text-strong)}
+.re-why{display:block;color:var(--text-dim);font-size:12px}
+.re-why a{color:var(--accent)}
+.re-note{margin:11px 0 0;color:var(--text-dim);font-size:12px;line-height:1.5}
+.re-note b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Three languages,<br>three <em>finish lines</em>.</h1>
+<p class="lede">C is self-directed and open-ended, aimed at a kernel contribution. Python and R
+track <b>DOM207 &middot; Introduction to Data Science</b> module for module, because the course
+teaches and examines both on the same topic in the same week.</p>
+<p class="lede">Each file holds a roadmap, a reference and a set of challenges, and remembers what
+you have covered. Everything is offline: no network call, no account, no build step.</p>
+
+<div class="reentry" id="reentry" hidden>
+  <div class="re-head"><b id="reTitle"></b>
+    <button id="reClose">Dismiss</button></div>
+  <p class="re-lede" id="reLede"></p>
+  <ol class="re-list" id="reList"></ol>
+  <p class="re-note" id="reNote"></p>
+</div>
+
+<div class="rule"></div>
+
+<div class="cards">
+    <a class="card" href="c.html" style="--ac:#4D9BFF">
+      <div class="card-top">
+        <span class="card-name">Cheet</span>
+        <span class="card-sub">C</span>
+      </div>
+      <p>Floor to a merged kernel patch. Five stages, 22 reference sections, 50 challenges &mdash; every one compiled with <code>-Wall -Wextra -Werror</code> and run under AddressSanitizer.</p>
+      <div class="tags"><span class="tag">self-directed</span><span class="tag">no deadline</span><span class="tag">your main focus</span></div>
+      <div class="cov">
+        <div class="covbar" id="cov-c"><i></i></div>
+        <div class="covtext" id="covtext-c">&mdash;</div>
+      </div>
+    </a>
+    <a class="card" href="python.html" style="--ac:#F5C542">
+      <div class="card-top">
+        <span class="card-name">Pandas</span>
+        <span class="card-sub">Python</span>
+      </div>
+      <p>DOM207's thirteen modules, from first import to a defended finding. Analyst work through regression, then the ML track. 39 challenges, all executed against pandas 3.0 and scikit-learn 1.9.</p>
+      <div class="tags"><span class="tag">DOM207</span><span class="tag">13 modules</span><span class="tag">45% project</span></div>
+      <div class="cov">
+        <div class="covbar" id="cov-python"><i></i></div>
+        <div class="covtext" id="covtext-python">&mdash;</div>
+      </div>
+    </a>
+    <a class="card" href="r.html" style="--ac:#E8483C">
+      <div class="card-top">
+        <span class="card-name">Tidy</span>
+        <span class="card-sub">R</span>
+      </div>
+      <p>The same thirteen modules and the same 39 problems, solved in R. Not the lesser half of a pair &mdash; DOM207 examines both languages on the same topic in the same week.</p>
+      <div class="tags"><span class="tag">DOM207</span><span class="tag">tidyverse</span><span class="tag">base R stats</span></div>
+      <div class="cov">
+        <div class="covbar" id="cov-r"><i></i></div>
+        <div class="covtext" id="covtext-r">&mdash;</div>
+      </div>
+    </a>
+    <a class="card" href="bridge.html" style="--ac:#3FD1BE">
+      <div class="card-top">
+        <span class="card-name">Bridge</span>
+        <span class="card-sub">all three</span>
+      </div>
+      <p>The English sentence on the left, and what C, Python and R each say on the right &mdash; 93 of those lines lifted from solutions that compile and run, with the solution id printed beside them. Plus a drill, and sixteen problem-to-approach patterns taken from CSD101&rsquo;s own worksheets and papers.</p>
+      <div class="tags"><span class="tag">54 entries</span><span class="tag">16 patterns</span><span class="tag">counts toward the other three</span></div>
+      <div class="cov">
+        <div class="covbar" id="cov-bridge"><i></i></div>
+        <div class="covtext" id="covtext-bridge">&mdash;</div>
+      </div>
+    </a>
+</div>
+
+
+<div class="rule"></div>
+
+<h2 id="primer">Never written code before?</h2>
+<p class="lede">Six ideas, and then none of the three files below assumes anything you have
+not met. This is the only page here that starts from zero &mdash; each file's own
+&ldquo;in plain terms&rdquo; blocks pick up from the end of this one.</p>
+
+<div class="prim">
+  <article>
+    <h3>A program is a text file</h3>
+    <p>It is not a special kind of document. It is characters you type, saved with a
+    particular extension, that another program reads and acts on. Nothing about it is
+    hidden from you, and there is nothing to click to make it work.</p>
+  </article>
+  <article>
+    <h3>&ldquo;Running&rdquo; means handing that file to something</h3>
+    <p>Python and R read your file line by line and do what it says. C is different: a
+    <b>compiler</b> reads the whole file first and produces a second file, a program, which
+    you then run. That extra step is why C reports many mistakes before anything happens,
+    and why the other two report them halfway through.</p>
+  </article>
+  <article>
+    <h3>A variable is a named box</h3>
+    <p><code>x = 5</code> puts 5 in a box called <code>x</code>. Later mentions of
+    <code>x</code> mean whatever is in the box now. That is the whole idea, and the only
+    difference between the three languages here is how much they insist on knowing in
+    advance what kind of thing goes in.</p>
+  </article>
+  <article>
+    <h3>A function is code with a name</h3>
+    <p>You give it values, it does something, it usually hands one value back. You have
+    already used dozens of them &mdash; every <code>print</code>, <code>mean</code> and
+    <code>read.csv</code> is one somebody else wrote. Writing your own is how you stop
+    repeating yourself.</p>
+  </article>
+  <article>
+    <h3>An error message is information, not a telling-off</h3>
+    <p>It names the rule you broke and where. It reads badly at first because it describes
+    what the computer could not do rather than what you meant. Every file here has a section
+    that translates the ones you will actually hit &mdash; read it before you need it, not
+    after.</p>
+  </article>
+  <article>
+    <h3>You are not expected to remember any of it</h3>
+    <p>Working programmers look things up constantly. That is what the reference mode in each
+    file is for. The part worth memorising is small and specific &mdash; and the one place it
+    genuinely matters is named on each page, because DOM207's end-semester exam is closed
+    book.</p>
+  </article>
+</div>
+
+<h2>Which one first?</h2>
+<div class="prim">
+  <article>
+    <h3>If you are following DOM207</h3>
+    <p>Open <a href="python.html#rm-python-start">Python</a> and work through its ten-day
+    start-here route. Then open <a href="r.html">R</a> and solve the same problems again
+    &mdash; the course examines both languages on the same topic in the same week, so the
+    second pass is the exam preparation, not a repeat.</p>
+  </article>
+  <article>
+    <h3>If you are learning C for yourself</h3>
+    <p>Open <a href="c.html#rm-c-start">C</a> and follow its start-here route. Give the
+    pointers section three days and read it twice &mdash; every difficult thing in the
+    language is downstream of that one idea, and everything after it is easier.</p>
+  </article>
+  <article>
+    <h3>If you are not sure</h3>
+    <p>Python. It complains most clearly when you get something wrong, needs the least
+    ceremony to run one line, and both other files are easier once one language has clicked.
+    Nothing here is sequenced so that starting in the wrong place costs you anything.</p>
+  </article>
+</div>
+
+
+<div class="note" id="storenote" hidden>
+  <b>No progress found for any file.</b> Either you have not started, or this browser keeps
+  <code>file://</code> pages in separate storage so the launcher cannot read them. Each file
+  still tracks its own progress correctly when you open it &mdash; only this summary is affected.
+</div>
+
+<div class="note">
+  <b>What these do not track.</b> Hours, sessions and streaks belong to
+  <a href="https://talon270.github.io/study-tracker/">Study Tracker</a>. These files answer
+  &ldquo;what have I covered&rdquo;, never &ldquo;how long did I sit there&rdquo; &mdash; two apps
+  answering one question would eventually disagree, and then neither could be trusted.
+</div>
+
+<div class="foot">
+  <button id="themebtn">System</button>
+  <span class="covtext">Opened straight from the filesystem. No build step.</span>
+</div>
+
+</div>
+<script>
+(function () {
+  "use strict";
+  var FILES = [{slug:"c",key:"studyTools.c.v1",total:206,study:["studyTools.c.v1"]},{slug:"python",key:"studyTools.python.v1",total:226,study:["studyTools.python.v1"]},{slug:"r",key:"studyTools.r.v1",total:226,study:["studyTools.r.v1"]},{slug:"bridge",key:"studyTools.bridge.v1",total:128,study:["studyTools.c.v1", "studyTools.python.v1", "studyTools.r.v1"]}];
+
+  var t = null;
+  try { t = localStorage.getItem("studyTools.index.theme"); } catch (e) {}
+  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+
+  function label() {
+    var b = document.getElementById("themebtn");
+    if (b) b.textContent = t === "dark" ? "Dark" : t === "light" ? "Light" : "System";
+  }
+  label();
+
+  var btn = document.getElementById("themebtn");
+  if (btn) btn.addEventListener("click", function () {
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    t = t === null ? (dark ? "light" : "dark") : t === "dark" ? "light" : null;
+    if (t) document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    try {
+      if (t) localStorage.setItem("studyTools.index.theme", t);
+      else localStorage.removeItem("studyTools.index.theme");
+    } catch (e) {}
+    label();
+  });
+
+  /* Coverage is read from each file's own key. Browsers differ on whether
+     file:// pages share a storage partition, so an unreadable file prints a
+     dash and says why rather than a fabricated 0%. */
+  var anyRead = false;
+  var states = {};
+  function read(key) {
+    if (states[key] !== undefined) return states[key];
+    var out = null;
+    try { out = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+    states[key] = out && typeof out === "object" ? out : null;
+    return states[key];
+  }
+
+  FILES.forEach(function (f) {
+    var pct = null, done = 0, seen = false;
+    f.study.forEach(function (k) {
+      var s = read(k);
+      if (!s) return;
+      seen = true;
+      if (f.slug === "bridge") {
+        for (var b in (s.bridge || {})) if (s.bridge[b]) done++;
+      } else {
+        done += Object.keys(s.done || {}).length + Object.keys(s.solved || {}).length;
+        for (var b2 in (s.bridge || {})) if (s.bridge[b2]) done++;
+      }
+    });
+    if (seen) { pct = f.total ? Math.round((done / f.total) * 100) : 0; anyRead = true; }
+    var bar = document.querySelector('#cov-' + f.slug + ' > i');
+    var txt = document.getElementById('covtext-' + f.slug);
+    if (pct === null) {
+      if (txt) txt.textContent = "— not started, or progress not visible from here";
+    } else {
+      if (bar) bar.style.width = pct + "%";
+      if (txt) txt.textContent = pct + "% covered · " + done + " of " + f.total + " items";
+    }
+  });
+
+  /* ---- re-entry -------------------------------------------------------
+     Whole-tool version of what each file shows: how long you have been away,
+     and which covered topics the most unfinished work still depends on. The
+     ranking is an estimate built on authored dependency edges, and the panel
+     says so where it is shown rather than in a footnote. */
+  (function () {
+    var PRE = {"c":{"ms":{"c-1-1":{"needs":[],"origin":"syllabus","why":"CSD101 Lec 1-2: the machine and the toolchain come first."},"c-1-2":{"needs":["c-1-1"],"origin":"syllabus","why":"Lec 3-8: types, operators, conditionals and loops, in that order."},"c-1-3":{"needs":["c-1-2"],"origin":"syllabus","why":"Lec 11-12: functions and scope come after control flow."},"c-2-1":{"needs":["c-1-3"],"origin":"syllabus","why":"Lec 13-14: pointers after functions, because passing by pointer is the first reason to want one."},"c-2-2":{"needs":["c-2-1"],"origin":"authored","why":"malloc hands back a pointer. There is nothing to do with the heap until a pointer is a thing you can read."},"c-2-3":{"needs":["c-1-2","c-2-1"],"origin":"syllabus","why":"Lec 9-10 puts arrays after looping; Lec 17 puts strings after pointers, and decay is why."},"c-2-4":{"needs":["c-2-2","c-2-3"],"origin":"authored","why":"All four bugs are a heap or an array misused; neither can be misused before it is met."},"c-3-1":{"needs":["c-2-1"],"origin":"syllabus","why":"Lec 21-22: structures last, after pointers, because -> is the half that matters."},"c-3-2":{"needs":["c-3-1","c-2-2"],"origin":"authored","why":"A linked list is a struct holding a pointer to heap memory. Both halves, or nothing."},"c-3-3":{"needs":["c-1-3"],"origin":"authored","why":"Splitting files is a question about declarations and linkage, which is a question about functions."},"c-3-4":{"needs":["c-2-3"],"origin":"authored","why":"Every stdio call in this stage takes a buffer, and a buffer is an array you have to bound yourself."},"c-4-1":{"needs":["c-3-3"],"origin":"authored","why":"There is no build system worth having until there is more than one translation unit."},"c-4-2":{"needs":["c-2-4"],"origin":"authored","why":"The debugger and the sanitizers are tools for the four bugs; learning them first teaches the commands and not the failures."},"c-4-3":{"needs":["c-3-2"],"origin":"authored","why":"The idioms in this milestone are patterns over your own types."},"c-4-4":{"needs":["c-3-3","c-2-2"],"origin":"authored","why":"Threads share a heap and are compiled across files; a data race is an ownership question."},"c-4-5":{"needs":["c-4-3"],"origin":"authored","why":"The standard is worth reading once you have written something it would judge."},"c-5-1":{"needs":["c-4-1"],"origin":"authored","why":"Building a kernel is a build-system problem before it is a C one."},"c-5-2":{"needs":["c-5-1","c-4-3"],"origin":"authored","why":"Reading the source needs a tree you built and the idioms it uses."},"c-5-3":{"needs":["c-5-2","c-4-5"],"origin":"authored","why":"The kernel's dialect is a set of deliberate departures from the standard, so the standard has to be in hand first."},"c-5-4":{"needs":["c-5-2"],"origin":"authored","why":"The patch process assumes you can already navigate the tree."},"c-5-5":{"needs":["c-5-3","c-5-4"],"origin":"authored","why":"A patch worth sending needs both the dialect and the etiquette."}},"topics":{"c-1-1":["c-1-1-a","c-1-1-b","c-1-1-c","c-1-1-d","c-1-1-e","c-1-1-f"],"c-1-2":["c-1-2-a","c-1-2-b","c-1-2-c","c-1-2-d","c-1-2-e","c-1-2-f","c-1-2-g","c-1-2-h","c-1-2-i"],"c-1-3":["c-1-3-a","c-1-3-b","c-1-3-c","c-1-3-d","c-1-3-e","c-1-3-f"],"c-2-1":["c-2-1-a","c-2-1-b","c-2-1-c","c-2-1-d","c-2-1-e"],"c-2-2":["c-2-2-a","c-2-2-b","c-2-2-c","c-2-2-d","c-2-2-e"],"c-2-3":["c-2-3-a","c-2-3-b","c-2-3-c","c-2-3-d","c-2-3-e"],"c-2-4":["c-2-4-a","c-2-4-b","c-2-4-c","c-2-4-d","c-2-4-e","c-2-4-f"],"c-3-1":["c-3-1-a","c-3-1-b","c-3-1-c","c-3-1-d","c-3-1-e","c-3-1-f","c-3-1-g"],"c-3-2":["c-3-2-a","c-3-2-b","c-3-2-c","c-3-2-d","c-3-2-e"],"c-3-3":["c-3-3-a","c-3-3-b","c-3-3-c","c-3-3-d","c-3-3-e","c-3-3-f"],"c-3-4":["c-3-4-a","c-3-4-b","c-3-4-c","c-3-4-d","c-3-4-e","c-3-4-f"],"c-4-1":["c-4-1-a","c-4-1-b","c-4-1-c","c-4-1-d","c-4-1-e","c-4-1-f"],"c-4-2":["c-4-2-a","c-4-2-b","c-4-2-c","c-4-2-d","c-4-2-e","c-4-2-f"],"c-4-3":["c-4-3-a","c-4-3-b","c-4-3-c","c-4-3-d","c-4-3-e"],"c-4-4":["c-4-4-a","c-4-4-b","c-4-4-c","c-4-4-d","c-4-4-e","c-4-4-f","c-4-4-g"],"c-4-5":["c-4-5-a","c-4-5-b","c-4-5-c"],"c-5-1":["c-5-1-a","c-5-1-b","c-5-1-c","c-5-1-d","c-5-1-e","c-5-1-f"],"c-5-2":["c-5-2-a","c-5-2-b","c-5-2-c","c-5-2-d"],"c-5-3":["c-5-3-a","c-5-3-b","c-5-3-c","c-5-3-d","c-5-3-e","c-5-3-f","c-5-3-g"],"c-5-4":["c-5-4-a","c-5-4-b","c-5-4-c","c-5-4-d","c-5-4-e","c-5-4-f","c-5-4-g","c-5-4-h"],"c-5-5":["c-5-5-a","c-5-5-b","c-5-5-c","c-5-5-d","c-5-5-e","c-5-5-f"]},"edges":[["c-1-2-g","c-1-2-f","authored"],["c-2-2-b","c-2-1-e","authored"],["c-2-2-e","c-2-1-e","authored"],["c-2-3-c","c-2-3-a","authored"],["c-2-4-a","c-2-3-d","authored"],["c-2-4-b","c-2-2-d","authored"]],"census":{"syllabus":243,"authored":653}},"python":{"ms":{"py-1-1":{"needs":[],"origin":"authored","why":"An interpreter that runs a file is the floor."},"py-1-2":{"needs":["py-1-1"],"origin":"authored","why":"Types and vectors are the first thing there is to say."},"py-1-3":{"needs":["py-1-2"],"origin":"authored","why":"A loop needs something to loop over; a function needs something to take and return."},"py-2-1":{"needs":["py-1-2"],"origin":"authored","why":"A data frame is columns of vectors \u2014 indexing and types come first, and .loc/[ , ] is indexing with names on it."},"py-2-2":{"needs":["py-2-1"],"origin":"authored","why":"Reading a file produces a frame; the frame has to mean something before the reader's arguments do."},"py-2-3":{"needs":["py-2-2"],"origin":"authored","why":"Describing what arrived assumes something arrived from a real file, not a literal you typed."},"py-3-1":{"needs":["py-2-3"],"origin":"authored","why":"You cannot decide what to do about missingness before you can see how much there is."},"py-3-2":{"needs":["py-2-3"],"origin":"authored","why":"Type repair is driven by what .info() / str() showed you."},"py-3-3":{"needs":["py-2-3"],"origin":"authored","why":"An outlier rule is a statement about a distribution you have already summarised."},"py-4-1":{"needs":["py-2-3"],"origin":"authored","why":"The four charts plot the summaries of this milestone."},"py-4-2":{"needs":["py-4-1"],"origin":"authored","why":"The grammar generalises the four charts; learning it first is learning notation with nothing to notate."},"py-5-1":{"needs":["py-3-3"],"origin":"authored","why":"Distributions and correlation assume the shape work is done and the outliers have been decided about."},"py-5-2":{"needs":["py-5-1"],"origin":"authored","why":"A test is a claim about a distribution."},"py-6-1":{"needs":["py-5-2"],"origin":"authored","why":"OLS reports p-values; they mean nothing without the testing milestone behind them."},"py-6-2":{"needs":["py-6-1"],"origin":"authored","why":"Diagnostics are diagnostics *of* a fitted model."},"py-6-3":{"needs":["py-6-1"],"origin":"authored","why":"Logistic regression is OLS's frame with a different link."},"py-7-1":{"needs":["py-3-2"],"origin":"authored","why":"Turning text into numbers is string work before it is model work."},"py-7-2":{"needs":["py-6-3"],"origin":"authored","why":"A tree is the first classifier that is not a regression, and the comparison is the lesson."},"py-8-1":{"needs":["py-5-1"],"origin":"authored","why":"Clustering is a distance claim about a distribution."},"py-8-2":{"needs":["py-8-1"],"origin":"authored","why":"PCA is usually reached for because clustering in raw space disappointed."},"py-9-1":{"needs":["py-7-2"],"origin":"authored","why":"Honest evaluation needs a model whose accuracy you were tempted to believe."},"py-9-2":{"needs":["py-9-1"],"origin":"authored","why":"SVMs and networks are only worth fitting once the split and the metric are trustworthy."},"py-10-1":{"needs":["py-5-2"],"origin":"authored","why":"Framing a question means naming the test that would answer it."},"py-10-2":{"needs":["py-1-3"],"origin":"authored","why":"Reproducibility is scripts and functions, not statistics."},"py-10-3":{"needs":["py-10-1","py-6-2"],"origin":"authored","why":"Reporting a finding needs the framing it answers and the diagnostics that say whether to trust it."}},"topics":{"py-1-1":["py-1-1-a","py-1-1-b","py-1-1-c","py-1-1-d","py-1-1-e"],"py-1-2":["py-1-2-a","py-1-2-b","py-1-2-c","py-1-2-d","py-1-2-e","py-1-2-f","py-1-2-g"],"py-1-3":["py-1-3-a","py-1-3-b","py-1-3-c","py-1-3-d","py-1-3-e","py-1-3-f","py-1-3-g"],"py-2-1":["py-2-1-a","py-2-1-b","py-2-1-c","py-2-1-d","py-2-1-e"],"py-2-2":["py-2-2-a","py-2-2-b","py-2-2-c","py-2-2-d","py-2-2-e"],"py-2-3":["py-2-3-a","py-2-3-b","py-2-3-c","py-2-3-d","py-2-3-e"],"py-3-1":["py-3-1-a","py-3-1-b","py-3-1-c","py-3-1-d","py-3-1-e"],"py-3-2":["py-3-2-a","py-3-2-b","py-3-2-c","py-3-2-d","py-3-2-e"],"py-3-3":["py-3-3-a","py-3-3-b","py-3-3-c","py-3-3-d","py-3-3-e"],"py-4-1":["py-4-1-a","py-4-1-b","py-4-1-c","py-4-1-d","py-4-1-e"],"py-4-2":["py-4-2-a","py-4-2-b","py-4-2-c","py-4-2-d","py-4-2-e"],"py-5-1":["py-5-1-a","py-5-1-b","py-5-1-c","py-5-1-d","py-5-1-e"],"py-5-2":["py-5-2-a","py-5-2-b","py-5-2-c","py-5-2-d","py-5-2-e","py-5-2-f","py-5-2-g"],"py-6-1":["py-6-1-a","py-6-1-b","py-6-1-c","py-6-1-d","py-6-1-e","py-6-1-f"],"py-6-2":["py-6-2-a","py-6-2-b","py-6-2-c","py-6-2-d","py-6-2-e","py-6-2-f"],"py-6-3":["py-6-3-a","py-6-3-b","py-6-3-c","py-6-3-d","py-6-3-e"],"py-7-1":["py-7-1-a","py-7-1-b","py-7-1-c","py-7-1-d","py-7-1-e"],"py-7-2":["py-7-2-a","py-7-2-b","py-7-2-c","py-7-2-d","py-7-2-e"],"py-8-1":["py-8-1-a","py-8-1-b","py-8-1-c","py-8-1-d","py-8-1-e"],"py-8-2":["py-8-2-a","py-8-2-b","py-8-2-c","py-8-2-d","py-8-2-e"],"py-9-1":["py-9-1-a","py-9-1-b","py-9-1-c","py-9-1-d","py-9-1-e","py-9-1-f"],"py-9-2":["py-9-2-a","py-9-2-b","py-9-2-c","py-9-2-d","py-9-2-e","py-9-2-f","py-9-2-g"],"py-10-1":["py-10-1-a","py-10-1-b","py-10-1-c","py-10-1-d","py-10-1-e","py-10-1-f"],"py-10-2":["py-10-2-a","py-10-2-b","py-10-2-c","py-10-2-d","py-10-2-e"],"py-10-3":["py-10-3-a","py-10-3-b","py-10-3-c","py-10-3-d","py-10-3-e","py-10-3-f"]},"edges":[["py-1-3-c","py-1-2-d","authored"],["py-2-1-b","py-1-2-c","authored"],["py-2-1-c","py-1-2-d","authored"],["py-2-3-e","py-2-1-c","authored"],["py-3-1-e","py-1-2-e","authored"],["py-3-3-d","py-2-1-a","authored"],["py-3-3-e","py-2-1-a","authored"],["py-6-1-a","py-3-3-d","authored"]],"census":{"syllabus":0,"authored":788}},"r":{"ms":{"r-1-1":{"needs":[],"origin":"authored","why":"An interpreter that runs a file is the floor."},"r-1-2":{"needs":["r-1-1"],"origin":"authored","why":"Types and vectors are the first thing there is to say."},"r-1-3":{"needs":["r-1-2"],"origin":"authored","why":"A loop needs something to loop over; a function needs something to take and return."},"r-2-1":{"needs":["r-1-2"],"origin":"authored","why":"A data frame is columns of vectors \u2014 indexing and types come first, and .loc/[ , ] is indexing with names on it."},"r-2-2":{"needs":["r-2-1"],"origin":"authored","why":"Reading a file produces a frame; the frame has to mean something before the reader's arguments do."},"r-2-3":{"needs":["r-2-2"],"origin":"authored","why":"Describing what arrived assumes something arrived from a real file, not a literal you typed."},"r-3-1":{"needs":["r-2-3"],"origin":"authored","why":"You cannot decide what to do about missingness before you can see how much there is."},"r-3-2":{"needs":["r-2-3"],"origin":"authored","why":"Type repair is driven by what .info() / str() showed you."},"r-3-3":{"needs":["r-2-3"],"origin":"authored","why":"An outlier rule is a statement about a distribution you have already summarised."},"r-4-1":{"needs":["r-2-3"],"origin":"authored","why":"The four charts plot the summaries of this milestone."},"r-4-2":{"needs":["r-4-1"],"origin":"authored","why":"The grammar generalises the four charts; learning it first is learning notation with nothing to notate."},"r-5-1":{"needs":["r-3-3"],"origin":"authored","why":"Distributions and correlation assume the shape work is done and the outliers have been decided about."},"r-5-2":{"needs":["r-5-1"],"origin":"authored","why":"A test is a claim about a distribution."},"r-6-1":{"needs":["r-5-2"],"origin":"authored","why":"OLS reports p-values; they mean nothing without the testing milestone behind them."},"r-6-2":{"needs":["r-6-1"],"origin":"authored","why":"Diagnostics are diagnostics *of* a fitted model."},"r-6-3":{"needs":["r-6-1"],"origin":"authored","why":"Logistic regression is OLS's frame with a different link."},"r-7-1":{"needs":["r-3-2"],"origin":"authored","why":"Turning text into numbers is string work before it is model work."},"r-7-2":{"needs":["r-6-3"],"origin":"authored","why":"A tree is the first classifier that is not a regression, and the comparison is the lesson."},"r-8-1":{"needs":["r-5-1"],"origin":"authored","why":"Clustering is a distance claim about a distribution."},"r-8-2":{"needs":["r-8-1"],"origin":"authored","why":"PCA is usually reached for because clustering in raw space disappointed."},"r-9-1":{"needs":["r-7-2"],"origin":"authored","why":"Honest evaluation needs a model whose accuracy you were tempted to believe."},"r-9-2":{"needs":["r-9-1"],"origin":"authored","why":"SVMs and networks are only worth fitting once the split and the metric are trustworthy."},"r-10-1":{"needs":["r-5-2"],"origin":"authored","why":"Framing a question means naming the test that would answer it."},"r-10-2":{"needs":["r-1-3"],"origin":"authored","why":"Reproducibility is scripts and functions, not statistics."},"r-10-3":{"needs":["r-10-1","r-6-2"],"origin":"authored","why":"Reporting a finding needs the framing it answers and the diagnostics that say whether to trust it."}},"topics":{"r-1-1":["r-1-1-a","r-1-1-b","r-1-1-c","r-1-1-d","r-1-1-e"],"r-1-2":["r-1-2-a","r-1-2-b","r-1-2-c","r-1-2-d","r-1-2-e","r-1-2-f","r-1-2-g"],"r-1-3":["r-1-3-a","r-1-3-b","r-1-3-c","r-1-3-d","r-1-3-e","r-1-3-f","r-1-3-g"],"r-2-1":["r-2-1-a","r-2-1-b","r-2-1-c","r-2-1-d","r-2-1-e"],"r-2-2":["r-2-2-a","r-2-2-b","r-2-2-c","r-2-2-d","r-2-2-e"],"r-2-3":["r-2-3-a","r-2-3-b","r-2-3-c","r-2-3-d","r-2-3-e"],"r-3-1":["r-3-1-a","r-3-1-b","r-3-1-c","r-3-1-d","r-3-1-e"],"r-3-2":["r-3-2-a","r-3-2-b","r-3-2-c","r-3-2-d","r-3-2-e"],"r-3-3":["r-3-3-a","r-3-3-b","r-3-3-c","r-3-3-d","r-3-3-e"],"r-4-1":["r-4-1-a","r-4-1-b","r-4-1-c","r-4-1-d","r-4-1-e"],"r-4-2":["r-4-2-a","r-4-2-b","r-4-2-c","r-4-2-d","r-4-2-e"],"r-5-1":["r-5-1-a","r-5-1-b","r-5-1-c","r-5-1-d","r-5-1-e"],"r-5-2":["r-5-2-a","r-5-2-b","r-5-2-c","r-5-2-d","r-5-2-e","r-5-2-f","r-5-2-g"],"r-6-1":["r-6-1-a","r-6-1-b","r-6-1-c","r-6-1-d","r-6-1-e","r-6-1-f"],"r-6-2":["r-6-2-a","r-6-2-b","r-6-2-c","r-6-2-d","r-6-2-e","r-6-2-f"],"r-6-3":["r-6-3-a","r-6-3-b","r-6-3-c","r-6-3-d","r-6-3-e"],"r-7-1":["r-7-1-a","r-7-1-b","r-7-1-c","r-7-1-d","r-7-1-e"],"r-7-2":["r-7-2-a","r-7-2-b","r-7-2-c","r-7-2-d","r-7-2-e"],"r-8-1":["r-8-1-a","r-8-1-b","r-8-1-c","r-8-1-d","r-8-1-e"],"r-8-2":["r-8-2-a","r-8-2-b","r-8-2-c","r-8-2-d","r-8-2-e"],"r-9-1":["r-9-1-a","r-9-1-b","r-9-1-c","r-9-1-d","r-9-1-e","r-9-1-f"],"r-9-2":["r-9-2-a","r-9-2-b","r-9-2-c","r-9-2-d","r-9-2-e","r-9-2-f","r-9-2-g"],"r-10-1":["r-10-1-a","r-10-1-b","r-10-1-c","r-10-1-d","r-10-1-e","r-10-1-f"],"r-10-2":["r-10-2-a","r-10-2-b","r-10-2-c","r-10-2-d","r-10-2-e"],"r-10-3":["r-10-3-a","r-10-3-b","r-10-3-c","r-10-3-d","r-10-3-e","r-10-3-f"]},"edges":[["r-1-3-c","r-1-2-d","authored"],["r-2-1-b","r-1-2-c","authored"],["r-2-1-c","r-1-2-d","authored"],["r-3-2-a","r-1-2-a","authored"],["r-3-3-d","r-2-1-a","authored"],["r-3-3-e","r-2-1-a","authored"],["r-6-1-a","r-3-3-d","authored"]],"census":{"syllabus":0,"authored":787}}};
+    var GAP_DAYS = 10;
+    var rows = [], last = 0, undated = 0, covered = 0;
+    var census = { syllabus: 0, authored: 0 };
+
+    Object.keys(PRE).forEach(function (slug) {
+      var st = read({ c: "studyTools.c.v1", python: "studyTools.python.v1",
+                      r: "studyTools.r.v1" }[slug]);
+      if (!st) return;
+      var P = PRE[slug];
+      census.syllabus += (P.census && P.census.syllabus) || 0;
+      census.authored += (P.census && P.census.authored) || 0;
+
+      /* Which milestones cannot be finished without which. */
+      var rev = {};
+      Object.keys(P.ms).forEach(function (k) { rev[k] = {}; });
+      function walk(target, cur, seen) {
+        (P.ms[cur].needs || []).forEach(function (dep) {
+          if (!P.ms[dep] || seen[dep]) return;
+          seen[dep] = 1; rev[dep][target] = 1; walk(target, dep, seen);
+        });
+      }
+      Object.keys(P.ms).forEach(function (k) { walk(k, k, {}); });
+
+      var untick = {};
+      Object.keys(P.topics).forEach(function (m) {
+        untick[m] = P.topics[m].filter(function (t) { return !st.done[t]; }).length;
+      });
+
+      Object.keys(st.done || {}).forEach(function (id) {
+        if (!st.done[id]) return;
+        covered++;
+        var t = (st.ticked || {})[id] || 0;
+        if (t > last) last = t;
+        if (!t) undated++;
+        var ms = id.replace(/-[a-z]$/, ""), w = 0;
+        for (var d in (rev[ms] || {})) w += untick[d] || 0;
+        rows.push({ slug: slug, id: id, t: t, w: w });
+      });
+    });
+
+    if (!rows.length) return;
+    var days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+    if (days !== null && days < GAP_DAYS) return;
+
+    rows.forEach(function (r) {
+      r.age = r.t ? Math.floor((Date.now() - r.t) / 86400000) : null;
+    });
+    rows.sort(function (a, b) {
+      if ((a.age === null) !== (b.age === null)) return a.age === null ? 1 : -1;
+      var sa = (a.age || 0) * (1 + a.w / 10), sb = (b.age || 0) * (1 + b.w / 10);
+      return sb !== sa ? sb - sa : b.w - a.w;
+    });
+
+    var NAME = { c: "C", python: "Python", r: "R" };
+    var panel = document.getElementById("reentry");
+    document.getElementById("reTitle").textContent =
+      days === null ? "Picking up where you left off"
+                    : "You were last here " + days + " days ago";
+    document.getElementById("reLede").textContent =
+      "Across the three files you have covered " + covered + " topics. These are the " +
+      "ones you covered longest ago that the most unfinished work still depends on.";
+    document.getElementById("reList").innerHTML = rows.slice(0, 5).map(function (r) {
+      return "<li><b>" + NAME[r.slug] + " &middot; " + r.id + "</b>" +
+        '<span class="re-why">' +
+        (r.age === null ? "covered before these files recorded dates"
+                        : "covered " + r.age + (r.age === 1 ? " day ago" : " days ago")) +
+        " · " + r.w + " unfinished " + (r.w === 1 ? "topic depends" : "topics depend") +
+        " on it · <a href='" + r.slug + ".html#" + r.id + "'>open</a></span></li>";
+    }).join("");
+    document.getElementById("reNote").innerHTML =
+      "<b>This is an estimate, not a measurement.</b> Nothing here tested you: the order " +
+      "is time since you ticked it, weighted by how much unfinished work sits downstream. " +
+      "The edges behind that weight are " + census.syllabus + " from CSD101's lecture " +
+      "order and " + census.authored + " authored judgement." +
+      (undated ? " " + undated + " ticks predate these files recording dates and are " +
+                 "listed last as undated." : "");
+    panel.hidden = false;
+    var c = document.getElementById("reClose");
+    if (c) c.addEventListener("click", function () { panel.hidden = true; });
+  })();
+
+  var n = document.getElementById("storenote");
+  if (n && !anyRead) n.hidden = false;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# The course's own material: three copyrighted textbooks, Ashoka's lecture
+# decks, the quiz answer keys and the past papers. Read to build this, never
+# redistributed. The build scripts hold what was taken from them; the sources
+# stay local.
+CSD 101\ /
+
+# Local Python stack and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Timestamped backups taken before large single-file edits
+*.backup-*
+*.backup-*.html

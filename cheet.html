@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheet — the C reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E1316;
+  --bg-2:#141B1F;
+  --bg-3:#1A2328;
+  --rule:#26333A;
+  --rule-soft:#1E282E;
+  --fg:#DEE6E9;
+  --dim:#8A9AA3;
+  --dimmer:#5E6E77;
+  --amber:#E4A257;
+  --teal:#64B6BE;
+  --rose:#E08A84;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --disp:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --rail-w:268px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--sans);font-size:15px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--amber);color:#0E1316}
+
+.shell{display:flex;min-height:100vh}
+
+/* ---------- rail ---------- */
+.rail{
+  width:var(--rail-w);flex:none;position:sticky;top:0;height:100vh;
+  background:var(--bg-2);border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;
+}
+.rail-head{padding:22px 20px 14px;border-bottom:1px solid var(--rule-soft)}
+.mark{
+  font-family:var(--disp);font-weight:800;font-size:34px;letter-spacing:-.035em;
+  line-height:1;margin:0;color:var(--fg);
+}
+.mark span{color:var(--amber)}
+.mark-sub{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--dimmer);margin-top:8px;
+}
+.search-wrap{padding:14px 16px;border-bottom:1px solid var(--rule-soft);position:relative}
+#q{
+  width:100%;background:var(--bg-3);border:1px solid var(--rule);border-radius:6px;
+  color:var(--fg);font-family:var(--mono);font-size:13px;padding:9px 34px 9px 11px;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+#q::placeholder{color:var(--dimmer)}
+#q:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(228,162,87,.13)}
+.slash{
+  position:absolute;right:26px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--dimmer);
+  border:1px solid var(--rule);border-radius:4px;padding:1px 5px;pointer-events:none;
+}
+#q:focus + .slash{opacity:0}
+nav{overflow-y:auto;padding:10px 10px 40px;flex:1;scrollbar-width:thin;scrollbar-color:var(--rule) transparent}
+nav::-webkit-scrollbar{width:8px}
+nav::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px}
+nav a{
+  display:flex;gap:10px;align-items:baseline;
+  padding:6px 10px;border-radius:5px;text-decoration:none;
+  color:var(--dim);font-size:13.5px;transition:color .12s,background .12s;
+}
+nav a b{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);font-weight:500;min-width:26px}
+nav a:hover{background:var(--bg-3);color:var(--fg)}
+nav a.on{background:var(--bg-3);color:var(--amber)}
+nav a.on b{color:var(--amber)}
+nav a.hide{display:none}
+
+main{flex:1;min-width:0;padding:0 clamp(18px,4vw,56px) 120px;max-width:1060px}
+
+/* ---------- hero ---------- */
+.hero{padding:clamp(48px,8vh,88px) 0 44px;border-bottom:1px solid var(--rule)}
+.hero h1{
+  font-family:var(--disp);font-weight:800;letter-spacing:-.035em;
+  font-size:clamp(46px,8vw,82px);line-height:.94;margin:0 0 18px;
+}
+.hero h1 em{font-style:normal;color:var(--amber)}
+.lede{font-size:17px;color:var(--dim);max-width:58ch;margin:0 0 26px}
+.lede code{font-family:var(--mono);color:var(--teal);font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.tag{
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--rule);border-radius:100px;padding:4px 11px;
+}
+
+/* ---------- memory strip ---------- */
+.memstrip{
+  margin-top:36px;background:var(--bg-2);border:1px solid var(--rule);border-radius:10px;
+  padding:20px 20px 16px;overflow-x:auto;
+}
+.memstrip-title{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--dimmer);margin-bottom:16px;
+}
+.regions{display:flex;gap:clamp(20px,6vw,64px);min-width:520px;align-items:flex-start}
+.region-label{
+  font-family:var(--mono);font-size:11px;color:var(--dimmer);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;
+}
+.cells{display:flex}
+.cell{
+  width:76px;border:1px solid var(--rule);border-right:none;background:var(--bg-3);
+  padding:9px 8px;text-align:center;
+}
+.cell:last-child{border-right:1px solid var(--rule)}
+.cell .val{font-family:var(--mono);font-size:13px;color:var(--fg)}
+.cell .val.ptr{color:var(--amber)}
+.cell .nm{font-family:var(--mono);font-size:10.5px;color:var(--teal);margin-top:5px}
+.cell .ad{font-family:var(--mono);font-size:9.5px;color:var(--dimmer);margin-top:2px}
+.arrowline{
+  flex:1;min-width:60px;align-self:center;margin-top:14px;height:1px;background:var(--amber);
+  position:relative;opacity:.75;
+}
+.arrowline::after{
+  content:"";position:absolute;right:-1px;top:-4px;
+  border-left:8px solid var(--amber);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;
+}
+.memstrip-cap{
+  margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--dim);
+  border-top:1px solid var(--rule-soft);padding-top:12px;line-height:1.8;
+}
+.memstrip-cap span{color:var(--amber)}
+
+/* ---------- sections ---------- */
+section{padding-top:52px;scroll-margin-top:20px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-num{
+  font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.05em;
+  border:1px solid rgba(228,162,87,.35);border-radius:4px;padding:2px 7px;flex:none;
+}
+h2{
+  font-family:var(--disp);font-weight:700;letter-spacing:-.02em;
+  font-size:clamp(25px,3.4vw,33px);margin:0;line-height:1.15;
+}
+.sec-blurb{color:var(--dim);margin:0 0 22px;max-width:68ch;font-size:14.5px}
+.sec-blurb code{font-family:var(--mono);font-size:13px;color:var(--teal)}
+.sec-blurb strong{color:var(--fg);font-weight:500}
+.rule{height:1px;background:var(--rule);margin-bottom:24px}
+
+/* ---------- cards ---------- */
+.grid{display:grid;gap:16px}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.card{
+  background:var(--bg-2);border:1px solid var(--rule-soft);border-radius:9px;
+  padding:16px 18px 18px;min-width:0;
+}
+.card h3{
+  font-family:var(--sans);font-weight:600;font-size:14.5px;margin:0 0 8px;
+  color:var(--fg);
+}
+.card p{margin:0 0 12px;color:var(--dim);font-size:13.5px}
+.card p:last-child{margin-bottom:0}
+.card p strong{color:var(--fg);font-weight:500}
+.card ul{margin:0 0 12px;padding-left:18px;color:var(--dim);font-size:13.5px}
+.card ul:last-child{margin-bottom:0}
+.card li{margin-bottom:6px}
+.card li:last-child{margin-bottom:0}
+.card li strong{color:var(--fg);font-weight:500}
+p code,td code,li code{
+  font-family:var(--mono);font-size:12.5px;color:var(--teal);
+  background:var(--bg-3);padding:1px 5px;border-radius:3px;
+}
+.card.warn{border-color:rgba(224,138,132,.3);background:rgba(224,138,132,.045)}
+.card.warn h3{color:var(--rose)}
+.card.warn h3::before{content:"⚠  ";font-size:12px}
+.takeaway{
+  border-left:2px solid var(--amber);padding:2px 0 2px 12px;
+  color:var(--fg)!important;font-size:13.5px;margin-top:12px!important;
+}
+.takeaway code{background:transparent;padding:0}
+
+/* ---------- code ---------- */
+.codewrap{position:relative;margin:0 0 12px}
+.codewrap:last-child{margin-bottom:0}
+pre{
+  margin:0;background:var(--bg);border:1px solid var(--rule-soft);border-radius:7px;
+  padding:13px 15px;overflow-x:auto;
+  font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--fg);
+  scrollbar-width:thin;scrollbar-color:var(--rule) transparent;
+}
+pre::-webkit-scrollbar{height:8px}
+pre::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px}
+.cm{color:var(--dimmer);font-style:italic}
+.copy{
+  position:absolute;top:7px;right:7px;background:var(--bg-3);border:1px solid var(--rule);
+  color:var(--dimmer);font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;
+  opacity:0;transition:opacity .15s,color .15s;
+}
+.codewrap:hover .copy,.copy:focus{opacity:1}
+.copy:hover{color:var(--amber);border-color:var(--amber)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:0 0 12px}
+.tw:last-child{margin-bottom:0}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:340px}
+th{
+  text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dimmer);font-weight:500;
+  padding:0 12px 8px 0;border-bottom:1px solid var(--rule);
+}
+td{padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);color:var(--dim);vertical-align:top}
+td:first-child{font-family:var(--mono);color:var(--amber);font-size:12.5px;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+
+/* ---------- misc ---------- */
+.empty{display:none;padding:60px 0;color:var(--dim);font-family:var(--mono);font-size:14px}
+.empty.show{display:block}
+.empty b{color:var(--amber);font-weight:500}
+section.hide,.card.hide{display:none}
+.totop{
+  position:fixed;right:22px;bottom:22px;width:38px;height:38px;border-radius:50%;
+  background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
+  display:grid;place-items:center;text-decoration:none;font-size:15px;
+  opacity:0;pointer-events:none;transition:opacity .2s,color .15s;z-index:20;
+}
+.totop.show{opacity:1;pointer-events:auto}
+.totop:hover{color:var(--amber);border-color:var(--amber)}
+.railbtn{display:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+@media (max-width:880px){
+  :root{--rail-w:100%}
+  .shell{flex-direction:column}
+  .rail{position:sticky;top:0;height:auto;width:100%;border-right:none;border-bottom:1px solid var(--rule);z-index:30}
+  .rail-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+  .mark{font-size:24px}
+  .mark-sub{display:none}
+  .railbtn{
+    display:block;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;
+    padding:6px 11px;border-radius:5px;cursor:pointer;
+  }
+  nav{display:none;max-height:52vh}
+  nav.open{display:block}
+  .slash{display:none}
+  main{padding:0 18px 90px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="rail">
+  <div class="rail-head">
+    <div>
+      <p class="mark"><span>C</span>heet</p>
+      <div class="mark-sub">C99 / C11 · learn + reference</div>
+    </div>
+    <button class="railbtn" id="railbtn" aria-expanded="false">Menu</button>
+  </div>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="Search: malloc, struct, %d…" autocomplete="off" aria-label="Search Cheet">
+    <span class="slash">/</span>
+  </div>
+  <nav id="nav"></nav>
+</aside>
+
+<main>
+
+<header class="hero">
+  <h1>C, from<br>first line to<br><em>last free()</em>.</h1>
+  <p class="lede">Most languages hide the memory from you. C hands you the address and trusts you not to drop it. Cheet explains the syntax, the standard library, and the traps — with real reasons attached, not just snippets to copy.</p>
+  <div class="meta">
+    <span class="tag">Beginner → reference</span>
+    <span class="tag">C99 / C11</span>
+    <span class="tag">gcc &amp; clang</span>
+    <span class="tag">Press / to search</span>
+  </div>
+
+  <div class="memstrip">
+    <div class="memstrip-title">The idea the whole language rests on</div>
+    <div class="regions">
+      <div>
+        <div class="region-label">Stack</div>
+        <div class="cells">
+          <div class="cell">
+            <div class="val">42</div>
+            <div class="nm">x</div>
+            <div class="ad">0x7ffd10</div>
+          </div>
+          <div class="cell">
+            <div class="val ptr">0x5a2b00</div>
+            <div class="nm">p</div>
+            <div class="ad">0x7ffd18</div>
+          </div>
+        </div>
+      </div>
+      <div class="arrowline" aria-hidden="true"></div>
+      <div>
+        <div class="region-label">Heap</div>
+        <div class="cells">
+          <div class="cell">
+            <div class="val">7</div>
+            <div class="nm">[0]</div>
+            <div class="ad">0x5a2b00</div>
+          </div>
+          <div class="cell">
+            <div class="val">?</div>
+            <div class="nm">[1]</div>
+            <div class="ad">0x5a2b08</div>
+          </div>
+          <div class="cell">
+            <div class="val">?</div>
+            <div class="nm">[2]</div>
+            <div class="ad">0x5a2b10</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="memstrip-cap">
+      int x = 42;  <span>int *p = malloc(3 * sizeof *p);</span>  p[0] = 7;  <span>free(p);</span><br>
+      <span style="color:var(--dimmer)">x holds a number. p holds an <em>address</em> — that's the only difference between them.</span>
+    </div>
+  </div>
+</header>
+
+<div class="empty" id="empty">No match for <b id="qecho"></b>. Try a shorter word — <code>ptr</code>, <code>str</code>, <code>free</code>.</div>
+
+<!-- ================= 01 ================= -->
+<section id="s-start" data-num="0x01" data-title="Getting started">
+  <div class="sec-head"><span class="sec-num">0x01</span><h2>Getting started</h2></div>
+  <p class="sec-blurb">A C program is a collection of functions. When you run it, the operating system calls exactly one of them — <code>main</code> — and the program ends when <code>main</code> returns. Everything else happens because <code>main</code> asked for it, directly or indirectly.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>The whole program, line by line</h3>
+      <div class="codewrap"><pre>#include &lt;stdio.h&gt;      <span class="cm">// library declarations</span>
+
+int main(void) {         <span class="cm">// entry point</span>
+    printf("Hello, world\n");
+    return 0;            <span class="cm">// 0 = success</span>
+}</pre><button class="copy">Copy</button></div>
+      <p><strong>Line 1</strong> pastes in the declarations for <code>printf</code> and friends. C has no built-in printing — without this line the compiler has never heard of <code>printf</code>.</p>
+      <p><strong>Line 3</strong> declares a function called <code>main</code> that takes nothing (<code>void</code>) and returns an <code>int</code>. That int is the program's exit status, which the shell can inspect.</p>
+      <p><strong>Line 5</strong> returns 0, meaning "finished normally". Any non-zero value conventionally signals an error. Scripts check this.</p>
+      <p class="takeaway">Every statement ends in <code>;</code> and every block is wrapped in <code>{ }</code>. The compiler ignores line breaks entirely — the semicolon is what marks the end of a statement.</p>
+    </article>
+
+    <article class="card">
+      <h3>Compile and run</h3>
+      <div class="codewrap"><pre>gcc hello.c -o hello     <span class="cm">// compile</span>
+./hello                  <span class="cm">// run (Linux/macOS)</span>
+hello.exe                <span class="cm">// run (Windows)</span>
+
+<span class="cm">// the flags you should always use</span>
+gcc -Wall -Wextra -g -std=c11 hello.c -o hello</pre><button class="copy">Copy</button></div>
+      <p>C is compiled, not interpreted: <code>gcc</code> turns your text file into a standalone machine-code executable. Nothing needs to be installed on the machine that runs it.</p>
+      <p><code>-o hello</code> names the output; leave it off and you get a file called <code>a.out</code>. <code>-Wall -Wextra</code> switch on warnings — these are not pedantry, they catch genuine bugs like format-string mismatches and unused results. <code>-g</code> embeds debug info so <code>gdb</code> and sanitizers can show you line numbers.</p>
+      <p class="takeaway">Treat every warning as an error you haven't hit yet. In C, the compiler warning is often the only thing standing between you and a silent memory bug.</p>
+    </article>
+
+    <article class="card">
+      <h3>Command-line arguments</h3>
+      <div class="codewrap"><pre>int main(int argc, char *argv[]) {
+    <span class="cm">// argc = how many, argv = the strings</span>
+    for (int i = 0; i &lt; argc; i++)
+        printf("%d: %s\n", i, argv[i]);
+    return 0;
+}
+<span class="cm">// ./prog hello 42</span>
+<span class="cm">//   argc == 3</span>
+<span class="cm">//   argv[0] == "./prog"   argv[1] == "hello"</span>
+<span class="cm">//   argv[2] == "42"       argv[3] == NULL</span></pre><button class="copy">Copy</button></div>
+      <p>The shell splits your command on spaces and hands the pieces to your program as an array of strings. <code>argv[0]</code> is the program's own name, so real arguments start at index 1 — which is why <code>argc</code> is always at least 1.</p>
+      <p>Everything arrives as text. <code>"42"</code> is a three-byte string, not a number; converting it is your job (see <code>strtol</code> in the stdlib section).</p>
+    </article>
+
+    <article class="card">
+      <h3>Comments, whitespace, naming</h3>
+      <div class="codewrap"><pre><span class="cm">// single line (C99 and later)</span>
+
+<span class="cm">/* multi
+   line — cannot be nested */</span>
+
+<span class="cm">// whitespace is free-form; this compiles fine:</span>
+int    main ( void ) { return 0 ; }</pre><button class="copy">Copy</button></div>
+      <p>Comments are stripped before compilation, so they cost nothing at runtime. Note that <code>/* */</code> does not nest — starting a second one inside the first ends at the <em>first</em> <code>*/</code>, which silently swallows code.</p>
+      <p>Identifiers can use letters, digits and underscore, but must not start with a digit. C is case-sensitive, so <code>count</code>, <code>Count</code> and <code>COUNT</code> are three different names. Avoid leading underscores — those are reserved for the implementation.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 02 ================= -->
+<section id="s-types" data-num="0x02" data-title="Types &amp; variables">
+  <div class="sec-head"><span class="sec-num">0x02</span><h2>Types &amp; variables</h2></div>
+  <p class="sec-blurb">A type in C answers two questions: <strong>how many bytes do I reserve</strong>, and <strong>how do I interpret those bytes</strong>. The same 32 bits can be an integer, a float, or four characters — the type is what decides. Sizes are only guaranteed as minimums, so anything that must be an exact width belongs in <code>&lt;stdint.h&gt;</code>.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Declaring &amp; initializing</h3>
+      <div class="codewrap"><pre>int    count = 0;
+double ratio = 1.5;
+char   grade = 'A';       <span class="cm">// single quotes = one char</span>
+char  *name  = "Ada";     <span class="cm">// double quotes = string</span>
+
+int a, b, c;              <span class="cm">// several at once</span>
+int uninit;               <span class="cm">// holds garbage!</span>
+const int MAX = 100;      <span class="cm">// cannot be reassigned</span></pre><button class="copy">Copy</button></div>
+      <p>A declaration reserves storage; it does not clear it. An uninitialized local variable contains whatever bytes the previous function left on the stack, which is why the same program can behave differently between runs or between compilers.</p>
+      <p>The quotes matter more than they look: <code>'A'</code> is the single byte 65, while <code>"A"</code> is two bytes — <code>'A'</code> followed by a terminating <code>'\0'</code>.</p>
+      <p class="takeaway">Initialize at the point of declaration, every time. It costs one keystroke and removes an entire category of bug.</p>
+    </article>
+
+    <article class="card">
+      <h3>Integer types</h3>
+      <p>Pick a type by the range you need. Signed types spend one bit on the sign, so an <code>int</code> reaches about ±2 billion, while an <code>unsigned int</code> uses that bit for magnitude and reaches 4 billion — but can never be negative.</p>
+      <div class="tw"><table>
+        <tr><th>Type</th><th>Typical size</th><th>Range (typical)</th></tr>
+        <tr><td>char</td><td>1 byte</td><td>−128…127 (signedness varies)</td></tr>
+        <tr><td>short</td><td>2 bytes</td><td>−32,768…32,767</td></tr>
+        <tr><td>int</td><td>4 bytes</td><td>±2.1 billion</td></tr>
+        <tr><td>long</td><td>4 or 8</td><td>8 on Linux/macOS, 4 on Windows</td></tr>
+        <tr><td>long long</td><td>8 bytes</td><td>±9.2 quintillion</td></tr>
+        <tr><td>unsigned int</td><td>4 bytes</td><td>0…4,294,967,295</td></tr>
+      </table></div>
+      <p>Unsigned types <em>wrap</em> on overflow, which is well-defined: <code>0u - 1</code> is the maximum value. Signed overflow is undefined behaviour, and the compiler is allowed to assume it never occurs.</p>
+    </article>
+
+    <article class="card">
+      <h3>Floating point</h3>
+      <div class="codewrap"><pre>float       f = 3.14f;   <span class="cm">// ~7 digits,  4 bytes</span>
+double      d = 3.14;    <span class="cm">// ~15 digits, 8 bytes</span>
+long double l = 3.14L;   <span class="cm">// ≥ double</span></pre><button class="copy">Copy</button></div>
+      <p>Floats store numbers in binary scientific notation, so most decimal fractions have no exact representation — <code>0.1</code> is stored as something very slightly off. Errors accumulate across arithmetic, which is why <code>0.1 + 0.2 == 0.3</code> is false.</p>
+      <p>An unsuffixed literal like <code>3.14</code> is a <code>double</code>. Use <code>double</code> by default; <code>float</code> only buys you memory, and on most CPUs no speed.</p>
+      <p class="takeaway">Never use <code>==</code> on floats. Compare with a tolerance: <code>fabs(a - b) &lt; 1e-9</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Fixed-width types (portable code)</h3>
+      <div class="codewrap"><pre>#include &lt;stdint.h&gt;
+
+int8_t   a;   uint8_t   b;   <span class="cm">// exactly 8 bits</span>
+int16_t  c;   uint16_t  d;
+int32_t  e;   uint32_t  f;
+int64_t  g;   uint64_t  h;
+
+size_t   n;   <span class="cm">// unsigned; sizes and indices</span>
+ptrdiff_t k;  <span class="cm">// result of subtracting pointers</span>
+intptr_t  p;  <span class="cm">// an int wide enough to hold a pointer</span></pre><button class="copy">Copy</button></div>
+      <p>The plain types vary by platform, which breaks file formats and network protocols. The <code>stdint.h</code> names are exact everywhere, so use them whenever the byte layout is part of the contract.</p>
+      <p><code>size_t</code> is what <code>sizeof</code>, <code>strlen</code> and <code>malloc</code> all speak in. It is unsigned, so counting a loop <em>down</em> with <code>size_t i</code> and testing <code>i &gt;= 0</code> loops forever — it never goes below zero.</p>
+    </article>
+
+    <article class="card">
+      <h3>bool, void and sizeof</h3>
+      <div class="codewrap"><pre>#include &lt;stdbool.h&gt;
+bool ok = true;          <span class="cm">// C99; before that, use int</span>
+
+void doNothing(void);    <span class="cm">// no params, no return value</span>
+void *raw;               <span class="cm">// pointer to "some type"</span>
+
+printf("%zu\n", sizeof(int));   <span class="cm">// 4 — type needs parens</span>
+printf("%zu\n", sizeof x);      <span class="cm">// variable does not</span>
+sizeof arr / sizeof arr[0]      <span class="cm">// element count</span></pre><button class="copy">Copy</button></div>
+      <p><code>sizeof</code> is computed at compile time and yields bytes. The division idiom works because total bytes ÷ bytes per element = element count — but only where the array was declared, since passing it to a function turns it into a pointer and loses the size.</p>
+      <p><code>void</code> means three different things depending on position: no parameters, no return value, or (as <code>void*</code>) a pointer whose target type is deliberately unknown.</p>
+    </article>
+
+    <article class="card">
+      <h3>Type qualifiers</h3>
+      <ul>
+        <li><strong>const</strong> — a promise that this name will not be used to modify the value. Mostly a documentation and safety tool; it lets the compiler reject accidental writes and lets callers know a function won't touch their data.</li>
+        <li><strong>volatile</strong> — "this may change without the program changing it". Stops the compiler caching the value in a register. Needed for hardware registers and variables shared with signal handlers; it is <em>not</em> a threading tool.</li>
+        <li><strong>restrict</strong> — a promise that no other pointer reaches this memory, which lets the optimizer skip reloads. Break the promise and you get silent wrong answers.</li>
+        <li><strong>_Atomic</strong> — C11; reads and writes cannot be torn by another thread.</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>Storage classes: lifetime vs visibility</h3>
+      <div class="codewrap"><pre>int g;                <span class="cm">// global: visible to every file</span>
+static int hidden;    <span class="cm">// global, but private to this file</span>
+extern int g;         <span class="cm">// "exists, defined elsewhere"</span>
+
+void f(void) {
+    int local;             <span class="cm">// born and dies with the call</span>
+    static int calls = 0;  <span class="cm">// survives between calls</span>
+    calls++;
+}</pre><button class="copy">Copy</button></div>
+      <p>Two independent questions: <em>how long does it live</em>, and <em>who can see it</em>. A local lives for one call; a global or <code>static</code> lives for the whole program and is zero-initialized before <code>main</code> starts.</p>
+      <p><code>static</code> confusingly answers both, depending on where it sits. At file scope it means "private to this file". Inside a function it means "persistent across calls, still only visible in here".</p>
+    </article>
+
+    <article class="card">
+      <h3>Literals &amp; escapes</h3>
+      <div class="codewrap"><pre>42      <span class="cm">// int</span>          0x2A   <span class="cm">// hex → 42</span>
+042     <span class="cm">// OCTAL → 34!</span>  0b101  <span class="cm">// binary (GCC ext)</span>
+42U     <span class="cm">// unsigned</span>     42L    <span class="cm">// long</span>
+42ULL   <span class="cm">// unsigned long long</span>
+1e-3    <span class="cm">// double</span>       1.5f   <span class="cm">// float</span>
+
+\n \t \\ \' \" \0 \r \a \xFF \101</pre><button class="copy">Copy</button></div>
+      <p>A suffix changes the literal's type, which matters in mixed expressions: <code>1 &lt;&lt; 31</code> overflows a signed <code>int</code>, while <code>1u &lt;&lt; 31</code> is fine.</p>
+      <p class="takeaway">A leading zero means octal. Writing <code>const int mask = 0755;</code> is intentional; writing <code>int minutes = 09;</code> is a compile error, because 9 is not an octal digit.</p>
+    </article>
+
+    <article class="card">
+      <h3>Conversion &amp; casting</h3>
+      <div class="codewrap"><pre>int    i = (int)3.9;      <span class="cm">// 3 — truncates, no rounding</span>
+double d = 7 / 2;         <span class="cm">// 3.0! division happens first</span>
+double e = 7 / 2.0;       <span class="cm">// 3.5</span>
+double f = (double)7 / 2; <span class="cm">// 3.5</span>
+
+if (-1 &lt; 1u) { <span class="cm">/* FALSE — see below */</span> }</pre><button class="copy">Copy</button></div>
+      <p>C converts operands to a common type before it computes. <code>7 / 2</code> is integer ÷ integer, so it produces the integer 3 — and assigning that to a <code>double</code> afterwards cannot recover the lost half. Make one operand a double <em>before</em> the division.</p>
+      <p>When signed meets unsigned of the same rank, the signed value converts to unsigned. <code>-1</code> becomes 4,294,967,295, so the comparison above is false. This is a common source of loops that never terminate.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 03 ================= -->
+<section id="s-ops" data-num="0x03" data-title="Operators">
+  <div class="sec-head"><span class="sec-num">0x03</span><h2>Operators</h2></div>
+  <p class="sec-blurb">C has a lot of operators and a precedence table almost nobody has memorised. Parentheses cost nothing and have never once made a code review worse.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Arithmetic &amp; assignment</h3>
+      <div class="codewrap"><pre>+  -  *  /  %        <span class="cm">// % = remainder, integers only</span>
+++x  --x             <span class="cm">// pre:  change, then yield</span>
+x++  x--             <span class="cm">// post: yield, then change</span>
+
+=  +=  -=  *=  /=  %=  &amp;=  |=  ^=  &lt;&lt;=  &gt;&gt;=
+
+int a = 5, b = 2;
+a / b   <span class="cm">// 2  — the fraction is discarded</span>
+a % b   <span class="cm">// 1</span>
+-7 / 2  <span class="cm">// -3 — truncates toward zero</span>
+-7 % 2  <span class="cm">// -1 — sign follows the dividend</span></pre><button class="copy">Copy</button></div>
+      <p>The pre/post distinction only matters when you use the result: <code>b = a++</code> gives b the old value, <code>b = ++a</code> the new one. As a standalone statement they are identical, so prefer <code>i++</code> in loops out of habit and don't think about it further.</p>
+      <p><code>%</code> works on integers only. For floating point use <code>fmod()</code> from <code>math.h</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Comparison &amp; logic</h3>
+      <div class="codewrap"><pre>==  !=  &lt;  &gt;  &lt;=  &gt;=
+
+&amp;&amp;   <span class="cm">// AND — stops at the first false</span>
+||   <span class="cm">// OR  — stops at the first true</span>
+!    <span class="cm">// NOT</span>
+
+if (p != NULL &amp;&amp; p-&gt;value &gt; 0) { ... }
+<span class="cm">// p-&gt;value is never evaluated when p is NULL</span></pre><button class="copy">Copy</button></div>
+      <p>C has no separate boolean type in its core: <strong>0 is false, every other value is true</strong>. Comparisons produce exactly 0 or 1.</p>
+      <p>Short-circuiting is guaranteed by the standard, not an optimization, so it is safe to rely on it as a guard. The order matters — reverse the two halves above and you dereference NULL.</p>
+    </article>
+
+    <article class="card">
+      <h3>Bitwise</h3>
+      <div class="codewrap"><pre>&amp;    AND      0b1100 &amp; 0b1010 = 0b1000
+|    OR       0b1100 | 0b1010 = 0b1110
+^    XOR      0b1100 ^ 0b1010 = 0b0110
+~    NOT      ~0b1100         = 0b0011
+&lt;&lt;   left     1 &lt;&lt; 3 = 8   (× 2ⁿ)
+&gt;&gt;   right    8 &gt;&gt; 3 = 1   (÷ 2ⁿ)</pre><button class="copy">Copy</button></div>
+      <p>These work bit by bit on the binary representation, in parallel across the whole value. That makes them the natural tool for flag sets and hardware registers — one <code>unsigned int</code> holds 32 independent yes/no answers.</p>
+      <p class="takeaway">Don't confuse <code>&amp;</code> with <code>&amp;&amp;</code>. <code>1 &amp; 2</code> is 0 (no shared bits) but <code>1 &amp;&amp; 2</code> is 1 (both are truthy).</p>
+    </article>
+
+    <article class="card">
+      <h3>Ternary, comma, and the rest</h3>
+      <div class="codewrap"><pre>int max = (a &gt; b) ? a : b;   <span class="cm">// an expression, not a</span>
+                             <span class="cm">// statement — it has a value</span>
+
+for (i = 0, j = n; i &lt; j; i++, j--)   <span class="cm">// comma</span>
+
+sizeof x        <span class="cm">// bytes occupied</span>
+&amp;x              <span class="cm">// address of</span>
+*p              <span class="cm">// value at</span>
+a[i]            <span class="cm">// identical to *(a + i)</span>
+s.field         <span class="cm">// member of a struct</span>
+p-&gt;field        <span class="cm">// member through a pointer</span></pre><button class="copy">Copy</button></div>
+      <p>The ternary is useful precisely because it produces a value, so it can appear inside an initializer or an argument where an <code>if</code> cannot. Nesting more than one is where readability goes to die.</p>
+      <p>The comma operator evaluates left, throws it away, and yields right. Its only respectable home is a <code>for</code> header.</p>
+    </article>
+
+    <article class="card">
+      <h3>Precedence — highest to lowest</h3>
+      <div class="tw"><table>
+        <tr><th>Level</th><th>Operators</th><th>Assoc.</th></tr>
+        <tr><td>1</td><td>() [] -&gt; . postfix++ --</td><td>L → R</td></tr>
+        <tr><td>2</td><td>! ~ ++x --x +x -x (cast) * &amp; sizeof</td><td>R → L</td></tr>
+        <tr><td>3</td><td>* / %</td><td>L → R</td></tr>
+        <tr><td>4</td><td>+ −</td><td>L → R</td></tr>
+        <tr><td>5</td><td>&lt;&lt; &gt;&gt;</td><td>L → R</td></tr>
+        <tr><td>6</td><td>&lt; &lt;= &gt; &gt;=</td><td>L → R</td></tr>
+        <tr><td>7</td><td>== !=</td><td>L → R</td></tr>
+        <tr><td>8–10</td><td>&amp; then ^ then |</td><td>L → R</td></tr>
+        <tr><td>11–12</td><td>&amp;&amp; then ||</td><td>L → R</td></tr>
+        <tr><td>13</td><td>?:</td><td>R → L</td></tr>
+        <tr><td>14</td><td>= += −= etc.</td><td>R → L</td></tr>
+        <tr><td>15</td><td>,</td><td>L → R</td></tr>
+      </table></div>
+      <p>The one worth memorising: the bitwise operators sit <em>below</em> the comparisons, which is the opposite of what everyone expects.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Where precedence actually bites</h3>
+      <div class="codewrap"><pre>if (x &amp; 1 == 0)      <span class="cm">// parsed as x &amp; (1 == 0) → x &amp; 0 → 0</span>
+if ((x &amp; 1) == 0)    <span class="cm">// what you meant</span>
+
+*p++                 <span class="cm">// ++ binds tighter: advance p,</span>
+                     <span class="cm">// dereference the old value</span>
+(*p)++               <span class="cm">// increment the pointed-to value</span>
+
+a &lt;&lt; 1 + 2           <span class="cm">// + is higher → a &lt;&lt; 3</span></pre><button class="copy">Copy</button></div>
+      <p>The first line is the classic: it compiles cleanly, always evaluates to false, and looks correct at a glance. None of these are bugs the compiler can warn you about, because all four are legal expressions.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 04 ================= -->
+<section id="s-flow" data-num="0x04" data-title="Control flow">
+  <div class="sec-head"><span class="sec-num">0x04</span><h2>Control flow</h2></div>
+  <p class="sec-blurb">Five constructs cover everything you'll ever write: <code>if</code>, <code>switch</code>, <code>while</code>, <code>do-while</code>, <code>for</code>. And <code>goto</code>, which has exactly one defensible use.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>if / else if / else</h3>
+      <div class="codewrap"><pre>if (score &gt;= 90) {
+    puts("A");
+} else if (score &gt;= 80) {
+    puts("B");
+} else {
+    puts("F");
+}
+
+if (x) doThis();     <span class="cm">// legal, but write the braces</span></pre><button class="copy">Copy</button></div>
+      <p>The condition is any expression: zero is false, non-zero is true. That means <code>if (p)</code> is a perfectly idiomatic null check and <code>if (n)</code> tests "n is not zero".</p>
+      <p>Braces are optional around a single statement, and that optionality has caused real security vulnerabilities — adding a second line under a brace-less <code>if</code> silently puts it outside the condition. Always brace.</p>
+      <p class="takeaway">Watch for the stray semicolon: <code>if (x);</code> gives the <code>if</code> an empty body, and the block after it runs unconditionally.</p>
+    </article>
+
+    <article class="card">
+      <h3>switch</h3>
+      <div class="codewrap"><pre>switch (ch) {
+    case 'a':
+    case 'A':                 <span class="cm">// deliberate fallthrough</span>
+        puts("letter A");
+        break;                <span class="cm">// without this, execution</span>
+                              <span class="cm">// continues into the next case</span>
+    case 'b':
+        puts("letter B");
+        break;
+    default:
+        puts("something else");
+}</pre><button class="copy">Copy</button></div>
+      <p>A <code>switch</code> is a jump table, not a chain of tests: control jumps to the matching label and then <strong>keeps running downward</strong> until it hits a <code>break</code>. Stacking labels as above is how you deliberately share a body; forgetting the break is how you accidentally do.</p>
+      <p>Only integer types work — <code>int</code>, <code>char</code>, <code>enum</code>. You cannot switch on strings or doubles. Every case label must be a compile-time constant.</p>
+      <p class="takeaway">Declaring a variable directly inside a case needs its own braces: <code>case 1: { int t = 0; ... break; }</code></p>
+    </article>
+
+    <article class="card">
+      <h3>The three loops</h3>
+      <div class="codewrap"><pre><span class="cm">// for: you know the iteration count up front</span>
+for (int i = 0; i &lt; n; i++) { ... }
+<span class="cm">//   init      test     step</span>
+
+<span class="cm">// while: test first, so it may run zero times</span>
+while (more_data()) { ... }
+
+<span class="cm">// do-while: body first, so it always runs once</span>
+do { prompt(); } while (!valid);
+
+for (;;) { ... }     while (1) { ... }   <span class="cm">// infinite</span></pre><button class="copy">Copy</button></div>
+      <p>All three are interchangeable in power — pick the one that states your intent. <code>for</code> when there's a counter, <code>while</code> when you're waiting on a condition, <code>do-while</code> when the first attempt must happen before you can judge it (menus, input validation, retry loops).</p>
+      <p>The <code>for</code> header's three parts are all optional. Declaring the counter inside the header (C99) keeps it scoped to the loop, which is almost always what you want.</p>
+    </article>
+
+    <article class="card">
+      <h3>break, continue, and the one good goto</h3>
+      <div class="codewrap"><pre>for (int i = 0; i &lt; n; i++) {
+    if (a[i] &lt; 0) continue;    <span class="cm">// skip the rest of</span>
+                               <span class="cm">// this iteration</span>
+    if (a[i] == target) break; <span class="cm">// leave the loop entirely</span>
+}
+
+<span class="cm">// goto's respectable use: unwinding cleanup</span>
+FILE *f = fopen("x", "r");
+if (!f) goto fail;
+char *buf = malloc(1024);
+if (!buf) goto close_file;
+<span class="cm">// ... work ...</span>
+free(buf);
+close_file: fclose(f);
+fail:       return -1;</pre><button class="copy">Copy</button></div>
+      <p><code>break</code> only escapes the <em>innermost</em> loop or switch. To leave nested loops you need a flag, a <code>goto</code>, or to extract the loops into a function and <code>return</code>.</p>
+      <p>C has no destructors, so every early exit must release whatever was acquired so far. The label-cascade pattern above puts that cleanup in one place instead of duplicating it at every failure point — which is why you'll see it throughout the Linux kernel.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 05 ================= -->
+<section id="s-func" data-num="0x05" data-title="Functions">
+  <div class="sec-head"><span class="sec-num">0x05</span><h2>Functions</h2></div>
+  <p class="sec-blurb">C passes arguments <strong>by value</strong>, always. The function receives a private copy and anything it does to that copy is invisible to the caller. To let a function reach your variable, you hand it the address instead — that is the entire reason pointers appear in ordinary code.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Declare, define, call</h3>
+      <div class="codewrap"><pre><span class="cm">// prototype (declaration) — usually in a .h file</span>
+int add(int a, int b);
+
+<span class="cm">// definition — the actual body</span>
+int add(int a, int b) { return a + b; }
+
+int sum = add(2, 3);              <span class="cm">// call</span>
+void greet(void) { puts("hi"); }  <span class="cm">// returns nothing</span></pre><button class="copy">Copy</button></div>
+      <p>The compiler reads top to bottom and needs to know a function's signature before it sees a call, so it can check argument types and generate the right code. A prototype is that advance notice — it lets you define functions in any order and put the declarations in a header for other files.</p>
+      <p>Write <code>(void)</code>, not <code>()</code>, for a function taking no parameters. Empty parentheses mean "unspecified arguments" in older C and disable checking.</p>
+    </article>
+
+    <article class="card">
+      <h3>By value vs by pointer</h3>
+      <div class="codewrap"><pre>void broken(int x)  { x = 99; }   <span class="cm">// edits the copy</span>
+void works (int *x) { *x = 99; }  <span class="cm">// edits the original</span>
+
+int n = 1;
+broken(n);      <span class="cm">// n is still 1</span>
+works(&amp;n);      <span class="cm">// n is now 99</span>
+
+<span class="cm">// arrays are the exception: they decay to pointers,</span>
+<span class="cm">// so the callee CAN modify the caller's data</span>
+void zero(int a[], size_t n) {
+    for (size_t i = 0; i &lt; n; i++) a[i] = 0;
+}</pre><button class="copy">Copy</button></div>
+      <p>Read <code>works(&amp;n)</code> as "here is where n lives, go edit it". Inside, <code>*x = 99</code> means "write 99 to the place x points at". The pointer itself is still passed by value — the function gets a copy of the address — but the address still leads to your variable.</p>
+      <p>Arrays feel like an exception but follow the same rule: what's copied is the address of the first element, not the contents.</p>
+    </article>
+
+    <article class="card">
+      <h3>Returning more than one value</h3>
+      <div class="codewrap"><pre><span class="cm">// option 1: out-parameters</span>
+void divmod(int a, int b, int *q, int *r) {
+    *q = a / b;
+    *r = a % b;
+}
+int q, r;  divmod(17, 5, &amp;q, &amp;r);
+
+<span class="cm">// option 2: return a struct (a real copy, safe)</span>
+typedef struct { int q, r; } DivResult;
+DivResult divmod2(int a, int b) {
+    return (DivResult){ a / b, a % b };
+}</pre><button class="copy">Copy</button></div>
+      <p>C returns exactly one value, so multi-result functions either write through pointers or bundle the results into a struct. The common hybrid: return a status code, deliver the payload through an out-parameter — which is how most of the standard library and POSIX behave.</p>
+      <p class="takeaway">Returning a struct is safe; returning a pointer to a local is not. The struct is copied, the local is destroyed.</p>
+    </article>
+
+    <article class="card">
+      <h3>Function pointers</h3>
+      <div class="codewrap"><pre><span class="cm">// op points to a function (int,int) → int</span>
+int (*op)(int, int) = add;
+int r = op(2, 3);
+
+<span class="cm">// typedef makes them survivable</span>
+typedef int (*BinOp)(int, int);
+BinOp table[] = { add, sub, mul };
+int v = table[1](10, 4);
+
+<span class="cm">// the classic: qsort's comparator</span>
+int cmp(const void *a, const void *b) {
+    int x = *(const int *)a, y = *(const int *)b;
+    return (x &gt; y) - (x &lt; y);   <span class="cm">// -1, 0, or 1</span>
+}
+qsort(arr, n, sizeof arr[0], cmp);</pre><button class="copy">Copy</button></div>
+      <p>Code lives in memory too, so it has an address, and a variable can hold it. That gives you callbacks, plugin tables and dispatch without any object system: <code>qsort</code> can sort anything precisely because you supply the comparison.</p>
+      <p>The parentheses around <code>*op</code> are load-bearing — without them <code>int *op(int,int)</code> declares a function returning <code>int*</code>. Note the comparator returns a <em>sign</em>, not a difference; subtracting can overflow.</p>
+    </article>
+
+    <article class="card">
+      <h3>Variadic functions</h3>
+      <div class="codewrap"><pre>#include &lt;stdarg.h&gt;
+
+int sum(int count, ...) {
+    va_list ap;
+    va_start(ap, count);       <span class="cm">// start after `count`</span>
+    int total = 0;
+    for (int i = 0; i &lt; count; i++)
+        total += va_arg(ap, int);   <span class="cm">// you state the type</span>
+    va_end(ap);
+    return total;
+}
+sum(3, 10, 20, 30);   <span class="cm">// 60</span></pre><button class="copy">Copy</button></div>
+      <p>This is how <code>printf</code> works. The catch is that C keeps no record of how many arguments arrived or what types they were — <code>va_arg</code> just reads the next slot and trusts the type you name.</p>
+      <p>So the count has to come from somewhere: an explicit parameter, a sentinel like <code>NULL</code> at the end, or a format string. Get it wrong and you read past the argument list, which is exactly the <code>printf("%s", 42)</code> crash.</p>
+    </article>
+
+    <article class="card">
+      <h3>Recursion &amp; inline</h3>
+      <div class="codewrap"><pre>unsigned long fact(unsigned n) {
+    if (n &lt;= 1) return 1;     <span class="cm">// base case FIRST</span>
+    return n * fact(n - 1);   <span class="cm">// shrinks toward it</span>
+}
+
+static inline int square(int x) { return x * x; }</pre><button class="copy">Copy</button></div>
+      <p>Every recursive call allocates a fresh stack frame for its own parameters and locals. That's what makes recursion work — each level has private variables — and also what limits it: the stack is typically 1–8 MB, so a few tens of thousands of frames will overflow it and crash.</p>
+      <p>A recursive function needs a base case that stops it, and each call must move measurably closer to that base case. <code>inline</code> is only a hint asking the compiler to paste the body at the call site; modern compilers largely decide for themselves.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 06 ================= -->
+<section id="s-ptr" data-num="0x06" data-title="Pointers &amp; memory">
+  <div class="sec-head"><span class="sec-num">0x06</span><h2>Pointers &amp; memory</h2></div>
+  <p class="sec-blurb">Memory is one enormous numbered array of bytes. A pointer is just a variable holding one of those numbers. That's the whole concept — arrays, strings, structs on the heap, linked lists and function callbacks are all consequences of it.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>The two operators</h3>
+      <div class="codewrap"><pre>int  x = 42;
+int *p = &amp;x;              <span class="cm">// &amp; = "address of x"</span>
+
+printf("%d\n",  x);       <span class="cm">// 42</span>
+printf("%p\n", (void*)p); <span class="cm">// 0x7ffd10 — the address</span>
+printf("%d\n", *p);       <span class="cm">// 42 — * = "value living there"</span>
+
+*p = 99;                  <span class="cm">// write through the pointer</span>
+printf("%d\n", x);        <span class="cm">// 99 — x itself changed</span></pre><button class="copy">Copy</button></div>
+      <p>Think of <code>x</code> as a labelled box and <code>&amp;x</code> as its street address. <code>p</code> is a different box that stores that address. Dereferencing with <code>*p</code> means "go to that address and use what's there" — so writing through <code>p</code> changes <code>x</code>, because they are the same box reached two ways.</p>
+      <p class="takeaway">The <code>*</code> symbol has two jobs. In a <em>declaration</em> it means "this is a pointer". In an <em>expression</em> it means "go there now".</p>
+    </article>
+
+    <article class="card">
+      <h3>Reading a pointer declaration</h3>
+      <div class="codewrap"><pre>int  *p;        <span class="cm">// pointer to int</span>
+int **pp;       <span class="cm">// pointer to pointer to int</span>
+int  *a[10];    <span class="cm">// array of 10 pointers to int</span>
+int (*a)[10];   <span class="cm">// pointer to an array of 10 ints</span>
+int  *f(void);  <span class="cm">// function returning int*</span>
+int (*f)(void); <span class="cm">// pointer to function returning int</span>
+
+int *a, b;      <span class="cm">// a is int*, b is a plain int!</span></pre><button class="copy">Copy</button></div>
+      <p>Start at the name and read outward, going right before left: <code>[]</code> and <code>()</code> bind tighter than <code>*</code>, and parentheses override that. So in <code>int *a[10]</code> the <code>[10]</code> applies first ("array of 10"), then the <code>*</code> ("of pointers"), then <code>int</code>.</p>
+      <p>The last line trips up everyone: the <code>*</code> attaches to the variable, not the type. Declare one pointer per line and the problem disappears.</p>
+    </article>
+
+    <article class="card">
+      <h3>const and pointers — two different locks</h3>
+      <div class="codewrap"><pre>const int *p;        <span class="cm">// pointer to const int</span>
+int const *p;        <span class="cm">// identical</span>
+  <span class="cm">// *p = 5;   ERROR    |  p = &amp;other;  fine</span>
+
+int *const p = &amp;x;   <span class="cm">// const pointer to int</span>
+  <span class="cm">// *p = 5;   fine     |  p = &amp;other;  ERROR</span>
+
+const int *const p = &amp;x;   <span class="cm">// both locked</span></pre><button class="copy">Copy</button></div>
+      <p>There are two things that could be constant: the pointer, or the thing it points to. The rule is that <code>const</code> applies to whatever is immediately to its left — or to its right if there's nothing on the left. <code>*</code> is the dividing line.</p>
+      <p>The first form is by far the common one. A function taking <code>const char *s</code> is telling you it will read your string and not modify it, which is why <code>strlen</code> and <code>strcmp</code> declare their parameters that way.</p>
+    </article>
+
+    <article class="card">
+      <h3>Pointer arithmetic</h3>
+      <div class="codewrap"><pre>int a[5] = {10,20,30,40,50};
+int *p = a;          <span class="cm">// array name decays to &amp;a[0]</span>
+
+p + 1                <span class="cm">// moves 4 bytes (one int), not 1</span>
+*(p + 2)             <span class="cm">// 30 — exactly what a[2] means</span>
+p++;                 <span class="cm">// now points at a[1]</span>
+p - a                <span class="cm">// 1 — measured in ELEMENTS</span>
+
+for (int *q = a; q &lt; a + 5; q++) printf("%d ", *q);</pre><button class="copy">Copy</button></div>
+      <p>Arithmetic on pointers is scaled by the size of the pointed-to type automatically, so <code>p + 1</code> always means "the next element" regardless of whether that's 1 byte or 400. This is why <code>void*</code> can't do arithmetic — the step size is unknown.</p>
+      <p>And this is what indexing <em>is</em>: <code>a[i]</code> is defined as <code>*(a + i)</code>. Which, amusingly, makes <code>3[a]</code> legal C.</p>
+      <p class="takeaway">Arithmetic is only valid within a single array, plus one position past its end (useful as a loop bound, but never dereference it).</p>
+    </article>
+
+    <article class="card">
+      <h3>NULL and void*</h3>
+      <div class="codewrap"><pre>int *p = NULL;       <span class="cm">// "deliberately points at nothing"</span>
+if (p == NULL) ...   <span class="cm">// or simply  if (!p)</span>
+
+void *raw = malloc(64);   <span class="cm">// typeless pointer</span>
+int  *nums = raw;         <span class="cm">// no cast needed in C</span>
+<span class="cm">// void* cannot be dereferenced or advanced</span></pre><button class="copy">Copy</button></div>
+      <p><code>NULL</code> is a reserved address that no valid object occupies, so it can safely mean "empty". It's the standard return for functions that failed to produce a pointer, and the standard end-marker for linked structures.</p>
+      <p>Dereferencing NULL crashes immediately — which is the <em>good</em> outcome. A pointer holding stale garbage may silently corrupt unrelated data and surface as a bug three functions away.</p>
+      <p><code>void*</code> is C's escape hatch for generic code: <code>malloc</code> returns one because it has no idea what you'll store, and <code>qsort</code> takes them because it sorts anything.</p>
+    </article>
+
+    <article class="card">
+      <h3>Pointer to pointer</h3>
+      <div class="codewrap"><pre>int   x  = 5;
+int  *p  = &amp;x;
+int **pp = &amp;p;
+**pp = 10;       <span class="cm">// x is now 10</span>
+
+<span class="cm">// why it exists: changing the CALLER'S pointer</span>
+void alloc_it(int **out) {
+    *out = malloc(sizeof **out);
+    **out = 7;
+}
+int *q;  alloc_it(&amp;q);   <span class="cm">// q now points at the block</span></pre><button class="copy">Copy</button></div>
+      <p>Same rule as before, one level up. To modify an <code>int</code> a function needs <code>int*</code>; to modify an <code>int*</code> it needs <code>int**</code>. Pass <code>alloc_it</code> a plain <code>int*</code> and it would set a copy, leaving your <code>q</code> uninitialized.</p>
+      <p>You'll meet this in three places: allocator functions like the one above, arrays of strings (<code>char **argv</code>), and any linked-list code that has to update the caller's <code>head</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Where memory comes from</h3>
+      <ul>
+        <li><strong>Stack</strong> — locals and parameters. Allocated and freed automatically as functions enter and exit, extremely fast, but fixed in size (typically 1–8 MB) and gone the moment the function returns.</li>
+        <li><strong>Heap</strong> — whatever you <code>malloc</code>. You decide when it dies, it can be large, and it outlives the function that created it — at the price of having to free it yourself.</li>
+        <li><strong>Static / global</strong> — lives for the entire program, zero-initialized before <code>main</code> runs.</li>
+        <li><strong>Text / read-only</strong> — the compiled code and string literals. Writing here is undefined and usually a segfault.</li>
+      </ul>
+      <div class="codewrap"><pre>char *bad(void) {
+    char buf[64];            <span class="cm">// on the stack</span>
+    return buf;              <span class="cm">// buf ceases to exist HERE</span>
+}
+char *good(void) {
+    char *buf = malloc(64);  <span class="cm">// on the heap</span>
+    return buf;              <span class="cm">// valid — caller must free()</span>
+}</pre><button class="copy">Copy</button></div>
+      <p class="takeaway">The question to ask about any pointer: does the thing it points to still exist? That single question catches most C memory bugs.</p>
+    </article>
+
+    <article class="card">
+      <h3>malloc / calloc / realloc / free</h3>
+      <div class="codewrap"><pre>#include &lt;stdlib.h&gt;
+
+int *a = malloc(n * sizeof *a);   <span class="cm">// uninitialized bytes</span>
+int *b = calloc(n, sizeof *b);    <span class="cm">// zero-filled</span>
+
+if (a == NULL) { <span class="cm">/* allocation failed */</span> }
+
+<span class="cm">// growing: never assign realloc's result to `a`</span>
+int *tmp = realloc(a, 2 * n * sizeof *a);
+if (tmp == NULL) { free(a); return -1; }
+a = tmp;
+
+free(a);
+a = NULL;</pre><button class="copy">Copy</button></div>
+      <p><code>malloc</code> asks for a number of <em>bytes</em> and hands back the address of a block that stays yours until you free it. It does not clear the memory; <code>calloc</code> does, and also checks the multiplication for overflow, which makes it the safer default for arrays.</p>
+      <p><code>realloc</code> may move the block to a bigger spot and returns the new address — so it returns NULL on failure. Assigning straight to <code>a</code> would overwrite your only reference to the old block and leak it.</p>
+      <p class="takeaway">Write <code>sizeof *a</code>, not <code>sizeof(int)</code>. If you later change <code>a</code>'s type, the allocation size follows automatically.</p>
+    </article>
+
+    <article class="card">
+      <h3>Dynamic 2D arrays</h3>
+      <div class="codewrap"><pre><span class="cm">// A) one flat block — one malloc, one free, fast</span>
+int *grid = malloc(rows * cols * sizeof *grid);
+grid[r * cols + c] = 1;          <span class="cm">// index by hand</span>
+free(grid);
+
+<span class="cm">// B) array of row pointers — real [r][c] syntax</span>
+int **m = malloc(rows * sizeof *m);
+for (int i = 0; i &lt; rows; i++)
+    m[i] = malloc(cols * sizeof *m[i]);
+m[r][c] = 1;
+for (int i = 0; i &lt; rows; i++) free(m[i]);  <span class="cm">// rows first!</span>
+free(m);</pre><button class="copy">Copy</button></div>
+      <p>Option A keeps the whole grid contiguous, so it's cache-friendly and impossible to half-free. The <code>r * cols + c</code> formula is just "skip r full rows, then c elements".</p>
+      <p>Option B buys nicer syntax at the cost of many allocations and scattered rows. Free them in reverse order of creation — free the outer array first and you've lost the addresses of every row.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>The four memory bugs</h3>
+      <ul>
+        <li><strong>Leak</strong> — allocated, never freed. The program's memory use climbs until it is killed. Harmless in a five-second script, fatal in a server.</li>
+        <li><strong>Use-after-free</strong> — reading or writing a block you already returned. It usually appears to work, because the bytes are still there, right up until the allocator reuses them.</li>
+        <li><strong>Double free</strong> — freeing the same block twice corrupts the allocator's bookkeeping, and the crash surfaces in some unrelated <code>malloc</code> later.</li>
+        <li><strong>Buffer overflow</strong> — writing past the end of a block, overwriting whatever sat next to it. The classic security hole.</li>
+      </ul>
+      <p>None of these reliably crash at the scene of the crime, which is why you don't debug them by reading the code — you run the tools:</p>
+      <div class="codewrap"><pre>gcc -fsanitize=address,undefined -g prog.c -o prog
+valgrind --leak-check=full ./prog</pre><button class="copy">Copy</button></div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 07 ================= -->
+<section id="s-arr" data-num="0x07" data-title="Arrays &amp; strings">
+  <div class="sec-head"><span class="sec-num">0x07</span><h2>Arrays &amp; strings</h2></div>
+  <p class="sec-blurb">An array is a run of identical values laid end to end. A C string is nothing more than an array of <code>char</code> ending in a zero byte — there is no length field, no capacity, and nothing anywhere checks your bounds.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Arrays</h3>
+      <div class="codewrap"><pre>int a[5];                    <span class="cm">// 5 ints of garbage</span>
+int b[5] = {1,2,3,4,5};
+int c[5] = {1,2};            <span class="cm">// remaining slots → 0</span>
+int d[]  = {1,2,3};          <span class="cm">// size inferred: 3</span>
+int e[5] = {0};              <span class="cm">// all zero</span>
+int f[5] = {[2] = 7};        <span class="cm">// designated (C99)</span>
+
+size_t n = sizeof a / sizeof a[0];   <span class="cm">// 5</span></pre><button class="copy">Copy</button></div>
+      <p>The elements sit contiguously in memory, which is why indexing is a single multiply-and-add and why arrays are so cache-friendly. The size must be a compile-time constant (unless you use a VLA), and it can never change afterwards.</p>
+      <p>Partial initializers zero-fill the rest, which is what makes <code>{0}</code> the idiom for clearing an array. Indices run <code>0</code> to <code>n-1</code>; writing <code>a[5]</code> on a five-element array is undefined behaviour, not an error — the compiler won't stop you and neither will the CPU.</p>
+    </article>
+
+    <article class="card">
+      <h3>Multidimensional arrays &amp; VLAs</h3>
+      <div class="codewrap"><pre>int grid[3][4];                <span class="cm">// 3 rows of 4</span>
+int m[2][3] = {{1,2,3},{4,5,6}};
+m[1][2];                       <span class="cm">// 6</span>
+
+<span class="cm">// stored row-major: m[1][2] sits at offset 1*3+2</span>
+
+void print(int rows, int a[][4]) { ... }
+<span class="cm">// every dimension but the first must be given</span>
+
+void f(int n) { int tmp[n]; }  <span class="cm">// VLA (C99)</span></pre><button class="copy">Copy</button></div>
+      <p>A 2D array is really one flat block; the second dimension is just arithmetic. That's why the compiler needs the column count to index it — without knowing a row is 4 wide, it cannot find row 1.</p>
+      <p>VLAs size themselves at runtime but live on the stack, so a large or attacker-controlled <code>n</code> will blow it. They're also optional in C11. For anything sizeable, <code>malloc</code> instead.</p>
+    </article>
+
+    <article class="card">
+      <h3>Strings and the null terminator</h3>
+      <div class="codewrap"><pre>char s[] = "hi";     <span class="cm">// {'h','i','\0'} — 3 bytes</span>
+char t[6] = "hi";    <span class="cm">// h i \0 \0 \0 \0</span>
+char *lit = "hi";    <span class="cm">// points at READ-ONLY memory</span>
+<span class="cm">// lit[0] = 'H';     // undefined behaviour</span>
+
+strlen(s);           <span class="cm">// 2 — walks until it finds \0</span>
+sizeof s;            <span class="cm">// 3 — the whole array</span>
+
+for (char *p = s; *p; p++) putchar(*p);</pre><button class="copy">Copy</button></div>
+      <p>Every string function finds the end by scanning for the zero byte. Lose that byte — by filling an array exactly to its edge, or by using <code>strncpy</code> at full width — and every subsequent <code>strlen</code>, <code>printf</code> or <code>strcpy</code> reads off into whatever follows.</p>
+      <p>It also means <code>strlen</code> is O(n), so calling it in a loop condition rescans the string every iteration. And always budget <code>strlen + 1</code> bytes when allocating.</p>
+      <p class="takeaway"><code>char s[] = "hi"</code> is a writable copy on the stack. <code>char *s = "hi"</code> points into read-only memory. They look almost identical and behave completely differently.</p>
+    </article>
+
+    <article class="card">
+      <h3>Array-to-pointer decay</h3>
+      <div class="codewrap"><pre>void f(int a[]) {          <span class="cm">// this is really int *a</span>
+    sizeof a;              <span class="cm">// 8 — the size of a POINTER</span>
+}                          <span class="cm">// the length is simply gone</span>
+
+void f(int *a, size_t n);  <span class="cm">// so pass it explicitly</span>
+
+int a[3], b[3];
+<span class="cm">// a = b;                  ERROR — not assignable</span>
+memcpy(a, b, sizeof a);    <span class="cm">// copy contents</span>
+<span class="cm">// if (a == b)             compares ADDRESSES</span>
+memcmp(a, b, sizeof a) == 0;   <span class="cm">// compares contents</span></pre><button class="copy">Copy</button></div>
+      <p>In almost every context an array's name evaporates into a pointer to its first element. This is why passing an array to a function is cheap regardless of size — and why the function has no idea how big it is.</p>
+      <p>Decay is also why arrays can't be assigned or compared with <code>==</code>: both operands become addresses, so you'd be asking whether two different arrays live at the same place.</p>
+      <p class="takeaway">An array pointer and its length are a single unit of information. Pass them together, always.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 08 ================= -->
+<section id="s-struct" data-num="0x08" data-title="Structs, unions, enums">
+  <div class="sec-head"><span class="sec-num">0x08</span><h2>Structs, unions, enums, typedef</h2></div>
+  <p class="sec-blurb">A <strong>struct</strong> lays several values side by side into one compound value. A <strong>union</strong> overlays them on the same bytes so only one is valid at a time. An <strong>enum</strong> gives names to a set of integers. <strong>typedef</strong> just gives any of them a shorter name.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Declaring and using a struct</h3>
+      <div class="codewrap"><pre>struct Point { int x; int y; };
+
+struct Point p1;             <span class="cm">// "struct" is required</span>
+struct Point p2 = {3, 4};    <span class="cm">// in declaration order</span>
+struct Point p3 = {.y = 4};  <span class="cm">// by name (C99); x = 0</span>
+p1.x = 10;
+
+struct Point p4 = p2;        <span class="cm">// copies every field</span></pre><button class="copy">Copy</button></div>
+      <p>The declaration defines a <em>type</em>, not a variable — no memory is reserved until you declare one. Members are stored in the order you write them, so the struct is a template for a chunk of memory.</p>
+      <p>Unlike arrays, structs <em>can</em> be assigned and passed by value; the whole thing is copied field by field. That copy is shallow, though: if a member is a pointer, both structs end up pointing at the same data.</p>
+      <p class="takeaway">Designated initializers are worth the habit — <code>{.y = 4}</code> survives someone reordering the fields later, while <code>{0, 4}</code> silently changes meaning.</p>
+    </article>
+
+    <article class="card">
+      <h3>typedef — dropping the "struct"</h3>
+      <div class="codewrap"><pre>typedef struct { int x, y; } Point;
+Point p = {1, 2};       <span class="cm">// no keyword needed</span>
+
+<span class="cm">// named AND typedef'd — required for self-reference</span>
+typedef struct Node {
+    int data;
+    struct Node *next;  <span class="cm">// the tag must be used here</span>
+} Node;
+
+typedef unsigned long long u64;
+typedef int (*Callback)(void *);</pre><button class="copy">Copy</button></div>
+      <p><code>typedef</code> creates an alias, nothing more — no new type, no checking. Its real value is on declarations that are painful to read, like function pointers.</p>
+      <p>The self-referencing case is the one that catches people: inside the braces the typedef name doesn't exist yet, so a node pointing to another node must use the struct tag. Hence the apparent redundancy of naming it twice.</p>
+    </article>
+
+    <article class="card">
+      <h3>Pointers to structs: the arrow</h3>
+      <div class="codewrap"><pre>Point *p = &amp;pt;
+
+(*p).x = 5;      <span class="cm">// correct, ugly, parens mandatory</span>
+p-&gt;x    = 5;     <span class="cm">// identical — always write this</span>
+
+Point *q = malloc(sizeof *q);
+q-&gt;x = 1;  q-&gt;y = 2;
+free(q);
+
+void move(Point *p, int dx) { p-&gt;x += dx; }</pre><button class="copy">Copy</button></div>
+      <p><code>-&gt;</code> is pure shorthand for "dereference, then select a member". The parentheses in the long form are required because <code>.</code> binds tighter than <code>*</code>, so <code>*p.x</code> would try to dereference <code>p.x</code>.</p>
+      <p>Beyond syntax, this is how you avoid copying: passing a 200-byte struct by value copies 200 bytes on every call, while a pointer copies 8 — and lets the function modify the original. Use <code>const Point *</code> when it shouldn't.</p>
+    </article>
+
+    <article class="card">
+      <h3>Nesting &amp; arrays of structs</h3>
+      <div class="codewrap"><pre>typedef struct {
+    char name[32];      <span class="cm">// array member: storage inline</span>
+    Point pos;          <span class="cm">// nested struct</span>
+    int  scores[3];
+} Player;
+
+Player team[4] = {
+    { "Ada", {0,0}, {10,20,30} },
+    { .name = "Bob", .pos = {5,5} },
+};
+
+team[0].pos.x = 9;
+strcpy(team[1].name, "Bobby");   <span class="cm">// not = </span></pre><button class="copy">Copy</button></div>
+      <p>Structs nest to any depth and each member lives inside its parent's memory, so one <code>Player</code> is a single self-contained block. Declaring <code>char name[32]</code> rather than <code>char *name</code> means the text is stored in the struct — no separate allocation, no dangling pointer, but a fixed 31-character limit.</p>
+      <p>That inline array is also why you assign it with <code>strcpy</code>: arrays can't be assigned, even inside structs.</p>
+    </article>
+
+    <article class="card">
+      <h3>Padding &amp; alignment</h3>
+      <div class="codewrap"><pre>struct Bad  { char a; int b; char c; };  <span class="cm">// 12 bytes</span>
+struct Good { int b; char a; char c; };  <span class="cm">// 8 bytes</span>
+
+printf("%zu\n", sizeof(struct Bad));
+offsetof(struct Bad, c);   <span class="cm">// &lt;stddef.h&gt;</span></pre><button class="copy">Copy</button></div>
+      <p>CPUs read memory fastest when a 4-byte value sits at an address divisible by 4, so the compiler inserts invisible padding bytes to keep each member aligned. In <code>Bad</code>, three bytes of padding follow <code>a</code> to line up <code>b</code>, and three more trail <code>c</code> so an array of them stays aligned.</p>
+      <p>Ordering members from largest to smallest usually squeezes the padding out — 12 bytes down to 8 here, which matters when you have millions of them.</p>
+      <p class="takeaway">Never <code>memcmp</code> two structs to compare them. The padding bytes are uninitialized garbage, so identical-looking structs can compare unequal.</p>
+    </article>
+
+    <article class="card">
+      <h3>Bit fields</h3>
+      <div class="codewrap"><pre>struct Flags {
+    unsigned int visible : 1;   <span class="cm">// 1 bit  → 0 or 1</span>
+    unsigned int type    : 3;   <span class="cm">// 3 bits → 0..7</span>
+    unsigned int id      : 12;
+};
+struct Flags f = {0};
+f.visible = 1;</pre><button class="copy">Copy</button></div>
+      <p>Bit fields let you pack several small values into one machine word while still accessing them by name — 16 bits here instead of 12 bytes for three separate ints.</p>
+      <p>The catch is that the standard doesn't fix the layout: bit order, straddling, and padding are all implementation-defined. Fine for saving memory; unreliable for parsing a network packet or hardware register, where explicit masks and shifts are the portable choice.</p>
+    </article>
+
+    <article class="card">
+      <h3>Unions</h3>
+      <div class="codewrap"><pre>union Value { int i; float f; char bytes[4]; };
+<span class="cm">// size = the largest member; all share one address</span>
+
+union Value v;
+v.i = 65;
+<span class="cm">// reading v.f now is not meaningful — only the</span>
+<span class="cm">// member you last WROTE holds a valid value</span>
+
+<span class="cm">// the safe pattern: a tagged union</span>
+typedef struct {
+    enum { INT, FLT, STR } tag;   <span class="cm">// what's inside?</span>
+    union { int i; float f; char *s; } as;
+} Var;</pre><button class="copy">Copy</button></div>
+      <p>Where a struct is "all of these at once", a union is "one of these at a time", overlapping in the same bytes. It's how you build a variable that can hold any one of several types without paying for all of them.</p>
+      <p>A union has no idea which member is currently live, so you must track that yourself — that's the <code>tag</code> field above. Without it, a union is just a loaded gun; with it, it's how interpreters and JSON parsers represent values.</p>
+    </article>
+
+    <article class="card">
+      <h3>Enums</h3>
+      <div class="codewrap"><pre>enum Color { RED, GREEN, BLUE };   <span class="cm">// 0, 1, 2</span>
+enum Status { OK = 200, NOTFOUND = 404 };
+
+enum Color c = GREEN;
+switch (c) { case RED: ...; }
+
+typedef enum { MON, TUE, WED, DAY_COUNT } Day;
+<span class="cm">// DAY_COUNT == 3 — a count that self-updates</span></pre><button class="copy">Copy</button></div>
+      <p>Enums replace scattered magic numbers with names the debugger and reader can both see. Values auto-increment from 0 unless you set one, after which counting resumes from there.</p>
+      <p>They are still just <code>int</code> underneath — nothing stops you assigning <code>7</code> to a <code>Color</code>. The trailing-count trick is a genuinely useful idiom: add a day and <code>DAY_COUNT</code> updates itself, so your array sizes and loop bounds stay correct.</p>
+    </article>
+
+    <article class="card">
+      <h3>Linked list — the canonical example</h3>
+      <div class="codewrap"><pre>typedef struct Node {
+    int data;
+    struct Node *next;   <span class="cm">// NULL marks the end</span>
+} Node;
+
+Node *push(Node *head, int v) {
+    Node *n = malloc(sizeof *n);
+    if (!n) return head;
+    n-&gt;data = v;
+    n-&gt;next = head;      <span class="cm">// old list hangs off the new node</span>
+    return n;            <span class="cm">// caller must reassign head</span>
+}
+
+void print(const Node *n) {
+    for (; n; n = n-&gt;next) printf("%d ", n-&gt;data);
+}
+
+void destroy(Node *n) {
+    while (n) { Node *next = n-&gt;next; free(n); n = next; }
+}</pre><button class="copy">Copy</button></div>
+      <p>This is the payoff for everything in this section: a structure that grows one node at a time, each node knowing only where the next one lives. No contiguous block, no fixed capacity — insertion at the front is O(1) no matter how long the list is.</p>
+      <p>Note <code>destroy</code>: you must save <code>n-&gt;next</code> <em>before</em> freeing <code>n</code>, because after the free the node's memory is no longer yours to read. Getting that backwards is the most common use-after-free in beginner C.</p>
+    </article>
+
+    <article class="card">
+      <h3>Opaque types &amp; flexible arrays</h3>
+      <div class="codewrap"><pre><span class="cm">// header: callers see a name, never the fields</span>
+typedef struct Stack Stack;
+Stack *stack_new(void);
+void   stack_push(Stack *, int);
+
+<span class="cm">// struct + payload in ONE allocation</span>
+typedef struct {
+    size_t len;
+    char   data[];        <span class="cm">// must be the last member</span>
+} Buffer;
+
+Buffer *b = malloc(sizeof *b + n);
+b-&gt;len = n;</pre><button class="copy">Copy</button></div>
+      <p>Declaring the struct without defining it gives callers a type they can hold pointers to but cannot inspect or allocate. That's C's encapsulation: the layout lives in one <code>.c</code> file, so you can change it without recompiling anyone else. <code>FILE</code> works exactly this way.</p>
+      <p>A flexible array member has no size in the struct; you allocate the header plus however many bytes you need, and the data sits immediately after. One allocation, one free, and the payload is adjacent in cache.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 09 ================= -->
+<section id="s-stdio" data-num="0x09" data-title="stdio &amp; formatting">
+  <div class="sec-head"><span class="sec-num">0x09</span><h2>stdio.h &amp; format strings</h2></div>
+  <p class="sec-blurb">Input and output — and the single most common source of "why is it printing garbage". <code>printf</code> cannot see the types of its arguments; it believes the format string absolutely. If the two disagree, it reads the wrong bytes and prints nonsense or crashes.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>printf specifiers</h3>
+      <div class="tw"><table>
+        <tr><th>Spec</th><th>Type</th><th>Example out</th></tr>
+        <tr><td>%d %i</td><td>int</td><td>-42</td></tr>
+        <tr><td>%u</td><td>unsigned int</td><td>42</td></tr>
+        <tr><td>%ld / %lld</td><td>long / long long</td><td>42</td></tr>
+        <tr><td>%zu</td><td>size_t</td><td>42</td></tr>
+        <tr><td>%f</td><td>double</td><td>3.140000</td></tr>
+        <tr><td>%.2f</td><td>double, 2 decimals</td><td>3.14</td></tr>
+        <tr><td>%e</td><td>scientific</td><td>3.14e+00</td></tr>
+        <tr><td>%g</td><td>shorter of %f / %e</td><td>3.14</td></tr>
+        <tr><td>%c</td><td>char</td><td>A</td></tr>
+        <tr><td>%s</td><td>char * (string)</td><td>hello</td></tr>
+        <tr><td>%p</td><td>void * (address)</td><td>0x7ffd10</td></tr>
+        <tr><td>%x %X</td><td>hex</td><td>ff / FF</td></tr>
+        <tr><td>%o</td><td>octal</td><td>377</td></tr>
+        <tr><td>%%</td><td>a literal %</td><td>%</td></tr>
+      </table></div>
+      <p>The length modifiers exist because C promotes small types when passing them to variadic functions. <code>%d</code> reads 4 bytes; hand it a <code>long long</code> and the remaining 4 bytes stay in the queue, corrupting every argument after it.</p>
+    </article>
+
+    <article class="card">
+      <h3>Width, precision, flags</h3>
+      <div class="codewrap"><pre>printf("%5d",    42);      <span class="cm">// "   42"   min width 5</span>
+printf("%-5d|",  42);      <span class="cm">// "42   |"  left align</span>
+printf("%05d",   42);      <span class="cm">// "00042"   pad with zeros</span>
+printf("%+d",    42);      <span class="cm">// "+42"     always show sign</span>
+printf("%8.3f",  3.14159); <span class="cm">// "   3.142"</span>
+printf("%.*f", 2, 3.14159);<span class="cm">// "3.14" — precision from</span>
+                           <span class="cm">// an argument at runtime</span>
+printf("%10s|", "hi");     <span class="cm">// "        hi|"</span>
+printf("%.3s", "hello");   <span class="cm">// "hel" — max chars</span></pre><button class="copy">Copy</button></div>
+      <p>The grammar is <code>%[flags][width][.precision][length]specifier</code>. Width is a <em>minimum</em> — the value is never truncated to fit, so column alignment breaks if a value is wider than you budgeted.</p>
+      <p>Precision changes meaning by type: decimal places for <code>%f</code>, significant digits for <code>%g</code>, maximum characters for <code>%s</code>. That last one is a handy way to print a fixed-width field that might not be null-terminated.</p>
+    </article>
+
+    <article class="card">
+      <h3>Output functions</h3>
+      <div class="codewrap"><pre>printf("x = %d\n", x);            <span class="cm">// to stdout</span>
+fprintf(stderr, "error: %s\n", m); <span class="cm">// to stderr</span>
+puts("adds a newline for you");
+putchar('A');
+
+char buf[64];
+snprintf(buf, sizeof buf, "%d-%d", a, b);  <span class="cm">// into a string</span></pre><button class="copy">Copy</button></div>
+      <p>Send diagnostics to <code>stderr</code>, not <code>stdout</code>. They stay visible when the user pipes your output somewhere, and <code>stderr</code> is unbuffered so the message appears even if the program then crashes.</p>
+      <p class="takeaway">Use <code>snprintf</code>, never <code>sprintf</code>. <code>sprintf</code> takes no size limit and writes as many bytes as the result needs — a buffer overflow waiting for input longer than you expected.</p>
+    </article>
+
+    <article class="card">
+      <h3>Reading input</h3>
+      <div class="codewrap"><pre>int n;
+if (scanf("%d", &amp;n) != 1) { <span class="cm">/* not a number */</span> }
+                     <span class="cm">// ^ &amp; is required: scanf writes</span>
+                     <span class="cm">//   through a pointer</span>
+
+char line[256];
+if (fgets(line, sizeof line, stdin)) {
+    line[strcspn(line, "\n")] = '\0';   <span class="cm">// strip newline</span>
+}
+
+char word[256];
+scanf("%255s", word);   <span class="cm">// bounded: 255 chars + '\0'</span></pre><button class="copy">Copy</button></div>
+      <p><code>scanf</code> returns the number of items it successfully converted, so checking that return is how you distinguish "read a number" from "the user typed hello". Ignore it and <code>n</code> silently keeps its old value.</p>
+      <p>An unbounded <code>%s</code> has the same flaw as <code>sprintf</code> — it writes however much the user types. Give it a width, or read whole lines with <code>fgets</code> and parse them afterwards.</p>
+      <p class="takeaway"><code>gets()</code> cannot be used safely at all and was removed from the language in C11. If you see it in a tutorial, distrust the tutorial.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Why scanf then fgets goes wrong</h3>
+      <div class="codewrap"><pre>int age;  char name[50];
+scanf("%d", &amp;age);       <span class="cm">// consumes "25", leaves '\n'</span>
+fgets(name, 50, stdin);  <span class="cm">// reads that '\n' → empty!</span>
+
+<span class="cm">// fix A: drain the rest of the line</span>
+int ch;
+while ((ch = getchar()) != '\n' &amp;&amp; ch != EOF) { }
+
+<span class="cm">// fix B (better): read lines, then parse them</span>
+char line[256];
+fgets(line, sizeof line, stdin);
+sscanf(line, "%d", &amp;age);</pre><button class="copy">Copy</button></div>
+      <p><code>scanf("%d")</code> stops as soon as the digits end and leaves the newline sitting in the input buffer. <code>fgets</code> then reads up to the first newline — which is immediately there — and returns an empty string without ever pausing for the user.</p>
+      <p>Fix B avoids the whole class of problem: consume input a line at a time so the buffer is always in a known state, and do the parsing separately.</p>
+    </article>
+
+    <article class="card">
+      <h3>File I/O</h3>
+      <div class="codewrap"><pre>FILE *f = fopen("data.txt", "r");
+if (!f) { perror("fopen"); return 1; }   <span class="cm">// ALWAYS check</span>
+
+char line[256];
+while (fgets(line, sizeof line, f)) {    <span class="cm">// NULL at EOF</span>
+    fputs(line, stdout);
+}
+fclose(f);
+
+<span class="cm">// modes: "r" read | "w" truncate or create</span>
+<span class="cm">//        "a" append | "r+" read and write</span>
+<span class="cm">//        add "b" for binary: "rb", "wb"</span></pre><button class="copy">Copy</button></div>
+      <p><code>fopen</code> returns a <code>FILE*</code> handle or NULL — the file may not exist, or you may lack permission, and continuing with a NULL handle segfaults immediately. <code>perror</code> prints your message plus the actual reason.</p>
+      <p>Mind that <code>"w"</code> truncates an existing file to zero length the moment it opens, before you write anything. Use <code>"a"</code> if you meant to add to it.</p>
+      <p class="takeaway">Output is buffered, so data may sit in memory until <code>fclose</code> or <code>fflush</code>. Skip the <code>fclose</code> and a crash can lose everything you "wrote".</p>
+    </article>
+
+    <article class="card">
+      <h3>Binary I/O &amp; seeking</h3>
+      <div class="codewrap"><pre>fwrite(arr, sizeof arr[0], n, f);   <span class="cm">// returns items written</span>
+size_t got = fread(buf, 1, sizeof buf, f);
+
+fseek(f, 0, SEEK_END);     <span class="cm">// SEEK_SET / _CUR / _END</span>
+long size = ftell(f);
+rewind(f);
+
+if (feof(f))   <span class="cm">/* reached end of file */</span>;
+if (ferror(f)) <span class="cm">/* a real I/O error */</span>;</pre><button class="copy">Copy</button></div>
+      <p>Binary I/O copies raw bytes, so it's fast and exact — but the file then depends on your machine's integer sizes, padding and byte order. Don't use it for anything another program or platform must read.</p>
+      <p>Both functions return the count actually transferred, which can be less than you asked for. That's your end-of-file and error signal.</p>
+      <p class="takeaway">Read characters into an <code>int</code>, not a <code>char</code>: <code>EOF</code> is −1 and would be indistinguishable from a legitimate byte.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 10 ================= -->
+<section id="s-lib" data-num="0x0A" data-title="Standard library">
+  <div class="sec-head"><span class="sec-num">0x0A</span><h2>Standard library</h2></div>
+  <p class="sec-blurb">C's library is small by modern standards — no containers, no string type, no networking. What it does give you is the byte-level toolkit, and a general rule: for every function that writes into a buffer, prefer the variant that takes a size.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>string.h — copying &amp; comparing</h3>
+      <div class="tw"><table>
+        <tr><th>Call</th><th>Does</th></tr>
+        <tr><td>strlen(s)</td><td>length, excluding <code>\0</code></td></tr>
+        <tr><td>strcpy(d,s)</td><td>copy — unbounded, dangerous</td></tr>
+        <tr><td>strncpy(d,s,n)</td><td>copy ≤ n — may not terminate</td></tr>
+        <tr><td>strcat(d,s)</td><td>append to d</td></tr>
+        <tr><td>strncat(d,s,n)</td><td>append ≤ n chars</td></tr>
+        <tr><td>strcmp(a,b)</td><td>0 equal, &lt;0 a sorts first, &gt;0 b</td></tr>
+        <tr><td>strncmp(a,b,n)</td><td>compare first n only</td></tr>
+        <tr><td>strchr(s,c)</td><td>pointer to first c, else NULL</td></tr>
+        <tr><td>strrchr(s,c)</td><td>…to the last c</td></tr>
+        <tr><td>strstr(h,n)</td><td>find a substring</td></tr>
+        <tr><td>strtok(s,d)</td><td>split — modifies s, not reentrant</td></tr>
+        <tr><td>strdup(s)</td><td>malloc'd copy (POSIX) — free it</td></tr>
+        <tr><td>strcspn(s,r)</td><td>length before any char in r</td></tr>
+      </table></div>
+      <p><code>strcmp</code> returns an ordering, not a boolean — so equality is <code>== 0</code>, and treating the result as true/false inverts your logic. The destination of any copy must already have room; none of these allocate.</p>
+    </article>
+
+    <article class="card">
+      <h3>string.h — raw memory</h3>
+      <div class="codewrap"><pre>memset(buf, 0, sizeof buf);      <span class="cm">// fill with one byte</span>
+memcpy(dst, src, n);             <span class="cm">// must NOT overlap</span>
+memmove(dst, src, n);            <span class="cm">// safe when they overlap</span>
+memcmp(a, b, n);                 <span class="cm">// compare n bytes</span>
+memchr(buf, 'x', n);             <span class="cm">// find a byte</span></pre><button class="copy">Copy</button></div>
+      <p>These ignore null terminators entirely and just move bytes, so they work on any type — structs, int arrays, anything. They also count in <strong>bytes</strong>, not elements, so an int array needs <code>n * sizeof *a</code>.</p>
+      <p><code>memcpy</code> may copy in any order, which corrupts data when source and destination overlap (shifting an array left by one, say). <code>memmove</code> handles that correctly for a tiny cost.</p>
+      <p class="takeaway"><code>memset(arr, 1, n)</code> does not fill an int array with 1s — it sets every <em>byte</em> to 1, giving 0x01010101. Only 0 works as expected.</p>
+    </article>
+
+    <article class="card">
+      <h3>Common string tasks</h3>
+      <div class="codewrap"><pre><span class="cm">// safe copy into a fixed buffer</span>
+char dst[32];
+snprintf(dst, sizeof dst, "%s", src);
+
+<span class="cm">// compare (NOT ==, which compares addresses)</span>
+if (strcmp(a, b) == 0) puts("equal");
+
+<span class="cm">// tokenize — note strtok WRITES into s</span>
+char s[] = "a,b,c";
+for (char *t = strtok(s, ","); t; t = strtok(NULL, ","))
+    puts(t);
+
+<span class="cm">// join onto the heap: +1 for the terminator</span>
+char *j = malloc(strlen(a) + strlen(b) + 1);
+strcpy(j, a);  strcat(j, b);</pre><button class="copy">Copy</button></div>
+      <p><code>snprintf</code> is the reliable way to copy a string: it always terminates and never exceeds the buffer, unlike <code>strcpy</code> (no limit) or <code>strncpy</code> (may not terminate).</p>
+      <p><code>strtok</code> replaces each delimiter with <code>'\0'</code> and returns pointers into your buffer, so it destroys the original and cannot be applied to a string literal. It also keeps hidden state between calls, so you can't tokenize two strings at once.</p>
+    </article>
+
+    <article class="card">
+      <h3>stdlib.h</h3>
+      <div class="tw"><table>
+        <tr><th>Call</th><th>Does</th></tr>
+        <tr><td>malloc/calloc/realloc/free</td><td>heap memory</td></tr>
+        <tr><td>atoi(s) atof(s)</td><td>parse — cannot report failure</td></tr>
+        <tr><td>strtol(s,&amp;end,10)</td><td>parse, with error detection</td></tr>
+        <tr><td>strtod(s,&amp;end)</td><td>string → double</td></tr>
+        <tr><td>rand() srand(seed)</td><td>pseudo-random; not for crypto</td></tr>
+        <tr><td>qsort(a,n,sz,cmp)</td><td>sort any array</td></tr>
+        <tr><td>bsearch(k,a,n,sz,cmp)</td><td>binary search a sorted array</td></tr>
+        <tr><td>abs() labs()</td><td>absolute value</td></tr>
+        <tr><td>exit(code)</td><td>terminate from anywhere</td></tr>
+        <tr><td>getenv("HOME")</td><td>read an environment variable</td></tr>
+      </table></div>
+      <p><code>qsort</code> and <code>bsearch</code> take an element size and a comparator because they operate on raw bytes — that's how one function sorts any type. Call <code>srand(time(NULL))</code> once at startup, or <code>rand()</code> produces the identical sequence every run.</p>
+    </article>
+
+    <article class="card">
+      <h3>Parsing numbers safely</h3>
+      <div class="codewrap"><pre>#include &lt;stdlib.h&gt;
+#include &lt;errno.h&gt;
+
+char *end;
+errno = 0;
+long v = strtol(input, &amp;end, 10);   <span class="cm">// 10 = base</span>
+
+if (end == input)         <span class="cm">// no digits found at all</span>
+else if (*end != '\0')    <span class="cm">// trailing junk: "12abc"</span>
+else if (errno == ERANGE) <span class="cm">// too big for a long</span>
+else <span class="cm">/* v is trustworthy */</span>;</pre><button class="copy">Copy</button></div>
+      <p><code>atoi("abc")</code> returns 0, which is indistinguishable from the user genuinely typing "0" — so it cannot be used on input you don't control.</p>
+      <p><code>strtol</code> writes into <code>end</code> the position where it stopped reading, which lets you tell all three failure modes apart: nothing parsed, partially parsed, or out of range. Reset <code>errno</code> to 0 first, since the library never clears it on success.</p>
+    </article>
+
+    <article class="card">
+      <h3>math.h</h3>
+      <div class="codewrap"><pre>#include &lt;math.h&gt;      <span class="cm">// link with -lm on gcc</span>
+
+sqrt(x)  pow(x,y)  fabs(x)  fmod(x,y)
+ceil(x)  floor(x)  round(x) trunc(x)
+sin cos tan  asin acos atan  atan2(y,x)
+exp(x)   log(x)    log2(x)   log10(x)
+fmin(a,b) fmax(a,b) hypot(a,b)
+
+INFINITY  NAN  isnan(x)  isinf(x)</pre><button class="copy">Copy</button></div>
+      <p>These all take and return <code>double</code>, and angles are in radians. Use <code>fabs</code> for floats — <code>abs</code> is the integer version and will truncate your value to 0.</p>
+      <p class="takeaway">"undefined reference to `sqrt'" means you forgot <code>-lm</code>. The math library is separate from the C runtime and must be linked explicitly on Linux.</p>
+    </article>
+
+    <article class="card">
+      <h3>ctype.h</h3>
+      <div class="codewrap"><pre>isalpha(c) isdigit(c) isalnum(c) isspace(c)
+isupper(c) islower(c) ispunct(c) isxdigit(c)
+toupper(c) tolower(c)
+
+if (isdigit((unsigned char)s[i])) ...   <span class="cm">// cast!</span></pre><button class="copy">Copy</button></div>
+      <p>Classification without hardcoding ASCII values, which keeps your code correct under other locales and character sets.</p>
+      <p>The cast matters: these take an <code>int</code> that must be either <code>EOF</code> or representable as <code>unsigned char</code>. Plain <code>char</code> may be signed, so a byte above 127 arrives as a negative number and indexes off the front of the lookup table.</p>
+    </article>
+
+    <article class="card">
+      <h3>time.h, assert.h, errno.h</h3>
+      <div class="codewrap"><pre>#include &lt;time.h&gt;
+time_t now = time(NULL);          <span class="cm">// seconds since 1970</span>
+struct tm *lt = localtime(&amp;now);
+strftime(buf, sizeof buf, "%Y-%m-%d", lt);
+clock_t t0 = clock();             <span class="cm">// CPU time used</span>
+
+#include &lt;assert.h&gt;
+assert(p != NULL);   <span class="cm">// aborts if false; removed</span>
+                     <span class="cm">// entirely when NDEBUG is defined</span>
+
+#include &lt;errno.h&gt;
+if (!fopen(path, "r")) perror("open failed");</pre><button class="copy">Copy</button></div>
+      <p><code>assert</code> documents an assumption and crashes loudly the moment it's violated — invaluable during development. Because it vanishes in release builds, never put side effects inside one: <code>assert(x = f())</code> silently stops calling <code>f</code>.</p>
+      <p><code>errno</code> is a global the library sets on failure. It is only meaningful immediately after a call that reported an error, and is never cleared on success.</p>
+    </article>
+
+    <article class="card">
+      <h3>limits.h &amp; float.h</h3>
+      <div class="codewrap"><pre>#include &lt;limits.h&gt;
+INT_MAX  INT_MIN  UINT_MAX
+LONG_MAX LLONG_MAX
+CHAR_BIT     <span class="cm">// bits per byte (8)</span>
+
+#include &lt;float.h&gt;
+DBL_MAX  DBL_MIN  DBL_EPSILON</pre><button class="copy">Copy</button></div>
+      <p>Since type sizes vary by platform, these constants let you write code that adapts instead of hardcoding 2147483647. Useful for overflow checks (<code>if (a &gt; INT_MAX - b)</code>) and for seeding a minimum-search with <code>INT_MAX</code>.</p>
+      <p><code>DBL_EPSILON</code> is the smallest difference distinguishable near 1.0 — a principled starting point for float comparison tolerances.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 11 ================= -->
+<section id="s-pp" data-num="0x0B" data-title="Preprocessor">
+  <div class="sec-head"><span class="sec-num">0x0B</span><h2>Preprocessor</h2></div>
+  <p class="sec-blurb">The preprocessor runs <em>before</em> the compiler and performs pure text substitution. It knows nothing about types, scope or C syntax — it is find-and-replace with conditionals. Every macro bug traces back to that one fact.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>include &amp; define</h3>
+      <div class="codewrap"><pre>#include &lt;stdio.h&gt;    <span class="cm">// search system dirs</span>
+#include "myheader.h" <span class="cm">// search here first</span>
+
+#define MAX 100
+#define SQUARE(x) ((x) * (x))   <span class="cm">// parenthesize</span>
+#define MAX2(a,b) ((a) &gt; (b) ? (a) : (b))
+#undef MAX</pre><button class="copy">Copy</button></div>
+      <p><code>#include</code> literally pastes the named file in at that point — which is why a header with a syntax error breaks every file that includes it, and why include order can matter.</p>
+      <p>A <code>#define</code> substitutes text everywhere the name appears afterwards. No type is checked, no scope is respected; <code>MAX</code> is replaced even inside another function.</p>
+      <p class="takeaway">Prefer <code>const</code>, <code>enum</code> and <code>static inline</code> where you can. They respect types and scope, and the debugger can still see them.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Macro traps</h3>
+      <div class="codewrap"><pre>#define SQ(x) x * x
+SQ(2 + 3)      <span class="cm">// → 2 + 3 * 2 + 3 = 11, not 25</span>
+#define SQ(x) ((x) * (x))   <span class="cm">// fixed</span>
+
+SQ(i++)        <span class="cm">// → ((i++) * (i++)) — i moves twice</span>
+
+<span class="cm">// multi-statement macros need this wrapper</span>
+#define SWAP(a,b) do { int t=(a); (a)=(b); (b)=t; } while (0)</pre><button class="copy">Copy</button></div>
+      <p>Because substitution is textual, the argument's own operators land in the middle of your expression and get regrouped by precedence. Wrapping every parameter <em>and</em> the whole body in parentheses is the only defence.</p>
+      <p>Parentheses can't fix double evaluation, though — the argument text appears twice, so any side effect happens twice. That's why <code>MAX2(i++, j)</code> is a bug no amount of brackets will save.</p>
+      <p>The <code>do { } while (0)</code> wrapper makes a multi-statement macro behave as a single statement, so it survives being used as the body of a brace-less <code>if</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Include guards</h3>
+      <div class="codewrap"><pre>#ifndef MYHEADER_H
+#define MYHEADER_H
+
+<span class="cm">// ... declarations ...</span>
+
+#endif <span class="cm">/* MYHEADER_H */</span>
+
+<span class="cm">// or, non-standard but universally supported:</span>
+#pragma once</pre><button class="copy">Copy</button></div>
+      <p>Headers include other headers, so the same file easily arrives twice in one translation unit — and redefining a struct or typedef is an error. The guard means: if this symbol is already defined we've been here, so skip to <code>#endif</code>.</p>
+      <p>Every header needs one. Give each a name derived from the filename so two headers can't collide.</p>
+    </article>
+
+    <article class="card">
+      <h3>Conditional compilation</h3>
+      <div class="codewrap"><pre>#ifdef DEBUG
+    printf("state = %d\n", state);
+#endif
+
+#if defined(_WIN32)
+    #include &lt;windows.h&gt;
+#elif defined(__linux__)
+    #include &lt;unistd.h&gt;
+#else
+    #error "Unsupported platform"
+#endif
+
+<span class="cm">// define from the command line:  gcc -DDEBUG prog.c</span></pre><button class="copy">Copy</button></div>
+      <p>Code inside a false branch is deleted before the compiler ever sees it, so it costs nothing at runtime and doesn't even need to compile on other platforms. That's how one source file supports Windows and Linux.</p>
+      <p>The flip side: unbuilt branches are unchecked branches. Code hidden behind an inactive <code>#ifdef</code> silently rots, and you find out when someone enables it.</p>
+    </article>
+
+    <article class="card">
+      <h3># and ## and predefined macros</h3>
+      <div class="codewrap"><pre>#define STR(x)  #x            <span class="cm">// stringify: hello → "hello"</span>
+#define CAT(a,b) a##b         <span class="cm">// paste: my,Var → myVar</span>
+
+__FILE__  __LINE__  __func__  __DATE__  __TIME__
+
+#define LOG(fmt, ...) \
+    fprintf(stderr, "%s:%d: " fmt "\n", \
+            __FILE__, __LINE__, __VA_ARGS__)</pre><button class="copy">Copy</button></div>
+      <p><code>#</code> wraps an argument's text in quotes and <code>##</code> glues two tokens into one — both only possible because macros work on text. Together they build logging and testing frameworks.</p>
+      <p>The <code>LOG</code> macro shows why: <code>__FILE__</code> and <code>__LINE__</code> expand at the call site, so every message reports where it actually came from. A function couldn't do that.</p>
+      <p class="takeaway">A trailing backslash continues a macro onto the next line, and nothing may follow it — not even a single trailing space.</p>
+    </article>
+
+    <article class="card">
+      <h3>Seeing what it actually produced</h3>
+      <div class="codewrap"><pre>gcc -E prog.c | less     <span class="cm">// stop after preprocessing</span>
+gcc -dM -E - &lt; /dev/null <span class="cm">// list every predefined macro</span></pre><button class="copy">Copy</button></div>
+      <p>Macro errors produce baffling messages because the compiler reports on text you never wrote. <code>-E</code> shows the expanded source, which usually makes the problem obvious in seconds.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 12 ================= -->
+<section id="s-bits" data-num="0x0C" data-title="Bit manipulation">
+  <div class="sec-head"><span class="sec-num">0x0C</span><h2>Bit manipulation</h2></div>
+  <p class="sec-blurb">One 32-bit integer can hold 32 independent yes/no answers, and the bitwise operators let you set, clear and test them without touching the others. Use <strong>unsigned</strong> types throughout — signed shifting wanders into undefined behaviour quickly.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>The four operations</h3>
+      <div class="codewrap"><pre>x |=  (1u &lt;&lt; n);   <span class="cm">// SET bit n to 1</span>
+x &amp;= ~(1u &lt;&lt; n);   <span class="cm">// CLEAR bit n to 0</span>
+x ^=  (1u &lt;&lt; n);   <span class="cm">// TOGGLE bit n</span>
+(x &gt;&gt; n) &amp; 1u      <span class="cm">// TEST bit n → 0 or 1</span>
+
+#define READ  (1u &lt;&lt; 0)
+#define WRITE (1u &lt;&lt; 1)
+#define EXEC  (1u &lt;&lt; 2)
+
+unsigned perms = READ | WRITE;
+if (perms &amp; WRITE) puts("writable");
+perms &amp;= ~WRITE;               <span class="cm">// revoke</span></pre><button class="copy">Copy</button></div>
+      <p>All four follow from one idea: <code>1u &lt;&lt; n</code> builds a mask with a single 1 in position n. OR with it and that bit turns on while the rest are untouched (x|0 leaves x alone). AND with the inverted mask and that bit turns off while the rest survive (x&amp;1 leaves x alone). XOR flips it.</p>
+      <p>Testing gives a non-zero value, not necessarily 1 — <code>perms &amp; WRITE</code> yields 2 here. Fine in an <code>if</code>, wrong if you compare it to 1.</p>
+    </article>
+
+    <article class="card">
+      <h3>Useful tricks</h3>
+      <div class="codewrap"><pre>x &amp; 1                <span class="cm">// is x odd?</span>
+x &amp; (x - 1)          <span class="cm">// clears the lowest set bit</span>
+!(x &amp; (x - 1))       <span class="cm">// is x a power of two? (x != 0)</span>
+x &amp; -x               <span class="cm">// isolates the lowest set bit</span>
+
+x &lt;&lt; n               <span class="cm">// x * 2ⁿ</span>
+x &gt;&gt; n               <span class="cm">// x / 2ⁿ  (unsigned)</span>
+
+int count = 0;                          <span class="cm">// popcount</span>
+for (unsigned v = x; v; v &amp;= v - 1) count++;</pre><button class="copy">Copy</button></div>
+      <p>The key identity: subtracting 1 flips the lowest set bit to 0 and turns every zero below it into a 1. ANDing that back with <code>x</code> therefore erases exactly one bit — so the loop runs once per set bit rather than 32 times.</p>
+      <p>A power of two has exactly one bit set, so clearing it leaves zero. GCC and Clang also offer <code>__builtin_popcount</code>, which compiles to a single instruction.</p>
+    </article>
+
+    <article class="card">
+      <h3>Packing and extracting fields</h3>
+      <div class="codewrap"><pre>#define FIELD(x, hi, lo) \
+    (((x) &gt;&gt; (lo)) &amp; ((1u &lt;&lt; ((hi) - (lo) + 1)) - 1))
+
+uint32_t rgb = (r &lt;&lt; 16) | (g &lt;&lt; 8) | b;   <span class="cm">// pack</span>
+uint8_t  red = (rgb &gt;&gt; 16) &amp; 0xFF;         <span class="cm">// unpack</span>
+
+for (int i = 7; i &gt;= 0; i--)               <span class="cm">// print a byte</span>
+    putchar((byte &gt;&gt; i) &amp; 1 ? '1' : '0');</pre><button class="copy">Copy</button></div>
+      <p>Extracting is always the same two steps: shift the field down to position 0, then mask off everything above it. <code>(1u &lt;&lt; w) - 1</code> builds a mask of w ones, since one-more-than-a-power-of-two minus one is all ones below.</p>
+      <p>Packing reverses it — shift each value into its slot and OR them together. This is how colours, IP headers and instruction encodings are laid out, and unlike bit fields the layout is exactly what you wrote.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Shift rules that bite</h3>
+      <ul>
+        <li>Shifting by an amount ≥ the type's width is <strong>undefined</strong>, not zero. <code>1u &lt;&lt; 32</code> on a 32-bit int is a bug, and on x86 it often produces <code>1</code>.</li>
+        <li><code>1 &lt;&lt; 31</code> overflows a signed <code>int</code>. Write <code>1u &lt;&lt; 31</code>.</li>
+        <li>Right-shifting a negative signed value is implementation-defined — usually sign-extending, but don't rely on it.</li>
+        <li>Operands narrower than <code>int</code> are promoted first, so <code>uint8_t x = 0xFF; ~x</code> is <code>0xFFFFFF00</code>, not <code>0</code>.</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 13 ================= -->
+<section id="s-ub" data-num="0x0D" data-title="Gotchas &amp; undefined behaviour">
+  <div class="sec-head"><span class="sec-num">0x0D</span><h2>Gotchas &amp; undefined behaviour</h2></div>
+  <p class="sec-blurb">Undefined behaviour does not mean "crashes". It means the standard imposes no requirements at all, so the compiler may assume it never happens and optimise on that assumption. This is why UB bugs appear when you add <code>-O2</code>, or only on the other machine, or only for the customer. The tools at the bottom of this section find them faster than reading ever will.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card warn">
+      <h3>= instead of ==</h3>
+      <div class="codewrap"><pre>if (x = 5) { ... }    <span class="cm">// assigns 5, result is 5 → true</span>
+if (x == 5) { ... }   <span class="cm">// compares</span>
+
+if (5 == x) { ... }   <span class="cm">// "Yoda": a typo won't compile</span></pre><button class="copy">Copy</button></div>
+      <p>Assignment is an expression whose value is the value assigned, so <code>if (x = 5)</code> is always true and quietly destroys <code>x</code>. It's legal C — genuinely useful in <code>while ((c = getchar()) != EOF)</code> — which is why it can't simply be banned.</p>
+      <p><code>-Wall</code> warns unless you add extra parentheses, which is the conventional way to say "I meant this".</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Off-by-one and bounds</h3>
+      <div class="codewrap"><pre>int a[5];
+for (int i = 0; i &lt;= 5; i++) a[i] = 0;  <span class="cm">// writes a[5]</span>
+for (int i = 0; i &lt;  5; i++) a[i] = 0;  <span class="cm">// correct</span>
+
+char buf[5];
+strcpy(buf, "hello");   <span class="cm">// needs 6 bytes: 5 + '\0'</span></pre><button class="copy">Copy</button></div>
+      <p>Valid indices are <code>0</code> to <code>n-1</code>, so a correct loop uses <code>&lt;</code>, never <code>&lt;=</code>. Nothing checks this at runtime — writing <code>a[5]</code> just modifies whatever those four bytes happen to be, often another local variable.</p>
+      <p>Strings need one extra byte for the terminator that <code>strlen</code> doesn't count. Almost every buffer-size bug in C is this <code>+1</code>.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Returning a local's address</h3>
+      <div class="codewrap"><pre>char *name(void) {
+    char buf[32] = "Ada";
+    return buf;            <span class="cm">// buf dies at this line</span>
+}
+
+void name_into(char *out, size_t n) {   <span class="cm">// caller owns</span>
+    snprintf(out, n, "Ada");            <span class="cm">// the buffer</span>
+}</pre><button class="copy">Copy</button></div>
+      <p>The array lived in this function's stack frame, and the frame is released on return. The pointer still holds a valid-looking address, and the data is often still readable — until the next function call overwrites that region with its own locals.</p>
+      <p>Three real fixes: <code>malloc</code> it and document that the caller frees, take a caller-supplied buffer as above, or return a pointer to something static or literal. The middle option is the most common in good C APIs.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Uninitialized memory</h3>
+      <div class="codewrap"><pre>int x;
+printf("%d", x);        <span class="cm">// garbage, and UB</span>
+
+int *p;
+*p = 5;                 <span class="cm">// writes to a random address</span>
+
+int *q = malloc(4);     <span class="cm">// malloc does NOT zero</span>
+printf("%d", *q);       <span class="cm">// garbage; use calloc</span></pre><button class="copy">Copy</button></div>
+      <p>Uninitialized locals hold whatever the last function left on the stack, which makes them accidentally stable — the value is often 0 in debug builds and something else entirely with optimization on. That's a bug that "only happens in release".</p>
+      <p>An uninitialized <em>pointer</em> is far worse than an uninitialized int: dereferencing it writes to an arbitrary address, which may corrupt live data rather than crashing.</p>
+      <p class="takeaway"><code>int x = 0;</code> and <code>int *p = NULL;</code> at declaration. It costs nothing and eliminates this whole category.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Dangling pointers &amp; double free</h3>
+      <div class="codewrap"><pre>free(p);
+printf("%d", *p);   <span class="cm">// use-after-free</span>
+free(p);            <span class="cm">// double free → heap corruption</span>
+
+free(p);
+p = NULL;           <span class="cm">// free(NULL) is legal and does nothing,</span>
+                    <span class="cm">// so this makes both lines above safe</span>
+
+int *r = malloc(10 * sizeof *r);
+r++;
+free(r);            <span class="cm">// invalid — not the original address</span></pre><button class="copy">Copy</button></div>
+      <p><code>free</code> hands the block back to the allocator but doesn't change your pointer, which still points at memory that is no longer yours. Reading it usually returns the old contents — right up until <code>malloc</code> reissues that block to someone else.</p>
+      <p>Setting the pointer to NULL afterwards converts both failure modes into an immediate, obvious crash — or into nothing at all, since freeing NULL is defined as a no-op.</p>
+      <p class="takeaway"><code>free</code> must receive exactly the address <code>malloc</code> returned. Walk the pointer forward and you must walk it back, or keep a separate copy.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>sizeof on a parameter</h3>
+      <div class="codewrap"><pre>void f(int arr[]) {
+    size_t n = sizeof arr / sizeof arr[0];  <span class="cm">// WRONG</span>
+}   <span class="cm">// arr is a pointer here → 8 / 4 = 2</span>
+
+void f(int arr[], size_t n) { ... }   <span class="cm">// pass the length</span>
+
+void g(char *s) { sizeof s; }   <span class="cm">// 8, not the length</span>
+                                <span class="cm">// use strlen(s)</span></pre><button class="copy">Copy</button></div>
+      <p>The <code>int arr[]</code> syntax is a comfortable lie — the parameter is a pointer, and the size information was lost at the call. The idiom only works in the scope where the array was declared.</p>
+      <p>Worse, it compiles silently and produces a plausible small number, so the loop processes two elements and everything looks almost fine.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Comparing the wrong things</h3>
+      <div class="codewrap"><pre>if (str1 == str2)              <span class="cm">// compares ADDRESSES</span>
+if (strcmp(str1, str2) == 0)   <span class="cm">// compares text</span>
+
+if (0.1 + 0.2 == 0.3)          <span class="cm">// false — binary floats</span>
+if (fabs(a - b) &lt; 1e-9)        <span class="cm">// use a tolerance</span>
+
+if (-1 &lt; sizeof(int))          <span class="cm">// FALSE — -1 converts to</span>
+                               <span class="cm">// a huge unsigned value</span></pre><button class="copy">Copy</button></div>
+      <p>Each of these compiles without complaint and does something reasonable — just not what you meant. The string case is the most common: <code>==</code> on two <code>char*</code> asks whether they point at the same memory, which is occasionally true by accident when the compiler pools identical literals.</p>
+      <p>The signed/unsigned one is the sneakiest, because <code>sizeof</code> returns <code>size_t</code>. Any comparison mixing a signed variable with a <code>sizeof</code> or <code>strlen</code> result deserves a second look.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>strncpy doesn't terminate</h3>
+      <div class="codewrap"><pre>char d[5];
+strncpy(d, "hello", 5);   <span class="cm">// copies 5 chars, no '\0'</span>
+puts(d);                  <span class="cm">// reads off the end</span>
+
+snprintf(d, sizeof d, "%s", "hello");   <span class="cm">// always safe</span></pre><button class="copy">Copy</button></div>
+      <p>Despite appearances, <code>strncpy</code> was never a safe <code>strcpy</code>. It was designed for fixed-width records: it pads with zeros if the source is short, and omits the terminator entirely if the source fills the buffer.</p>
+      <p>So it silently produces an unterminated "string", and the damage shows up in whatever reads it next. Use <code>snprintf</code>, which always terminates and truncates cleanly.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Sequence points</h3>
+      <div class="codewrap"><pre>i = i++;                      <span class="cm">// UB</span>
+a[i] = i++;                   <span class="cm">// UB</span>
+printf("%d %d", i++, i++);    <span class="cm">// UB, and the argument</span>
+                              <span class="cm">// order is unspecified too</span>
+i++;                          <span class="cm">// just write two statements</span>
+a[i] = i;</pre><button class="copy">Copy</button></div>
+      <p>C leaves the order of evaluation within an expression largely to the compiler, which is what allows aggressive optimization. The price is that modifying a variable twice — or modifying and separately reading it — between sequence points is undefined.</p>
+      <p>These are not "compiler-dependent but predictable"; the standard permits <em>anything</em>, and real compilers do produce different results at different optimization levels. Split the expression.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Format string mismatches</h3>
+      <div class="codewrap"><pre>printf("%d\n", 3.14);      <span class="cm">// UB — reads the wrong bytes</span>
+printf("%s\n", 42);        <span class="cm">// UB — treats 42 as an address</span>
+printf("%d\n", (long)x);   <span class="cm">// wrong width — use %ld</span>
+printf("%d\n", sizeof x);  <span class="cm">// use %zu</span>
+scanf("%d", n);            <span class="cm">// missing &amp; — crash</span></pre><button class="copy">Copy</button></div>
+      <p><code>printf</code> is variadic, so it has no idea what you actually passed. It reads bytes off the argument list according to the format string alone — and one mismatched specifier desynchronizes every argument after it.</p>
+      <p><code>%s</code> with an integer is the dangerous one: it takes 42 as an address and starts reading a string from there.</p>
+      <p class="takeaway"><code>-Wall -Wformat</code> catches every example above at compile time. This is the single highest-value warning flag in C.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Integer overflow &amp; division</h3>
+      <div class="codewrap"><pre>int x = INT_MAX;
+x + 1;              <span class="cm">// signed overflow = UB</span>
+                    <span class="cm">// (unsigned wraps — that IS defined)</span>
+
+int avg = (a + b) / 2;       <span class="cm">// can overflow first</span>
+int avg = a + (b - a) / 2;   <span class="cm">// safe</span>
+
+x / 0;              <span class="cm">// UB — not infinity, not a crash</span>
+                    <span class="cm">// you can rely on</span>
+int half = 7 / 2;   <span class="cm">// 3 — integer division</span></pre><button class="copy">Copy</button></div>
+      <p>Signed overflow being undefined isn't pedantry: compilers use it to assume <code>x + 1 &gt; x</code> is always true, and will delete overflow checks written that way. Check <em>before</em> the operation — <code>if (a &gt; INT_MAX - b)</code> — rather than after.</p>
+      <p>The midpoint bug is famously real: it sat in binary search implementations, including Java's, for years.</p>
+    </article>
+
+    <article class="card warn">
+      <h3>Small things that bite</h3>
+      <ul>
+        <li>A missing <code>break</code> falls through to the next case, silently.</li>
+        <li><code>if (x) ;</code> — the semicolon is the entire body.</li>
+        <li><code>char</code> may be signed or unsigned; use <code>unsigned char</code> for raw bytes.</li>
+        <li>A leading zero makes an octal literal: <code>011</code> is 9.</li>
+        <li>Writing through <code>char *s = "hi"</code> is UB — literals are read-only.</li>
+        <li><code>getchar()</code> returns <code>int</code>, because <code>EOF</code> doesn't fit in a <code>char</code>.</li>
+        <li>Declaring a variable in a <code>case</code> needs its own <code>{ }</code>.</li>
+        <li>Mixing <code>int</code> and <code>size_t</code> in a comparison converts the int to unsigned.</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+<!-- ================= 14 ================= -->
+<section id="s-build" data-num="0x0E" data-title="Multi-file &amp; build">
+  <div class="sec-head"><span class="sec-num">0x0E</span><h2>Multi-file projects &amp; building</h2></div>
+  <p class="sec-blurb">The compiler sees one <code>.c</code> file at a time and knows nothing about the others; the linker joins the results afterwards. Headers exist to tell each file what exists elsewhere. Almost every confusing build error comes from that split.</p>
+  <div class="rule"></div>
+  <div class="grid two">
+
+    <article class="card">
+      <h3>Splitting a program</h3>
+      <div class="codewrap"><pre><span class="cm">/* math_utils.h — WHAT exists */</span>
+#ifndef MATH_UTILS_H
+#define MATH_UTILS_H
+int add(int a, int b);
+extern int call_count;      <span class="cm">// declaration only</span>
+#endif
+
+<span class="cm">/* math_utils.c — HOW it works */</span>
+#include "math_utils.h"
+int call_count = 0;                     <span class="cm">// the definition</span>
+static int helper(int x) { return x; }  <span class="cm">// file-private</span>
+int add(int a, int b) { call_count++; return a + b; }</pre><button class="copy">Copy</button></div>
+      <p>The header is the public interface: declarations, typedefs, structs and macros. The <code>.c</code> file holds the implementation. Change the implementation and nothing else needs recompiling; change the header and everything that includes it does.</p>
+      <p>Mark helpers <code>static</code> to keep them out of the global namespace — otherwise two files with a <code>helper()</code> each collide at link time.</p>
+      <p class="takeaway">Never define a variable in a header. Every file that includes it gets its own definition and the linker reports a duplicate. Declare it <code>extern</code> in the header, define it in exactly one <code>.c</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Compiling &amp; linking</h3>
+      <div class="codewrap"><pre><span class="cm"># all at once</span>
+gcc -Wall -Wextra -g main.c math_utils.c -o app
+
+<span class="cm"># separately — only rebuild what changed</span>
+gcc -c main.c        <span class="cm"># → main.o</span>
+gcc -c math_utils.c  <span class="cm"># → math_utils.o</span>
+gcc main.o math_utils.o -o app
+
+-I dir     <span class="cm"># extra header search path</span>
+-L dir -lm <span class="cm"># library path, and link libm</span>
+-O2        <span class="cm"># optimize</span></pre><button class="copy">Copy</button></div>
+      <p>Two distinct phases. Compiling turns each <code>.c</code> into an object file full of machine code with holes where calls to other files go. Linking fills the holes and produces the executable.</p>
+      <p>Knowing which phase failed tells you where to look: compile errors are syntax and type problems in one file, link errors are about names that are missing or duplicated across files.</p>
+    </article>
+
+    <article class="card">
+      <h3>A minimal Makefile</h3>
+      <div class="codewrap"><pre>CC     = gcc
+CFLAGS = -Wall -Wextra -g -std=c11
+OBJS   = main.o math_utils.o
+
+app: $(OBJS)
+	$(CC) $(OBJS) -o app
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $&lt; -o $@
+
+clean:
+	rm -f $(OBJS) app</pre><button class="copy">Copy</button></div>
+      <p>Each rule reads "target: things it depends on", followed by the command to build it. <code>make</code> compares timestamps and rebuilds only what's out of date, which is why large C projects rebuild in seconds.</p>
+      <p><code>$&lt;</code> is the first prerequisite and <code>$@</code> is the target, so the pattern rule handles every <code>.c</code> file.</p>
+      <p class="takeaway">Recipe lines must begin with a real <strong>tab</strong>. Spaces produce "missing separator", the most confusing error message in the toolchain.</p>
+    </article>
+
+    <article class="card">
+      <h3>Linker errors, decoded</h3>
+      <ul>
+        <li><strong>undefined reference to `foo'</strong> — something calls <code>foo</code> but no object file defines it. You declared it and forgot to write it, forgot to pass that <code>.c</code> to the compiler, or forgot a library flag such as <code>-lm</code>.</li>
+        <li><strong>multiple definition of `x'</strong> — two object files both define it. Usually a variable defined in a header. Use <code>extern</code> there and define it once in a <code>.c</code>.</li>
+        <li><strong>implicit declaration of function</strong> — a compiler-stage error: you called something with no declaration in scope. Missing <code>#include</code>, or a typo in the name.</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>Debugging tools</h3>
+      <div class="codewrap"><pre><span class="cm"># catch memory bugs as they happen</span>
+gcc -fsanitize=address,undefined -g prog.c -o prog
+
+<span class="cm"># find leaks and uninitialized reads</span>
+valgrind --leak-check=full --track-origins=yes ./prog
+
+gdb ./prog
+  break main        <span class="cm"># or  break file.c:42</span>
+  run
+  next / step       <span class="cm"># step over / into</span>
+  print x
+  backtrace         <span class="cm"># how did I get here</span></pre><button class="copy">Copy</button></div>
+      <p>AddressSanitizer instruments your program so an out-of-bounds write or use-after-free reports at the exact line it happens, instead of crashing somewhere unrelated later. It costs roughly 2× runtime and is worth it on every debug build.</p>
+      <p>When a program does crash, <code>gdb</code>'s <code>backtrace</code> shows the chain of calls that led there — usually enough to identify the bug without a single <code>printf</code>.</p>
+    </article>
+
+    <article class="card">
+      <h3>Habits that prevent most C bugs</h3>
+      <ul>
+        <li>Compile with <code>-Wall -Wextra</code> and fix every warning, not just the ones you understand.</li>
+        <li>Initialize every variable where you declare it.</li>
+        <li>Check the return of <code>malloc</code>, <code>fopen</code>, <code>scanf</code> — the three that fail quietly.</li>
+        <li>Set pointers to <code>NULL</code> immediately after <code>free</code>.</li>
+        <li>Prefer the bounded functions: <code>snprintf</code>, <code>fgets</code>, <code>strncat</code>.</li>
+        <li>Pass array lengths alongside array pointers, every time.</li>
+        <li>Run the sanitizers before you believe the program works.</li>
+        <li>Free in the reverse order you allocated, and give each allocation one clear owner.</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+</main>
+</div>
+
+<a href="#" class="totop" id="totop" aria-label="Back to top">↑</a>
+
+<script>
+(function () {
+  var nav = document.getElementById('nav');
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var q = document.getElementById('q');
+  var empty = document.getElementById('empty');
+  var qecho = document.getElementById('qecho');
+  var links = [];
+
+  secs.forEach(function (s) {
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<b>' + s.dataset.num + '</b><span>' + s.dataset.title + '</span>';
+    nav.appendChild(a);
+    links.push(a);
+  });
+
+  cards.forEach(function (c) { c._t = c.textContent.toLowerCase(); });
+
+  function filter() {
+    var term = q.value.trim().toLowerCase();
+    var hits = 0;
+    if (!term) {
+      cards.forEach(function (c) { c.classList.remove('hide'); });
+      secs.forEach(function (s, i) { s.classList.remove('hide'); links[i].classList.remove('hide'); });
+      empty.classList.remove('show');
+      return;
+    }
+    secs.forEach(function (s, i) {
+      var secMatch = s.dataset.title.toLowerCase().indexOf(term) > -1;
+      var any = false;
+      s.querySelectorAll('.card').forEach(function (c) {
+        var m = secMatch || c._t.indexOf(term) > -1;
+        c.classList.toggle('hide', !m);
+        if (m) any = true;
+      });
+      s.classList.toggle('hide', !any);
+      links[i].classList.toggle('hide', !any);
+      if (any) hits++;
+    });
+    qecho.textContent = q.value.trim();
+    empty.classList.toggle('show', hits === 0);
+  }
+  q.addEventListener('input', filter);
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { q.value = ''; filter(); q.blur(); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+  });
+
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = secs.indexOf(en.target);
+        links.forEach(function (l, j) { l.classList.toggle('on', j === i); });
+      });
+    }, { rootMargin: '-10% 0px -75% 0px' });
+    secs.forEach(function (s) { obs.observe(s); });
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.copy');
+    if (!b) return;
+    var code = b.parentNode.querySelector('pre').innerText;
+    navigator.clipboard.writeText(code).then(function () {
+      b.textContent = 'Copied';
+      setTimeout(function () { b.textContent = 'Copy'; }, 1200);
+    }, function () { b.textContent = 'Failed'; });
+  });
+
+  var rb = document.getElementById('railbtn');
+  rb.addEventListener('click', function () {
+    var open = nav.classList.toggle('open');
+    rb.setAttribute('aria-expanded', String(open));
+    rb.textContent = open ? 'Close' : 'Menu';
+  });
+  nav.addEventListener('click', function (e) {
+    if (e.target.closest('a') && window.innerWidth <= 880) {
+      nav.classList.remove('open');
+      rb.textContent = 'Menu';
+      rb.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  var tt = document.getElementById('totop');
+  window.addEventListener('scroll', function () {
+    tt.classList.toggle('show', window.scrollY > 700);
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
