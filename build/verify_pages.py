@@ -820,8 +820,17 @@ def check_trace(b) -> None:
           f"({rep['trace']}, {rep['ticks']})")
     check(rep["asChal"] == 0,
           f"no trace question is rendered as a challenge ({rep['asChal']} are)")
-    check(rep["denominator"] == 176,
-          f"the coverage denominator is unmoved at 176 (DOM says {rep['denominator']})")
+    # The claim this makes is that a trace question never counts as coverage —
+    # not that the denominator is a particular number. Pinned at 176, it failed
+    # the first time eight legitimate challenges were added, which is a check
+    # reporting the wrong thing rather than a regression.
+    import content_c
+    want = (sum(len(m["topics"]) for st in content_c.STAGES for m in st["milestones"])
+            + sum(len(x["items"]) for x in content_c.SETS))
+    check(rep["denominator"] == want,
+          f"c.html's denominator is its topics plus its challenges and nothing else: "
+          f"DOM says {rep['denominator']}, content says {want} "
+          f"(and {rep['ticks']} trace ticks are outside it)")
 
     # And a tick has to survive a reload, in its own store.
     pg.click('[data-mode="challenges"]')

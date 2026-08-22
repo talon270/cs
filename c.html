@@ -4782,8 +4782,8 @@ int main(int argc, char **argv) {
       <div class="expect"><b>What you should see</b>
         <pre class="cmd">./prob</pre>
         <pre class="out">x      = 42
-&amp;x     = 0x7ffca7a9394c
-p      = 0x7ffca7a9394c
+&amp;x     = 0x7ffe48a2daec
+p      = 0x7ffe48a2daec
 *p     = 42
 x now  = 99</pre>
         <p class="vary">The two addresses will differ from these and from each other on every run &mdash; that is the operating system choosing where your stack lives. What must match is that <code>&amp;x</code> and <code>p</code> print the <i>same</i> value, and that <code>*p</code> is 42.</p>
@@ -6353,7 +6353,7 @@ int main(void) {
       <div class="expect"><b>What you should see</b>
         <pre class="cmd">./prob</pre>
         <pre class="out">expected 400000
-unsafe   392453 (lost updates)
+unsafe   392118 (lost updates)
 safe     400000</pre>
         <p class="vary">The unsafe total is different every run and is the whole point: it is lower than 400000 by an unpredictable amount. If yours happens to come out at 400000, run it again. The safe total must be exactly 400000 every time.</p>
       </div>
@@ -6553,6 +6553,379 @@ int main(void) {
       <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>The node is embedded in the object rather than pointing at it, so the list allocates nothing and an object can be in several lists at once. The invariant is that every node reached is inside an object of the type the container-of assumes.</p></details>
       <details class="reveal stepper" data-step="c:C10.5" data-gran="line">
         <summary>Step through the recorded run &mdash; 34 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+</section>
+<section id="ch-11" data-num="11" data-title="The questions the course actually sets">
+  <div class="sec-head"><span class="sec-num">11</span><h2>The questions the course actually sets</h2></div>
+  <p class="sec-blurb">Eight problems in the shapes CSD101 examines and this file did not yet cover: searching, sorting by hand, digits, classification and a grid. Every one is a pattern from <a href="bridge.html#p-divisors">the catalogue</a> — solve it once here and the exam version is the same shape with different words.</p>
+  <div class="rule"></div>
+  <div class="chal" id="C11.1">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.1">
+      <span class="chal-id">C11.1</span>
+      <span class="chal-name">Linear search that reports absence</span>
+      <span class="tier first" title="Zero assumed knowledge — every symbol used is defined in the hint. Start here if C is new to you; skip it once C1.0a and C1.0b feel obvious.">first</span>
+    </div>
+    <div class="chal-body">
+      <p>Write a function that returns the index of the first occurrence of a value in an array, and <code>-1</code> when it is not there. Print the result for a value that is present and one that is not.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">15 -&gt; 2
+99 -&gt; -1</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>Return the index as soon as you find it — the first occurrence is the one the question asks for. The sentinel has to be a value that is not a legal index, which rules out 0.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>Walk the array once. The moment an element equals the key, you already know the answer, so return there rather than setting a flag and continuing. The interesting decision is what to return when nothing matched: pick a value that could never be a legal index, and say in a comment why zero is not that value.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+static int find(const int *a, int n, int key) {
+    for (int i = 0; i &lt; n; i++)
+        if (a[i] == key) return i;
+    return -1;                 /* not 0: 0 is a real index */
+}
+
+int main(void) {
+    int a[] = { 4, 8, 15, 16, 23, 42 };
+    int n = (int)(sizeof a / sizeof *a);
+    printf("15 -&gt; %d\n", find(a, n, 15));
+    printf("99 -&gt; %d\n", find(a, n, 99));
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>Returning 0 for &ldquo;not found&rdquo; is the classic version of this bug: the caller cannot tell it apart from a hit at the first element. <code>-1</code> can never be a valid index, which is why every standard library that does this uses it or a NULL pointer.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>The scan visits each element once and returns at the first match, so it reports the <i>first</i> occurrence and not merely some occurrence. O(n), and the sentinel is what makes the absent case distinguishable: -1 can never be a valid index, while 0 always can.</p></details>
+      <details class="reveal stepper" data-step="c:C11.1" data-gran="line">
+        <summary>Step through the recorded run &mdash; 29 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.2">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.2">
+      <span class="chal-id">C11.2</span>
+      <span class="chal-name">Binary search on a sorted array</span>
+      <span class="tier core" title="The representative problem for this topic. These are the ones worth doing all of.">core</span>
+    </div>
+    <div class="chal-body">
+      <p>Search a <b>sorted</b> array by halving the range each step. Return the index or <code>-1</code>. Print how many comparisons it took.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">23 -&gt; index 5 in 0 comparisons
+24 -&gt; index -1 in 3 comparisons</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>Two bounds, <code>lo</code> and <code>hi</code>, and a midpoint. Write the midpoint as <code>lo + (hi - lo) / 2</code>, not <code>(lo + hi) / 2</code>, and the loop condition as <code>lo &lt;= hi</code>.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>Keep two bounds and a midpoint, and narrow whichever half cannot contain the key. Decide up front what the loop condition is when the two bounds meet — off by one there is the whole bug surface of this algorithm. Compute the midpoint as the low bound plus half the gap rather than as half the sum, and be able to say what that avoids.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+static int bsearch_idx(const int *a, int n, int key, int *steps) {
+    int lo = 0, hi = n - 1;
+    *steps = 0;
+    while (lo &lt;= hi) {
+        int mid = lo + (hi - lo) / 2;   /* cannot overflow */
+        (*steps)++;
+        if (a[mid] == key) return mid;
+        if (a[mid] &lt; key) lo = mid + 1;
+        else              hi = mid - 1;
+    }
+    return -1;
+}
+
+int main(void) {
+    int a[] = { 2, 5, 8, 12, 16, 23, 38, 56, 72, 91 };
+    int n = (int)(sizeof a / sizeof *a), steps = 0;
+    printf("23 -&gt; index %d in %d comparisons\n",
+           bsearch_idx(a, n, 23, &amp;steps), steps);
+    printf("24 -&gt; index %d in %d comparisons\n",
+           bsearch_idx(a, n, 24, &amp;steps), steps);
+    return 0;
+}</pre><button class="copy">Copy</button></div><p><code>(lo + hi) / 2</code> overflows once the array is big enough that the two indices sum past <code>INT_MAX</code> — a bug that sat in the JDK for nine years. <code>lo + (hi - lo) / 2</code> is the same value and cannot overflow. Ten elements take at most four comparisons; a thousand take ten.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>The key, if it is present at all, is always inside <code>[lo, hi]</code> — that is the invariant, and every step shrinks the range without ever excluding it. The range halves each comparison, so ten elements cost at most four and a thousand cost ten: O(log n). Correct only on data sorted by the same order the comparisons assume.</p></details>
+      <details class="reveal stepper" data-step="c:C11.2" data-gran="line">
+        <summary>Step through the recorded run &mdash; 52 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.3">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.3">
+      <span class="chal-id">C11.3</span>
+      <span class="chal-name">Selection sort, by hand</span>
+      <span class="tier core" title="The representative problem for this topic. These are the ones worth doing all of.">core</span>
+    </div>
+    <div class="chal-body">
+      <p>Sort an array ascending without calling <code>qsort</code>. Print the array after each pass so the invariant is visible.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out"> 10 29 14 37 13
+ 10 13 14 37 29
+ 10 13 14 37 29
+ 10 13 14 29 37</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>After pass <code>i</code>, the first <code>i + 1</code> elements are the smallest <code>i + 1</code> values, in order. That sentence is the whole algorithm.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>State the invariant before writing anything: after pass i, the first i+1 elements are the smallest i+1 values, in order. Then the code is the sentence — find the smallest of what remains, swap it into place, print. The outer loop stops one short of the end, and you should be able to say why the last element needs no pass.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+static void show(const int *a, int n) {
+    for (int i = 0; i &lt; n; i++) printf("%3d", a[i]);
+    putchar('\n');
+}
+
+int main(void) {
+    int a[] = { 29, 10, 14, 37, 13 };
+    int n = (int)(sizeof a / sizeof *a);
+
+    for (int i = 0; i &lt; n - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j &lt; n; j++)
+            if (a[j] &lt; a[min]) min = j;
+        int t = a[i]; a[i] = a[min]; a[min] = t;
+        show(a, n);
+    }
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>Selection sort always does the same n(n-1)/2 comparisons whatever the input, which makes it the easiest one to reason about and the wrong one to use. The printed passes are the invariant: the sorted prefix grows by exactly one element each time.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>After pass <code>i</code>, the first <code>i + 1</code> elements are the smallest <code>i + 1</code> values in order, and nothing later in the array is smaller than any of them. The comparison count is n(n-1)/2 whatever the input, which is why it is predictable and why it is the wrong sort to use on anything large.</p></details>
+      <details class="reveal stepper" data-step="c:C11.3" data-gran="line">
+        <summary>Step through the recorded run &mdash; 58 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.4">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.4">
+      <span class="chal-id">C11.4</span>
+      <span class="chal-name">Second largest, one pass</span>
+      <span class="tier core" title="The representative problem for this topic. These are the ones worth doing all of.">core</span>
+    </div>
+    <div class="chal-body">
+      <p>Find the second largest <i>distinct</i> value in an array without sorting it. Handle the case where every element is equal.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">largest 35, second 34</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>Two variables. When a new maximum arrives, the old maximum becomes the second — that assignment order is where this goes wrong.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>Two running values, and the order of the two assignments is the whole problem: when a new best arrives the old best has to move down before it is overwritten. Then decide what 'second' means when the largest value appears twice, and what to report when every element is equal.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+#include &lt;limits.h&gt;
+
+int main(void) {
+    int a[] = { 12, 35, 1, 35, 10, 34 };
+    int n = (int)(sizeof a / sizeof *a);
+    int best = INT_MIN, second = INT_MIN;
+
+    for (int i = 0; i &lt; n; i++) {
+        if (a[i] &gt; best) { second = best; best = a[i]; }
+        else if (a[i] &gt; second &amp;&amp; a[i] != best) second = a[i];
+    }
+
+    if (second == INT_MIN) printf("no second distinct value\n");
+    else                   printf("largest %d, second %d\n", best, second);
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>The duplicate 35 is the case the naive version gets wrong: without <code>a[i] != best</code> it reports 35 twice. Starting both at <code>INT_MIN</code> rather than <code>a[0]</code> is what makes the all-equal case reportable instead of silently wrong.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>At every point <code>best</code> is the largest value seen and <code>second</code> the largest distinct value below it. The <code>a[i] != best</code> guard is what makes 'distinct' true; without it a repeated maximum satisfies both. One pass, O(n), and the <code>INT_MIN</code> start is what leaves the all-equal case reportable rather than silently wrong.</p></details>
+      <details class="reveal stepper" data-step="c:C11.4" data-gran="line">
+        <summary>Step through the recorded run &mdash; 25 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.5">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.5">
+      <span class="chal-id">C11.5</span>
+      <span class="chal-name">Reverse in place with two indices</span>
+      <span class="tier first" title="Zero assumed knowledge — every symbol used is defined in the hint. Start here if C is new to you; skip it once C1.0a and C1.0b feel obvious.">first</span>
+    </div>
+    <div class="chal-body">
+      <p>Reverse an array in place — no second array. Print it before and after.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">  1  2  3  4  5  6  7
+  7  6  5  4  3  2  1</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>One index from each end, swap, step both inward. The loop runs while they have not met.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>One index at each end, moving toward each other. Work out on paper how many swaps a seven-element array needs before you write the loop bound — the wrong bound gives you back the array you started with.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+static void show(const int *a, int n) {
+    for (int i = 0; i &lt; n; i++) printf("%3d", a[i]);
+    putchar('\n');
+}
+
+int main(void) {
+    int a[] = { 1, 2, 3, 4, 5, 6, 7 };
+    int n = (int)(sizeof a / sizeof *a);
+
+    show(a, n);
+    for (int i = 0, j = n - 1; i &lt; j; i++, j--) {
+        int t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    show(a, n);
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>The bound is the correctness argument: <code>i &lt; j</code> runs n/2 times. Write <code>i &lt; n</code> instead and every element is swapped twice, which reverses the array and then puts it back — a bug whose output is the input.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>Everything outside <code>[i, j]</code> is already in its final position, and each step restores that for one more pair. The loop runs n/2 times because <code>i &lt; j</code> stops when they meet: run it n times and each element is swapped twice, which is the identity.</p></details>
+      <details class="reveal stepper" data-step="c:C11.5" data-gran="line">
+        <summary>Step through the recorded run &mdash; 20 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.6">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.6">
+      <span class="chal-id">C11.6</span>
+      <span class="chal-name">Digits: sum, reverse, palindrome</span>
+      <span class="tier first" title="Zero assumed knowledge — every symbol used is defined in the hint. Start here if C is new to you; skip it once C1.0a and C1.0b feel obvious.">first</span>
+    </div>
+    <div class="chal-body">
+      <p>For a number read from <code>argv[1]</code>, print the sum of its digits, the number reversed, and whether it is a palindrome.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob 12321</pre>
+        <pre class="out">digits sum 9
+reversed   12321
+palindrome yes</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p><code>n % 10</code> is the last digit and <code>n / 10</code> drops it. Integer division is doing the work, so this only works on integers.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>One loop peels digits off the number: the remainder by ten is the last digit, dividing by ten drops it. All three answers fall out of that one pass if you accumulate them together, so resist writing three loops.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char **argv) {
+    if (argc != 2) { fprintf(stderr, "usage: %s &lt;int&gt;\n", argv[0]); return 2; }
+    long n = atol(argv[1]), sum = 0, rev = 0, orig = n;
+
+    while (n &gt; 0) {
+        int d = (int)(n % 10);
+        sum += d;
+        rev = rev * 10 + d;
+        n /= 10;
+    }
+
+    printf("digits sum %ld\n", sum);
+    printf("reversed   %ld\n", rev);
+    printf("palindrome %s\n", rev == orig ? "yes" : "no");
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>Building the reversal with <code>rev = rev * 10 + d</code> is the same loop as the digit sum, which is why the three answers cost one pass rather than three. A number ending in 0 reverses to a shorter number, and is correctly not a palindrome.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>The loop strictly decreases <code>n</code> by a factor of ten each iteration, so it terminates in as many steps as the number has digits. All three results accumulate in that single pass, and the reversal identity <code>rev = rev * 10 + d</code> is exact until it overflows, which for a <code>long</code> is past any input this question asks for.</p></details>
+      <details class="reveal stepper" data-step="c:C11.6" data-gran="line">
+        <summary>Step through the recorded run &mdash; 33 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.7">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.7">
+      <span class="chal-id">C11.7</span>
+      <span class="chal-name">Prime, perfect, Armstrong</span>
+      <span class="tier core" title="The representative problem for this topic. These are the ones worth doing all of.">core</span>
+    </div>
+    <div class="chal-body">
+      <p>Classify a number: report whether it is prime, whether it is perfect (equal to the sum of its proper divisors), and whether it is an Armstrong number (equal to the sum of the cubes of its digits, for a three-digit number).</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">  7  prime=1 perfect=0 armstrong=0
+ 28  prime=0 perfect=1 armstrong=0
+153  prime=0 perfect=0 armstrong=1
+ 12  prime=0 perfect=0 armstrong=0</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>Three small functions, one loop each. For primality stop at <code>d * d &lt;= n</code> and be ready to say why.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>Three small predicates, one loop each, and each returning early. For primality decide where the loop can stop and be ready to justify it out loud — that justification is worth marks in a way the code is not.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+static int is_prime(int n) {
+    if (n &lt; 2) return 0;
+    for (int d = 2; d * d &lt;= n; d++)     /* a divisor above sqrt(n)
+                                            implies one below it */
+        if (n % d == 0) return 0;
+    return 1;
+}
+
+static int is_perfect(int n) {
+    int sum = 0;
+    for (int d = 1; d &lt;= n / 2; d++)
+        if (n % d == 0) sum += d;
+    return n &gt; 0 &amp;&amp; sum == n;
+}
+
+static int is_armstrong(int n) {
+    int sum = 0, m = n;
+    while (m &gt; 0) { int d = m % 10; sum += d * d * d; m /= 10; }
+    return sum == n;
+}
+
+int main(void) {
+    int tests[] = { 7, 28, 153, 12 };
+    for (int i = 0; i &lt; 4; i++) {
+        int n = tests[i];
+        printf("%3d  prime=%d perfect=%d armstrong=%d\n",
+               n, is_prime(n), is_perfect(n), is_armstrong(n));
+    }
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>Stopping primality at <code>d * d &lt;= n</code> is the one line worth being able to justify out loud: if n has a divisor above its square root, the matching factor is below it, so the second half of the loop can find nothing the first half missed. 28 is perfect (1+2+4+7+14) and 153 is Armstrong (1+125+27).</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>Primality stops at <code>d * d &lt;= n</code> because a divisor above &radic;n implies a matching one below it, so the second half of the range can contain nothing new — that is the correctness argument, and it takes the cost from O(n) to O(&radic;n). The perfect test is O(n/2) and the Armstrong test is O(digits).</p></details>
+      <details class="reveal stepper" data-step="c:C11.7" data-gran="line">
+        <summary>Step through the recorded run &mdash; 267 steps</summary>
+        <div class="stepbox"></div>
+      </details>
+    </div>
+  </div>
+  <div class="chal" id="C11.8">
+    <div class="chal-head">
+      <input type="checkbox" data-id="C11.8">
+      <span class="chal-id">C11.8</span>
+      <span class="chal-name">A grid, its transpose and its diagonal</span>
+      <span class="tier core" title="The representative problem for this topic. These are the ones worth doing all of.">core</span>
+    </div>
+    <div class="chal-body">
+      <p>Fill a 3&times;3 matrix with <code>i * 3 + j</code>, print it, print its main diagonal, and print its transpose.</p>
+      <div class="expect"><b>What you should see</b>
+        <pre class="cmd">./prob</pre>
+        <pre class="out">matrix
+   0   1   2
+   3   4   5
+   6   7   8
+diagonal    0   4   8
+transpose
+   0   3   6
+   1   4   7
+   2   5   8</pre>
+      </div>
+      <details class="reveal"><summary>Hint</summary><p>Two indices. The diagonal is the case where they are equal, which is one loop rather than two. The transpose swaps their roles when indexing, not when looping.</p></details>
+      <details class="reveal appr"><summary>Approach &mdash; no code</summary><p>Two indices for the grid. The diagonal is the special case where they are equal, so it is one loop, not two. For the transpose, change which index you use where you read the element, not the order you loop in — and be clear with yourself about the difference before you type it.</p></details>
+      <details class="reveal"><summary>Solution</summary><div class="codewrap"><pre>#include &lt;stdio.h&gt;
+
+#define N 3
+
+int main(void) {
+    int m[N][N];
+
+    for (int i = 0; i &lt; N; i++)
+        for (int j = 0; j &lt; N; j++)
+            m[i][j] = i * N + j;
+
+    printf("matrix\n");
+    for (int i = 0; i &lt; N; i++) {
+        for (int j = 0; j &lt; N; j++) printf("%4d", m[i][j]);
+        putchar('\n');
+    }
+
+    printf("diagonal ");
+    for (int i = 0; i &lt; N; i++) printf("%4d", m[i][i]);
+    putchar('\n');
+
+    printf("transpose\n");
+    for (int i = 0; i &lt; N; i++) {
+        for (int j = 0; j &lt; N; j++) printf("%4d", m[j][i]);
+        putchar('\n');
+    }
+    return 0;
+}</pre><button class="copy">Copy</button></div><p>The transpose is written by swapping the indices at the point of <i>use</i> — <code>m[j][i]</code> — not by swapping the loops. Swapping the loops prints the same matrix in a different order, which is the mistake this question is set to catch.</p></details>
+      <details class="reveal invar"><summary>Why it works &mdash; invariant and cost</summary><p>Every element is written exactly once and read exactly once per printing pass, so all three outputs are O(N&sup2;) in the side length. The diagonal is the sub-case <code>i == j</code>, which is why it is one loop; the transpose swaps the indices at the point of use, which leaves the traversal order unchanged and the printed shape reflected.</p></details>
+      <details class="reveal stepper" data-step="c:C11.8" data-gran="line">
+        <summary>Step through the recorded run &mdash; 53 steps</summary>
         <div class="stepbox"></div>
       </details>
     </div>
@@ -7190,6 +7563,14 @@ int main(void) {
 <script type="text/plain" class="stepdata" data-step="c:C10.3">eNpljsFugzAMhl8l8qWXCMVxIE1U7UUIB7YGgQRtVdIT4t3n0IG07WDr/53f+bxAAl/DoqRQK0jortwU12PI6hSCUuokLs/4iG2aBaIWaZji/FEUBQc+Xx13NMqSpZLOZIyreHLjmlObXjOLqR2yX0gKkyHn0mFmBOjjON5F97xPIvVRfPXDeA3hFkCKf2iHv8gaoWEGX19b6eQCCF5JIPBaQgneSLDgK6bxZG1k7XIqC8Q9j2rzevO8ibh5sye1PlR5qGpLM4H3MgLpT+B9jv3BktofCA91/Ev0Vs36De06ZuY=</script>
 <script type="text/plain" class="stepdata" data-step="c:C10.4">eNqFjsEKgzAMhl9Fco6S2tZWYU9ie6hOXBnbxYIH8d0XlHW7jEH75wt/yJ8NEnQ9bPFaXIrSKktYrFOcb4n7pmq1lFpbMoqUMK2YSil4IoWZbQfOEdEfgR0QYmLht/Ifwnjn8gjxyeVMNl+potKfhDCMv7Z6hIVv71vUuIGAjhAkdDWCYt099nwqWwfV76HmaGU2dKYmk8lkT/L7C8/8TOc=</script>
 <script type="text/plain" class="stepdata" data-step="c:C10.5">eNrNUttqhDAQ/RWZ5xSMMUaFfokrS7YGNlSz2zW9If57J8l6afvgUmgpODlHZs7MSZgBLJQVDEa92eg+ItH5ol6QjEBAW9X1iIORnfLJJ/uOGJOo1eYR2XeZ00mMA8YDBn5njE5qg3DEaHVv99pou+q8g8Optf0OphE02ZixKM3zWsjim4Wvsj+qy0orNqT+Bko20yVk0+yt1K1/KqgJ9PiUVcJITgagUMYEGJQJgdSf3J8CymysSZVwV+ZYQWiMggITxMnuqNc5SAPwAMKB14rNEcT1u1bnvhrraGhJQyVlLos/NHPN0jCf326DMi/1NF0oX2g206T4bPmrlck1vc6ifJ7yNwZxcf65QfZTgywNymn12Lx6U0/xy6ViTuWB1eMHUfAXsg==</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.1">eNqdkU1qxDAMha9itFbAVvwXXyVkMdAphGFm026Kyd375GGSZkg2hTzbT59iSbjSN5WRapd9tmx6STGx6XKSzeFkF2K6QBZ6QPfLrFv1bDIbF6DIRno2XjQ3QjOEzwUst+sP1s/58aERSKB2P/ZhUAN5KNDE9IWmxoE9VyQXq7TIMvHorAbbyb1waFaaRV5U6xm8UsJvWq9krJbKoCw0tmVtMc13ckp69Wn1nWuF+7WPZ41neGvA+b8duLC/VP7bxyGJpySdkrwn8W2+tBIMcjQpHr89ybT8AmwIi6I=</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.2">eNrdU9tqwzAM/ZXgZwci2fElvxLC6NZAw64sfdgI/fcd2Wm7ps2gr4NI1pGlY+UYT2qvmlZNlS5ufmWwAYth7/xBabWBVbA32LjvP0asr5tB4MS6qHURdEGIyOmCDTqBa8QeuUhCQdKPjw3cc/8N//IOtxvgHsd+8/m0exi2X0BR2IctvIXVMA9zMOllSZZkLLONTljTmKrDaPipFiPUelKkmkoaGhaahg+dbsnLVorCscglGBNEtRdoNZm8G9LgTUwcAigREs+M9VwJTFYSLiUk8vNWPZeGM6Z0aDyVUnUK3VyFczBtqi5pQZfbf/OFVT6iK2qZNa5RhyW1X1Db817uZjpJmZWusmYlZbnSysfqK2nRfkPbe8Q1/0jd26Ou8vklX7x31AsVkF7cc7pgc3nBeGB/XDDb/Ma6ww/3Xwd+</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.3">eNqtUstqw0AM/BWz5zWspPU+8ivGh9ySQttDAz0Y/3slrR8bN00hCWSIJY1GGtmjuZhDb8Y2+eRsQxhDtE2bIm6Rm4w1R4ZjfDDej2f5GzHbBpgHnrlMBBLmmdEJS0kXxhsDGMgghpfnLArSrSpXCvz7On1+LwSgjYBZCCAKFPcEUaI4mYH72VWfrLcjTz44mXvAabB9lpw8cONc7TREDQPTlBw1SZpMmsyzAk/SRrfE3RoDVIS0xhWhUtiX6O+S35XCWmrLhKgJ3pC7xBIESXsLqVhkguzTgtooTV2phiUOGv+6xaq2HQOKjMwKO9OyU7xjWtvxMeva6+8dQHbNlXPeLtpn/IvTVbQ6gL86wP6zKMMetfnPG0b3UoN42+D8vbtikG4bpKdeluiX8yK+1BJVopCXdGlAV048TD8d8yZ7</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.4">eNqFkM0OgjAQhF+F9FySbrv9kVchHPw7eFAPeiO8uzNFJBITD7PdYb8pC6N5mq43Y1u0ONsEn1O2TVuyXx06Nxlr9pCDbtDh/HjieJyP99sJzXV/4eNRPGLRNvI+eIsynKAL1HrRrCUkLXDiWaAQUWgCpBB9UDPgHViwV5vsCLJzRDpPiDWiToPtI+ds0gJmulwdAoVuV91uiWM55sVxBvO+YaY4l3XAlPjvcZjjW0qrl6/rNkj8j6T/SP6B1I3qx4ouYDtv+PlFkj5dnrthegH3wnxo</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.5">eNqNkMGOwyAMRH8FcXYkIGCT/EqUQ2/bSu0ettIeovz7jiGk2VaVKmUE4/EzkMXe7TjZxZHZvy7HjKUPwqJOglst2RPkoBt0PZ11WTyZgE4ykUwiw2REWwU6Q/h+vr5/sVygO8RKyQvllfJQ2nI+5GHLAxQfeSp53/IZZ+EpU6ZIC2aNjmxvx7DONA1a0413LU3FhmLRxmojDXACSC8zZq2lVuu8WlZb0L6gW7NrTB0b6yl+D304MChjV+I69NCPrc7UpXDpieN3nFRONi4/ccM/jtvdO1/7a31/P3/wfnnMLj7XfzyvfxkNhEY=</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.6">eNqNkU1uAjEMhe/idSrFzp+Tq4xmgQpCLGilaWGDuHudZCDgCrWLxC8vz1+smQt8Q5mAwMBm2b9L6eosBb1NLnlm5yN7FudDudFW9+t0lN3KWnajzwXHniLXxOdy2Es5bg6NQI5Q6rbq9SzFNdnPskdZtTfDLE/IkFMwSOYiLcXWdCEDAYo3kKDEGiwszXKN9jqbKbZ4VdwbJYyupW85V2/zivXi1zPaYWBoDnYn3Q3qRr4ZDy9E0zrfULHXzge41eyk2azY+QXb/po7KTZZzc6Kza/mTn/NTajZUbHDv+fW35tIs90z+2lsDPd/juP3YxqSh8yrnK8/W+Gzbw==</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.7">eNrNmNFu2zAMRX+lyLMLRJRESv2VohiKLRv6kG5Isqeg/z5d2ok9u7vpmg0bUCuWyEtLh4wj9bg6rO7uV8d1dzP8vay61WGzP+zb5/bx6bl9rNv11K6jdTdSupuQY2sEnjBbu/bft/CH4/7D4267P+y+Pn9p3ZhiP/hts/u8+XhonU/tCu0SmAfj7mm7abcJw6U1tyEmkVQVz87ibbsUUjjBp6IDS0C0gHAB8UL2xm9dgAlGd4QsQOcRxWcBncBZ/OkQC2QCmcA5wi/6dKMvCQ38Ivyih0fkCOeEyAmKBIUvP0GRoEhQJCgSFAmK7KuDogRfLRrIMmQZsgxZhixDliFzNAqFQqFQKBTqpKBQKBQKhcKgMCgMCoPCoDAoDAqz1UPLZquJe0mddMeWqbv1y0N3Lxldv1M3pNVdRCLvsg+aD2ob9G45dQ3dULuwbv3imupt098GD3AbXLLufeqgkXDWhNCLfFh82KO2W5lG7QOF2A+3YhiensaBkKYu5TwwdckTl4VR58Y8Gofn69nYhNY/pjflvu+BCgZsMpBHD9yV0dSL69m0yAC+GSeM50SYM+7XN+Yj1FcT0uizjPSqSUrk3SkZ8F6RE3fRy5mZGstMvygMESKXSIw2Cy2L2QurKGHzFmPGwoyVGOOaKRfpqNcUegyvFnqdl/dY1G0yv67qVrnuk38u6yizsh4KdHB/ta7Ht5HMqjvKu6t7mvw/+KpxfaFl/Xcq+v217JjW/11FL5SBGRmmOP+ixMWrLbIvd2QoIkMRGYrEUCS22sQqJjEUiRFOtMrpUig+FjYxtomxTWxCmbHNjG1mbDNjmxnbzCBkhi8zQpkRyoyQMkLKCCkjpIyQMkLKCCkjpPNfdl28gJWhMIbCGApjKIy+uhkKYyiMoTBWLMaKxRihwggVRqgwQoURKoxQYYQKI1QYocIIFUaoMkKVEaqMUI1/6BhT04VjzNSklzZ+mWz8sCdLpyDjxk8W55l+76blDRs/WRxr9B9s/N5wnvG5xYunGrniWOOLi9fUgv32Rl8X+Y7hZBz60v/b4eHlB6bkdLE=</script>
+<script type="text/plain" class="stepdata" data-step="c:C11.8">eNqVUUuugzAMvEqVdZBi52e4CmLRZSu1m3aHuPtzeAXqCKWJhBUmnvHY8azeahjVPBt9Sd+iL+m3I0d8WIwhpquOIm44sRal1SPF9fbkw3DcOO4cwLGWg7Zy+KXDBp3NdbZOl2tcO9+3ckM9r5JDzJm0evESR69Rz/z+g1kmPdKKnBpsQv2K/AeBSXC/P64SIxx8rhVlkkSyP4w414FwYlGyD7KAFQUASt6AJXOwFe5UdHdFd190DyfugNujf7AVSwAnt+Aztd2X4U4fsZ5PP/iU9dmLPtHINOImRDkQyoEwM8TdEE8HauDTD37MOqb/zLT8AZTzK/g=</script>
 <script type="text/plain" class="stepdata" data-step="c:C2.1">eNo9ijEOgCAQBP+y9RVwnJzwFUJhaaGNWhH+LmCw2OxMMgU3YoJj9QrC03Zs+9lOOEjwymFpYpAJVyuTElOBRTQ1U1q7dbDmJzsLN5SnylD3d/JRri9V0CGI</script>
 <script type="text/plain" class="stepdata" data-step="c:C2.2">eNq1VrtuwzAQ+xfNNqDj6WH7VwwP7VAgQ7u0W5B/79GO0wrIFt1wsCyRxIGiD76Gn7CsIYYhXKw+3y5f9hhFUxaUxP0PK0Ut1Z7vVmIF7lklq2xVrHg+Wc3EkChECqFCrBAsRAvhQryQIGSADOzaZIAMkAEyQAbIABkgQ2PYhvBt7a9pwHC1xpZ424Y1728pLMrGlsyWl8qTcp7E/WRHV+5xMZ2L+VykEz7Kjh+lkb+L7PLTQ76f5ty0XF8Trv+EJbZm9GtZ5E+5vNzzoVwPZbRu9LjAxhN18yQ5ZEOyWzjKky+l50XWJiI9jZ7cPJm9woHoEA7Ik2+lix3HFQK+wxTqYUrySgeyWzqK1zhF9R2nmNw8mR3CodErHCq+41ThNU5V3TxJXuHQ7BGO0m2cipx/qvd3HPjt9guEw8fz</script>
 <script type="text/plain" class="stepdata" data-step="c:C2.3">eNqVUs0KwjAMfpXRcwZL2/RnrzJ2EE8e/AEVhLF3N8lWx9ChHtKmyfd36GBupu3M4G32mVLCAJWzMUSo5hHFMhoNMBrMcXc48dVwHbiGBiqEyhLNnBBtJgE/uAR5OV/25/tJuMilYnxbKSI+k0y5FrrCTA/myvE6bMDCwOS2GXvoEOWpndWFN60T7ZZ06MqaIPE26DbqycgaFVqjIIIgpImlSaV50wZREnYs7MlJIHlllxXDqT/7aZaX6ZIvb/jn7/6IqwDMVcE/A6DbSID4QwS/jkCz5L8ZwlYGv5nBF8z8pukD9OMTntun0g==</script>
@@ -7242,7 +7623,7 @@ int main(void) {
      duplicating them here would give the same question two answers. */
   var KEY = "studyTools.c.v1";
   var SCHEMA_VERSION = 2;
-  var BRIDGE_TOTAL = 30;
+  var BRIDGE_TOTAL = 69;
 
   function blank() {
     return { v: SCHEMA_VERSION, done: {}, solved: {}, recall: {}, bridge: {},
@@ -7990,16 +8371,24 @@ int main(void) {
      already had ticks, and it states that nothing was lost rather than only
      that something changed. */
   (function () {
-    if (!BRIDGE_TOTAL || state.seen.denom) return;
+    if (!BRIDGE_TOTAL) return;
     var had = Object.keys(state.done).length + Object.keys(state.solved).length;
-    if (!had) { state.seen.denom = 1; return; }
     var n = counts();
-    var before = n.topics + n.chals;
+    var now = n.topics + n.chals + n.bridge;
+    /* Acknowledged against a *total*, not a boolean. The first version stored
+       seen.denom = 1, so the second time the file grew — the phrasebook going
+       from 54 entries to 115 — a profile that had dismissed the notice would
+       have watched its percentage drop with nothing said. */
+    var ack = typeof state.seen.denomTotal === "number" ? state.seen.denomTotal : 0;
+    if (state.seen.denom && !ack) ack = now;   /* migrate the old boolean */
+    if (!had) { state.seen.denomTotal = now; return; }
+    if (now <= ack) return;
+    var before = ack || (n.topics + n.chals);
     var el = document.getElementById("denomNote");
     var tx = document.getElementById("denomText");
     if (!el || !tx) return;
-    tx.textContent = "It went from " + before + " items to " + (before + n.bridge) +
-      " because the phrasebook's " + n.bridge + " entries for this language now count " +
+    tx.textContent = "It went from " + before + " items to " + now +
+      " because the phrasebook's " + n.bridge + " entries for this language count " +
       "toward it. Nothing you ticked was lost or altered — the same " + had +
       " ticks are being measured against a larger total, so the percentage reads " +
       "lower than you left it.";
@@ -8008,6 +8397,7 @@ int main(void) {
     if (ok) ok.addEventListener("click", function () {
       el.classList.add("hide");
       state.seen.denom = 1;
+      state.seen.denomTotal = now;
       save();
     });
   })();

@@ -146,8 +146,13 @@ def _outside_strings(code: str, fn) -> str:
 def variants(code: str, lang: str) -> list[tuple[str, str]]:
     """[(label, text)] that must all be accepted."""
     out = [("as written", code)]
-    out.append(("extra whitespace", _outside_strings(
-        code.replace("\n", "\n  "), lambda t: re.sub(r"(\S)([=+<>-])(\S)", r"\1 \2 \3", t))))
+    spaced = _outside_strings(
+        code.replace("\n", "\n  "),
+        lambda t: re.sub(r"(\S)([=+<>-])(\S)", r"\1 \2 \3", t))
+    # `1e-9` is one number token, and spacing its exponent apart makes three.
+    # The generator, not the checker, was wrong: found on types-6.
+    spaced = re.sub(r"(\d)\s*([eE])\s*([-+])\s*(\d)", r"\1\2\3\4", spaced)
+    out.append(("extra whitespace", spaced))
     if '"' in code and "'" not in code and lang != "c":
         out.append(("single quotes", code.replace('"', "'")))
     ren = _rename(code, lang)

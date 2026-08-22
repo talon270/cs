@@ -30,7 +30,7 @@ import content_ds_problems as DSP  # noqa: E402
 import content_prereq as PR  # noqa: E402
 from content_bridge_out import ROWS  # noqa: E402
 
-AUTHOR_CAP = 40
+AUTHOR_CAP = 120
 
 
 def solutions() -> dict[tuple[str, str], str]:
@@ -206,12 +206,20 @@ def main() -> int:
           f"3 · prerequisite graph                  : {g['topics']} topics, "
           f"{g['edges']} edges")
 
+    # Every authored cell must have a way to be run. verify_authored.py runs
+    # them; this asserts none was added without a spec, which is the only way
+    # one could quietly go back to being unverified.
+    specless = [(r["id"], l) for r in ROWS.values() for l in ("c", "py", "r")
+                if r[l]["kind"] == "lit" and (r["id"], l) not in B.RUN]
+    for eid, l in specless:
+        fails.append(f"authored cell {eid}:{l} has no run spec in content_bridge.RUN")
+
     ncls = check_css(fails)
     npat = check_patterns(fails)
     authored = sum(1 for r in ROWS.values() for l in ("c", "py", "r")
                    if r[l]["kind"] == "lit")
     print(f"4 · patterns, cap and CSS               : {npat} patterns, links resolve; "
-          f"{authored} authored cells (cap {AUTHOR_CAP}); "
+          f"{authored} authored cells (cap {AUTHOR_CAP}, all with run specs); "
           f"{ncls} own classes, none colliding with the shared stylesheet")
     if authored > AUTHOR_CAP:
         fails.append(f"authored cells {authored} exceed the cap of {AUTHOR_CAP}")

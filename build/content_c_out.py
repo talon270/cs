@@ -117,7 +117,7 @@ EXPECTED = {
         'cmd': './prob',
         'rc': 0,
         'stable': False,
-        'text': 'x      = 42\n&x     = 0x7ffca7a9394c\np      = 0x7ffca7a9394c\n*p     = 42\nx now  = 99',
+        'text': 'x      = 42\n&x     = 0x7ffe48a2daec\np      = 0x7ffe48a2daec\n*p     = 42\nx now  = 99',
     },
     'C4.2': {
         'cmd': './prob 6',
@@ -303,7 +303,7 @@ EXPECTED = {
         'cmd': './prob',
         'rc': 0,
         'stable': False,
-        'text': 'expected 400000\nunsafe   392453 (lost updates)\nsafe     400000',
+        'text': 'expected 400000\nunsafe   392118 (lost updates)\nsafe     400000',
     },
     'C10.3': {
         'cmd': './prob',
@@ -322,5 +322,53 @@ EXPECTED = {
         'rc': 0,
         'stable': True,
         'text': 'bolts     12\nnuts      30\nwashers    7',
+    },
+    'C11.1': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': '15 -> 2\n99 -> -1',
+    },
+    'C11.2': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': '23 -> index 5 in 0 comparisons\n24 -> index -1 in 3 comparisons',
+    },
+    'C11.3': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': ' 10 29 14 37 13\n 10 13 14 37 29\n 10 13 14 37 29\n 10 13 14 29 37',
+    },
+    'C11.4': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': 'largest 35, second 34',
+    },
+    'C11.5': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': '  1  2  3  4  5  6  7\n  7  6  5  4  3  2  1',
+    },
+    'C11.6': {
+        'cmd': './prob 12321',
+        'rc': 0,
+        'stable': True,
+        'text': 'digits sum 9\nreversed   12321\npalindrome yes',
+    },
+    'C11.7': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': '  7  prime=1 perfect=0 armstrong=0\n 28  prime=0 perfect=1 armstrong=0\n153  prime=0 perfect=0 armstrong=1\n 12  prime=0 perfect=0 armstrong=0',
+    },
+    'C11.8': {
+        'cmd': './prob',
+        'rc': 0,
+        'stable': True,
+        'text': 'matrix\n   0   1   2\n   3   4   5\n   6   7   8\ndiagonal    0   4   8\ntranspose\n   0   3   6\n   1   4   7\n   2   5   8',
     },
 }

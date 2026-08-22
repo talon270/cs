@@ -29,6 +29,7 @@ RUN_ARGS: dict[str, dict] = {
     "C4.3": {"stdin": "1 2 3 4 5 6 7 8 9\n"},
     "C8.1": {"args": ["__FILE__"]},
     "C8.5": {"args": ["__FILE__"]},
+    "C11.6": {"args": ["12321"]},
 }
 
 # -pthread where the solution uses it.

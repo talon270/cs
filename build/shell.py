@@ -1244,16 +1244,24 @@ JS = """
      already had ticks, and it states that nothing was lost rather than only
      that something changed. */
   (function () {
-    if (!BRIDGE_TOTAL || state.seen.denom) return;
+    if (!BRIDGE_TOTAL) return;
     var had = Object.keys(state.done).length + Object.keys(state.solved).length;
-    if (!had) { state.seen.denom = 1; return; }
     var n = counts();
-    var before = n.topics + n.chals;
+    var now = n.topics + n.chals + n.bridge;
+    /* Acknowledged against a *total*, not a boolean. The first version stored
+       seen.denom = 1, so the second time the file grew — the phrasebook going
+       from 54 entries to 115 — a profile that had dismissed the notice would
+       have watched its percentage drop with nothing said. */
+    var ack = typeof state.seen.denomTotal === "number" ? state.seen.denomTotal : 0;
+    if (state.seen.denom && !ack) ack = now;   /* migrate the old boolean */
+    if (!had) { state.seen.denomTotal = now; return; }
+    if (now <= ack) return;
+    var before = ack || (n.topics + n.chals);
     var el = document.getElementById("denomNote");
     var tx = document.getElementById("denomText");
     if (!el || !tx) return;
-    tx.textContent = "It went from " + before + " items to " + (before + n.bridge) +
-      " because the phrasebook's " + n.bridge + " entries for this language now count " +
+    tx.textContent = "It went from " + before + " items to " + now +
+      " because the phrasebook's " + n.bridge + " entries for this language count " +
       "toward it. Nothing you ticked was lost or altered — the same " + had +
       " ticks are being measured against a larger total, so the percentage reads " +
       "lower than you left it.";
@@ -1262,6 +1270,7 @@ JS = """
     if (ok) ok.addEventListener("click", function () {
       el.classList.add("hide");
       state.seen.denom = 1;
+      state.seen.denomTotal = now;
       save();
     });
   })();

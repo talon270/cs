@@ -312,3 +312,82 @@ is the only three-column one. Past a 1700px viewport `bridge.html` raises its
 own cap to 1560px, which takes each box from 357px to 463px and the worst line
 from four wrapped rows to three. Prose stays capped at 76ch by the shared sheet,
 and the gutters stay equal — 46px each at 1920, measured.
+
+---
+
+## Second pass, 2026-08-22 — comprehensiveness
+
+Asked for after the first delivery shipped, with the same method: measure the gap
+before deciding what to build. Of the distinct calls the 130 verified solutions
+use, the phrasebook's lines touched none of **70 in C, 154 in Python and 113 in
+R** — some of those the solutions' own helpers, plenty of them real: `qsort`,
+`bsearch`, `fclose`, `StandardScaler`, `KMeans`, `aov`, `aggregate`, `as.Date`.
+Seven areas had no section at all.
+
+| | Before | After |
+|---|---|---|
+| Phrasebook entries | 54 | 115 |
+| Drillable cells | 128 | 276 |
+| Mined from verified code | 93 | 172 |
+| Authored, and now **executed** | 35 | 104 |
+| Absence cells with a reason | 34 | 69 |
+| Sections | 10 | 17 |
+| Patterns | 16 | 28 |
+| C challenges | 52 | 60 |
+| Recorded runs | 130 | 138 |
+
+### B1 · The authoring cap changed meaning, so it changed number
+
+The old cap of 40 existed because an authored cell was an unverified one. That is
+no longer true: `build/verify_authored.py` assembles every authored line with the
+setup `content_bridge.RUN` gives it and compiles or runs it. The cap now limits
+how much of the page is code I wrote rather than code that ran in a real
+solution, which is a ratio worth keeping visible but a different claim — so it is
+120, and the build prints the mined share (62%) beside it.
+
+**It found three defects on its first run**, two of them already published:
+
+- `coll-5` C did not compile at all — `-Werror=misleading-indentation` on a
+  perfectly correct two-line `for`.
+- `coll-8` R: `df[df$revenue > 100, ]` on a one-column frame **drops to a
+  vector**, so the `nrow()` beside it returned `NULL`. Now
+  `drop = FALSE`, with the trap written into the note.
+- `file-1` R: `readline()` returns `""` under `Rscript` without reading
+  anything. Now `readLines("stdin", n = 1)`, with the same treatment.
+
+### B2 · The growth notice was a boolean, and the total grew twice
+
+`state.seen.denom` was set once and never looked at again. The phrasebook going
+from 54 entries to 115 moved `c.html` from 206 items to 253 — and a profile that
+had dismissed the first notice would have watched its percentage fall with
+nothing said, which is the exact failure the notice exists to prevent. It now
+stores `seen.denomTotal`, the total it was acknowledged at, and re-fires whenever
+the current total exceeds it. The old boolean migrates rather than re-firing on
+everyone.
+
+### B3 · Stepping into your own R functions: built, measured, removed
+
+13 of the 39 R solutions define a function, so the statement-level limitation
+looked worth fixing. It was built — `is_own_closure`, an argument-matching
+`step_call`, a frame stack — and then measured against all 39 solutions:
+**39 traced, 0 failed, and 0 stepped into a user function.** In every solution
+the call is nested inside `cat()` or `sprintf()` rather than made at statement
+level, and reaching those needs a real evaluator with lazy arguments, `...` and
+S3 dispatch rather than a tree walk.
+
+Reverted, with the finding written into `build/rstep.R` where the limitation is
+declared. Shipping the machinery would have added a failure mode to all 39 traces
+in exchange for a feature that fires on none of them.
+
+### B4 · Eight challenges in the shapes the course examines
+
+`c.html` had no linear search, no hand-written sort, no digit-peeling, no
+primality test and no matrix — all of which CSD101 sets and the Question Bank
+repeats. Set `ch-11` adds eight, each one an instance of a pattern in the
+catalogue, and each carrying what every other challenge carries: hint, approach
+rung without code, solution, why, an invariant paragraph, a captured transcript
+from a real run, and a recorded step-by-step trace.
+
+`C11.2` is the one worth reading: it computes the midpoint as
+`lo + (hi - lo) / 2` and the note says what that avoids, because
+`(lo + hi) / 2` overflowed in the JDK's binary search for nine years.

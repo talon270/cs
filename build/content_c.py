@@ -1772,3 +1772,269 @@ int main(void) {
         ],
     },
 ]
+
+SETS.append({
+    "sec_id": "ch-11",
+    "num": "11",
+    "title": "The questions the course actually sets",
+    "blurb": "Eight problems in the shapes CSD101 examines and this file did not yet "
+             "cover: searching, sorting by hand, digits, classification and a grid. "
+             "Every one is a pattern from <a href=\"bridge.html#p-divisors\">the "
+             "catalogue</a> \u2014 solve it once here and the exam version is the same "
+             "shape with different words.",
+    "items": [
+        {
+            "id": "C11.1", "name": "Linear search that reports absence",
+            "tier": "first",
+            "task": "Write a function that returns the index of the first occurrence "
+                    "of a value in an array, and <code>-1</code> when it is not there. "
+                    "Print the result for a value that is present and one that is not.",
+            "hint": "Return the index as soon as you find it \u2014 the first "
+                    "occurrence is the one the question asks for. The sentinel has to "
+                    "be a value that is not a legal index, which rules out 0.",
+            "sol": '#include <stdio.h>\n\n'
+                   'static int find(const int *a, int n, int key) {\n'
+                   '    for (int i = 0; i < n; i++)\n'
+                   '        if (a[i] == key) return i;\n'
+                   '    return -1;                 /* not 0: 0 is a real index */\n'
+                   '}\n\n'
+                   'int main(void) {\n'
+                   '    int a[] = { 4, 8, 15, 16, 23, 42 };\n'
+                   '    int n = (int)(sizeof a / sizeof *a);\n'
+                   '    printf("15 -> %d\\n", find(a, n, 15));\n'
+                   '    printf("99 -> %d\\n", find(a, n, 99));\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "Returning 0 for &ldquo;not found&rdquo; is the classic version of "
+                   "this bug: the caller cannot tell it apart from a hit at the first "
+                   "element. <code>-1</code> can never be a valid index, which is why "
+                   "every standard library that does this uses it or a NULL pointer.",
+        },
+        {
+            "id": "C11.2", "name": "Binary search on a sorted array",
+            "tier": "core",
+            "task": "Search a <b>sorted</b> array by halving the range each step. "
+                    "Return the index or <code>-1</code>. Print how many comparisons "
+                    "it took.",
+            "hint": "Two bounds, <code>lo</code> and <code>hi</code>, and a midpoint. "
+                    "Write the midpoint as <code>lo + (hi - lo) / 2</code>, not "
+                    "<code>(lo + hi) / 2</code>, and the loop condition as "
+                    "<code>lo &lt;= hi</code>.",
+            "sol": '#include <stdio.h>\n\n'
+                   'static int bsearch_idx(const int *a, int n, int key, int *steps) {\n'
+                   '    int lo = 0, hi = n - 1;\n'
+                   '    *steps = 0;\n'
+                   '    while (lo <= hi) {\n'
+                   '        int mid = lo + (hi - lo) / 2;   /* cannot overflow */\n'
+                   '        (*steps)++;\n'
+                   '        if (a[mid] == key) return mid;\n'
+                   '        if (a[mid] < key) lo = mid + 1;\n'
+                   '        else              hi = mid - 1;\n'
+                   '    }\n'
+                   '    return -1;\n'
+                   '}\n\n'
+                   'int main(void) {\n'
+                   '    int a[] = { 2, 5, 8, 12, 16, 23, 38, 56, 72, 91 };\n'
+                   '    int n = (int)(sizeof a / sizeof *a), steps = 0;\n'
+                   '    printf("23 -> index %d in %d comparisons\\n",\n'
+                   '           bsearch_idx(a, n, 23, &steps), steps);\n'
+                   '    printf("24 -> index %d in %d comparisons\\n",\n'
+                   '           bsearch_idx(a, n, 24, &steps), steps);\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "<code>(lo + hi) / 2</code> overflows once the array is big enough "
+                   "that the two indices sum past <code>INT_MAX</code> \u2014 a bug "
+                   "that sat in the JDK for nine years. <code>lo + (hi - lo) / 2</code> "
+                   "is the same value and cannot overflow. Ten elements take at most "
+                   "four comparisons; a thousand take ten.",
+        },
+        {
+            "id": "C11.3", "name": "Selection sort, by hand",
+            "tier": "core",
+            "task": "Sort an array ascending without calling <code>qsort</code>. Print "
+                    "the array after each pass so the invariant is visible.",
+            "hint": "After pass <code>i</code>, the first <code>i + 1</code> elements "
+                    "are the smallest <code>i + 1</code> values, in order. That "
+                    "sentence is the whole algorithm.",
+            "sol": '#include <stdio.h>\n\n'
+                   'static void show(const int *a, int n) {\n'
+                   '    for (int i = 0; i < n; i++) printf("%3d", a[i]);\n'
+                   '    putchar(\'\\n\');\n'
+                   '}\n\n'
+                   'int main(void) {\n'
+                   '    int a[] = { 29, 10, 14, 37, 13 };\n'
+                   '    int n = (int)(sizeof a / sizeof *a);\n\n'
+                   '    for (int i = 0; i < n - 1; i++) {\n'
+                   '        int min = i;\n'
+                   '        for (int j = i + 1; j < n; j++)\n'
+                   '            if (a[j] < a[min]) min = j;\n'
+                   '        int t = a[i]; a[i] = a[min]; a[min] = t;\n'
+                   '        show(a, n);\n'
+                   '    }\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "Selection sort always does the same n(n-1)/2 comparisons whatever "
+                   "the input, which makes it the easiest one to reason about and the "
+                   "wrong one to use. The printed passes are the invariant: the "
+                   "sorted prefix grows by exactly one element each time.",
+        },
+        {
+            "id": "C11.4", "name": "Second largest, one pass",
+            "tier": "core",
+            "task": "Find the second largest <i>distinct</i> value in an array without "
+                    "sorting it. Handle the case where every element is equal.",
+            "hint": "Two variables. When a new maximum arrives, the old maximum becomes "
+                    "the second \u2014 that assignment order is where this goes wrong.",
+            "sol": '#include <stdio.h>\n#include <limits.h>\n\n'
+                   'int main(void) {\n'
+                   '    int a[] = { 12, 35, 1, 35, 10, 34 };\n'
+                   '    int n = (int)(sizeof a / sizeof *a);\n'
+                   '    int best = INT_MIN, second = INT_MIN;\n\n'
+                   '    for (int i = 0; i < n; i++) {\n'
+                   '        if (a[i] > best) { second = best; best = a[i]; }\n'
+                   '        else if (a[i] > second && a[i] != best) second = a[i];\n'
+                   '    }\n\n'
+                   '    if (second == INT_MIN) printf("no second distinct value\\n");\n'
+                   '    else                   printf("largest %d, second %d\\n", best, second);\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "The duplicate 35 is the case the naive version gets wrong: without "
+                   "<code>a[i] != best</code> it reports 35 twice. Starting both at "
+                   "<code>INT_MIN</code> rather than <code>a[0]</code> is what makes "
+                   "the all-equal case reportable instead of silently wrong.",
+        },
+        {
+            "id": "C11.5", "name": "Reverse in place with two indices",
+            "tier": "first",
+            "task": "Reverse an array in place \u2014 no second array. Print it before "
+                    "and after.",
+            "hint": "One index from each end, swap, step both inward. The loop runs "
+                    "while they have not met.",
+            "sol": '#include <stdio.h>\n\n'
+                   'static void show(const int *a, int n) {\n'
+                   '    for (int i = 0; i < n; i++) printf("%3d", a[i]);\n'
+                   '    putchar(\'\\n\');\n'
+                   '}\n\n'
+                   'int main(void) {\n'
+                   '    int a[] = { 1, 2, 3, 4, 5, 6, 7 };\n'
+                   '    int n = (int)(sizeof a / sizeof *a);\n\n'
+                   '    show(a, n);\n'
+                   '    for (int i = 0, j = n - 1; i < j; i++, j--) {\n'
+                   '        int t = a[i]; a[i] = a[j]; a[j] = t;\n'
+                   '    }\n'
+                   '    show(a, n);\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "The bound is the correctness argument: <code>i &lt; j</code> runs "
+                   "n/2 times. Write <code>i &lt; n</code> instead and every element is "
+                   "swapped twice, which reverses the array and then puts it back \u2014 "
+                   "a bug whose output is the input.",
+        },
+        {
+            "id": "C11.6", "name": "Digits: sum, reverse, palindrome",
+            "tier": "first",
+            "task": "For a number read from <code>argv[1]</code>, print the sum of its "
+                    "digits, the number reversed, and whether it is a palindrome.",
+            "hint": "<code>n % 10</code> is the last digit and <code>n / 10</code> drops "
+                    "it. Integer division is doing the work, so this only works on "
+                    "integers.",
+            "sol": '#include <stdio.h>\n#include <stdlib.h>\n\n'
+                   'int main(int argc, char **argv) {\n'
+                   '    if (argc != 2) { fprintf(stderr, "usage: %s <int>\\n", argv[0]); return 2; }\n'
+                   '    long n = atol(argv[1]), sum = 0, rev = 0, orig = n;\n\n'
+                   '    while (n > 0) {\n'
+                   '        int d = (int)(n % 10);\n'
+                   '        sum += d;\n'
+                   '        rev = rev * 10 + d;\n'
+                   '        n /= 10;\n'
+                   '    }\n\n'
+                   '    printf("digits sum %ld\\n", sum);\n'
+                   '    printf("reversed   %ld\\n", rev);\n'
+                   '    printf("palindrome %s\\n", rev == orig ? "yes" : "no");\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "Building the reversal with <code>rev = rev * 10 + d</code> is the "
+                   "same loop as the digit sum, which is why the three answers cost one "
+                   "pass rather than three. A number ending in 0 reverses to a shorter "
+                   "number, and is correctly not a palindrome.",
+        },
+        {
+            "id": "C11.7", "name": "Prime, perfect, Armstrong",
+            "tier": "core",
+            "task": "Classify a number: report whether it is prime, whether it is "
+                    "perfect (equal to the sum of its proper divisors), and whether it "
+                    "is an Armstrong number (equal to the sum of the cubes of its "
+                    "digits, for a three-digit number).",
+            "hint": "Three small functions, one loop each. For primality stop at "
+                    "<code>d * d &lt;= n</code> and be ready to say why.",
+            "sol": '#include <stdio.h>\n\n'
+                   'static int is_prime(int n) {\n'
+                   '    if (n < 2) return 0;\n'
+                   '    for (int d = 2; d * d <= n; d++)     /* a divisor above sqrt(n)\n'
+                   '                                            implies one below it */\n'
+                   '        if (n % d == 0) return 0;\n'
+                   '    return 1;\n'
+                   '}\n\n'
+                   'static int is_perfect(int n) {\n'
+                   '    int sum = 0;\n'
+                   '    for (int d = 1; d <= n / 2; d++)\n'
+                   '        if (n % d == 0) sum += d;\n'
+                   '    return n > 0 && sum == n;\n'
+                   '}\n\n'
+                   'static int is_armstrong(int n) {\n'
+                   '    int sum = 0, m = n;\n'
+                   '    while (m > 0) { int d = m % 10; sum += d * d * d; m /= 10; }\n'
+                   '    return sum == n;\n'
+                   '}\n\n'
+                   'int main(void) {\n'
+                   '    int tests[] = { 7, 28, 153, 12 };\n'
+                   '    for (int i = 0; i < 4; i++) {\n'
+                   '        int n = tests[i];\n'
+                   '        printf("%3d  prime=%d perfect=%d armstrong=%d\\n",\n'
+                   '               n, is_prime(n), is_perfect(n), is_armstrong(n));\n'
+                   '    }\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "Stopping primality at <code>d * d &lt;= n</code> is the one line "
+                   "worth being able to justify out loud: if n has a divisor above its "
+                   "square root, the matching factor is below it, so the second half of "
+                   "the loop can find nothing the first half missed. 28 is perfect "
+                   "(1+2+4+7+14) and 153 is Armstrong (1+125+27).",
+        },
+        {
+            "id": "C11.8", "name": "A grid, its transpose and its diagonal",
+            "tier": "core",
+            "task": "Fill a 3&times;3 matrix with <code>i * 3 + j</code>, print it, "
+                    "print its main diagonal, and print its transpose.",
+            "hint": "Two indices. The diagonal is the case where they are equal, which "
+                    "is one loop rather than two. The transpose swaps their roles when "
+                    "indexing, not when looping.",
+            "sol": '#include <stdio.h>\n\n'
+                   '#define N 3\n\n'
+                   'int main(void) {\n'
+                   '    int m[N][N];\n\n'
+                   '    for (int i = 0; i < N; i++)\n'
+                   '        for (int j = 0; j < N; j++)\n'
+                   '            m[i][j] = i * N + j;\n\n'
+                   '    printf("matrix\\n");\n'
+                   '    for (int i = 0; i < N; i++) {\n'
+                   '        for (int j = 0; j < N; j++) printf("%4d", m[i][j]);\n'
+                   '        putchar(\'\\n\');\n'
+                   '    }\n\n'
+                   '    printf("diagonal ");\n'
+                   '    for (int i = 0; i < N; i++) printf("%4d", m[i][i]);\n'
+                   '    putchar(\'\\n\');\n\n'
+                   '    printf("transpose\\n");\n'
+                   '    for (int i = 0; i < N; i++) {\n'
+                   '        for (int j = 0; j < N; j++) printf("%4d", m[j][i]);\n'
+                   '        putchar(\'\\n\');\n'
+                   '    }\n'
+                   '    return 0;\n'
+                   '}',
+            "why": "The transpose is written by swapping the indices at the point of "
+                   "<i>use</i> \u2014 <code>m[j][i]</code> \u2014 not by swapping the "
+                   "loops. Swapping the loops prints the same matrix in a different "
+                   "order, which is the mistake this question is set to catch.",
+        },
+    ],
+})

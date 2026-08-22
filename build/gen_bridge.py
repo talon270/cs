@@ -22,7 +22,7 @@ import content_c  # noqa: E402
 import content_ds_problems as DSP  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-AUTHOR_CAP = 40
+AUTHOR_CAP = 120
 
 
 def corpus() -> dict[str, list[tuple[str, int, str]]]:
@@ -93,8 +93,10 @@ def main() -> int:
         encoding="utf-8")
 
     print(f"wrote {dst}")
-    print(f"  mined from verified solutions : {mined}")
-    print(f"  authored                      : {authored}  (cap {AUTHOR_CAP})")
+    total_cells = mined + authored + absent
+    print(f"  mined from verified solutions : {mined}  "
+          f"({mined * 100 // max(total_cells - absent, 1)}% of the drillable cells)")
+    print(f"  authored                      : {authored}  (cap {AUTHOR_CAP}, each one compiled or run by verify_authored.py)")
     print(f"  absence cells with a reason   : {absent}")
     if missing:
         print(f"\n{len(missing)} pattern(s) matched nothing:")

@@ -53,26 +53,27 @@ than replacing it.
 Verifying is the four commands that gate a release:
 
 ```sh
-python3 build/verify_c.py       # compiles and runs all 52 C solutions
+python3 build/verify_c.py       # compiles and runs all 60 C solutions
 python3 build/verify_ds.py      # runs all 78 solutions, then the Rosetta table
 python3 build/verify_errors.py  # reproduces all 33 quoted error messages
 python3 build/verify_bridge.py  # phrasebook, drill checker, prerequisite graph
+python3 build/verify_authored.py # compiles or runs every authored phrasebook line
 python3 build/verify_pages.py   # drives all five pages in a browser
 ```
 
 The first three need only `.venv`, which they find themselves. `verify_pages.py`
 needs Playwright, which lives outside that venv — run it with the `python3` that
-has it. Last full run, 2026-08-22: **52/52, 39/39 and 39/39 plus 28+28 Rosetta
-fragments, 33/33, all four bridge checks, and 392/392**.
+has it. Last full run, 2026-08-22: **60/60, 39/39 and 39/39 plus 28+28 Rosetta
+fragments, 33/33, all four bridge checks, 104/104 authored lines, and 392/392**.
 
 ## What's in each file
 
 | File | Roadmap | Reference | Challenges | Extras |
 |---|---|---|---|---|
-| `c.html` | 5 stages, 124 topics, floor to a kernel patch, plus a CSD101 map | 24 sections + decoder + glossary | 52, all compiled, each with a real transcript | 32 trace questions, 38 glossary entries, 13 decoded errors, 8 diagrams |
+| `c.html` | 5 stages, 124 topics, floor to a kernel patch, plus a CSD101 map | 24 sections + decoder + glossary | 60, all compiled, each with a real transcript | 32 trace questions, 38 glossary entries, 13 decoded errors, 8 diagrams |
 | `python.html` | 10 stages, 138 topics, DOM207 modules 1–13 | 12 sections + decoder + glossary + Rosetta + test chooser | 39, all executed | 17 recall questions, project scaffolding |
 | `r.html` | 10 stages, 138 topics, the same modules | 10 sections + the same four | the same 39, in R | 17 recall questions, project scaffolding |
-| `bridge.html` | — | 54 English intents × 3 languages | drill, one language per session | 16 problem-to-approach patterns, 34 written reasons a language has no equivalent |
+| `bridge.html` | — | 115 English intents × 3 languages | drill, one language per session | 28 problem-to-approach patterns, 69 written reasons a language has no equivalent |
 | `index.html` | launcher with per-file coverage | — | — | a from-zero primer, a whole-tool re-entry screen, honest degradation when storage is unreadable |
 
 Every file has three modes in one rail — Roadmap, Reference, Challenges — with
@@ -138,12 +139,12 @@ Added 2026-08-22. Four features, one delivery, and the plan that produced them i
 
 | Piece | What it is | Count |
 |---|---|---|
-| Phrasebook | English intent → the C, Python and R line | 54 entries, 93 mined, 35 authored |
-| Absence cells | A written reason a language has no equivalent | 34 |
-| Drill | Type the line; text-compared, one language per session | 128 drillable cells |
-| Patterns | "The problem says X, the shape is Y", from CSD101's own papers | 16 |
-| Stepper | Every executed line and variable of every solution, replayable | 130 runs, 307,074 steps |
-| Invariants | What stays true, why it finishes, what it costs | 91 written, 130 on-page |
+| Phrasebook | English intent → the C, Python and R line | 115 entries, 172 mined, 104 authored |
+| Absence cells | A written reason a language has no equivalent | 69 |
+| Drill | Type the line; text-compared, one language per session | 276 drillable cells |
+| Patterns | "The problem says X, the shape is Y", from CSD101's own papers | 28 |
+| Stepper | Every executed line and variable of every solution, replayable | 138 runs, 307,611 steps |
+| Invariants | What stays true, why it finishes, what it costs | 99 written, 138 on-page |
 | Prerequisite graph | Which topic holds up which | 400 topics, 2,471 edges |
 
 **One solution is 82× the size of the other 129 combined, and nothing was cut.**
@@ -172,17 +173,29 @@ What you get instead is that every value on screen came from the program actuall
 running: gcc 16.2.1 under gdb 17.2, Python 3.13.13, R 4.6.1, all named in
 `content_steps_out.TOOLS`.
 
-**93 of the 128 phrasebook lines were lifted out of code that compiles and runs,
+**Authored no longer means unverified.** 104 of the phrasebook's 276 drillable
+cells are lines I wrote, because no solution happens to contain the idiom —
+`calloc`, `INT_MAX`, `switch` in R, a threading call. `build/verify_authored.py`
+assembles each one with the setup it needs and **compiles or runs it**: gcc with
+`-Wall -Wextra -Werror` for C, the project venv for Python, `Rscript` for R. It
+found three defects on its first run, two of them already shipped: `df[cond, ]`
+on a one-column R frame drops to a vector so `nrow()` returned `NULL`, and
+`readline()` under `Rscript` reads nothing and returned `""` rather than the
+line. Both are now corrected, and both notes say what the harness caught. One
+cell is a build command rather than a statement — `gcc -c util.c -o util.o` —
+and the harness runs it as one, with the files it names, and checks `util.o`
+appears.
+
+**172 of the 276 phrasebook cells were lifted out of code that compiles and runs,
 and they carry the receipt.** Each cell prints the solution id and line number it
 came from — `from C4.2 line 9 — compiled and run` — and `verify_bridge.py` checks
 that the line at that number in that solution is still exactly that text. Change a
 solution and the phrasebook fails the build rather than quietly describing code
-that no longer exists. The other 35 cells are authored, marked **authored** on the
-page, and capped at 40 by decision so the cap is a number rather than an
-intention.
+that no longer exists. The other 104 cells are authored, marked **authored** on the page, and capped at
+120 by decision so the cap is a number rather than an intention.
 
 **A dash in the C column would throw away the most useful thing a three-column
-table can teach.** So there are 34 absence cells with a written reason instead:
+table can teach.** So there are 69 absence cells with a written reason instead:
 *"C has no missing value. A sentinel like -1 or a separate is_set flag is the
 usual answer, and choosing a sentinel that is also a legal value is a classic
 bug."* The contrast is the lesson — it is why `func-4 Change the caller's
@@ -195,10 +208,13 @@ names; it insists on the name of anything you call, on anything after a `.` or
 `$`, and on every keyword, operator and number. When it says no and you are sure,
 there is a *Mark it correct anyway* button, because you are the better judge and
 the tick is yours either way. The rule is not eyeballed: `verify_bridge.py`
-generates legitimately-different forms of all 128 cells and asserts each is
-accepted — 533 of them — then generates a wrong form and asserts it is rejected,
-120 times. Eight cells have neither a call to rename nor a number to change, so no
-mechanical wrong form exists for them; that count is printed rather than skipped.
+generates legitimately-different forms of all 276 cells and asserts each is
+accepted — 1,156 of them — then generates a wrong form and asserts it is
+rejected, 252 times. Twenty-four cells have neither a call to rename nor a number
+to change, so no mechanical wrong form exists for them; that count is printed
+rather than skipped. The generator has been wrong twice and the checker never
+was: it spaced out the exponent in `1e-9` into three tokens, and it renamed
+variables inside string literals. Both were found by this check failing.
 
 **A second program now writes your progress, so it can undo itself.** A
 phrasebook entry drilled in C is C coverage, so `bridge.html` writes into

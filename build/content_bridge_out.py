@@ -492,7 +492,7 @@ ROWS = {
   "id": "coll-8",
   "sec": "b-collect",
   "en": "Keep the rows that pass a test",
-  "note": "The comma in the R version is not optional: <code>df[cond]</code> without it selects <i>columns</i>.",
+  "note": "The comma in the R version is not optional: <code>df[cond]</code> without it selects <i>columns</i>. <code>drop = FALSE</code> is not decoration either &mdash; filter a one-column frame without it and R hands back a <i>vector</i>, so the <code>nrow()</code> on your next line is <code>NULL</code>. The harness caught exactly that.",
   "c": {
    "kind": "no",
    "text": "A loop over an array of structs, writing survivors into a second array."
@@ -503,7 +503,7 @@ ROWS = {
   },
   "r": {
    "kind": "lit",
-   "code": "big <- df[df$revenue > 100, ]"
+   "code": "big <- df[df$revenue > 100, , drop = FALSE]"
   }
  },
  "func-1": {
@@ -656,7 +656,7 @@ ROWS = {
   "id": "file-1",
   "sec": "b-file",
   "en": "Read a line of text safely",
-  "note": "<code>fgets</code> takes the buffer size and stops there. <code>gets</code> did not, which is why it was removed from the language in C11.",
+  "note": "<code>fgets</code> takes the buffer size and stops there. <code>gets</code> did not, which is why it was removed from the language in C11. R's <code>readline()</code> is the interactive-only one: under <code>Rscript</code> it returns an empty string without reading anything, so a script wanting one line needs <code>readLines(\"stdin\", n = 1)</code>. The line here was <code>readline()</code> until the authored-line harness ran it and got nothing back.",
   "c": {
    "kind": "mined",
    "code": "for (int n = 1; fgets(line, sizeof line, f); n++)",
@@ -669,7 +669,7 @@ ROWS = {
   },
   "r": {
    "kind": "lit",
-   "code": "line <- readline()"
+   "code": "line <- readLines(\"stdin\", n = 1)"
   }
  },
  "file-2": {
@@ -1146,6 +1146,1262 @@ ROWS = {
   "r": {
    "kind": "lit",
    "code": "quit(status = 1)"
+  }
+ },
+ "print-6": {
+  "id": "print-6",
+  "sec": "b-print",
+  "en": "Print one character at a time",
+  "note": "Python's <code>print</code> adds a newline unless you tell it not to; <code>end=\"\"</code> is that instruction.",
+  "c": {
+   "kind": "mined",
+   "code": "putchar('\\n');",
+   "src": "C2.2",
+   "line": 9
+  },
+  "py": {
+   "kind": "lit",
+   "code": "print(ch, end=\"\")"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "cat(ch)"
+  }
+ },
+ "print-7": {
+  "id": "print-7",
+  "sec": "b-print",
+  "en": "Print a whole table of results at once",
+  "note": "Both data languages print a frame aligned already. In C the alignment is yours to specify, one width at a time.",
+  "c": {
+   "kind": "lit",
+   "code": "for (int i = 0; i < n; i++)\n    printf(\"%-10s %6.2f\\n\", name[i], value[i]);"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(out.to_string(index=False))",
+   "src": "D3.3",
+   "line": 17
+  },
+  "r": {
+   "kind": "mined",
+   "code": "print(head(df, 3))",
+   "src": "D3.1",
+   "line": 13
+  }
+ },
+ "types-6": {
+  "id": "types-6",
+  "sec": "b-types",
+  "en": "Check whether two floating-point numbers agree",
+  "note": "Never <code>==</code> on floats. 0.1 + 0.2 is not 0.3 in any of the three, and R's <code>all.equal</code> returns a <i>message</i> rather than FALSE when they differ &mdash; wrap it in <code>isTRUE</code>.",
+  "c": {
+   "kind": "lit",
+   "code": "int same = fabs(a - b) < 1e-9;"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(\"identical:\", bool(np.allclose(out_loop, out_vec)))",
+   "src": "D6.1",
+   "line": 16
+  },
+  "r": {
+   "kind": "mined",
+   "code": "cat(\"values equal:\", isTRUE(all.equal(df, back)), \"\\n\\n\")",
+   "src": "D3.2",
+   "line": 14
+  }
+ },
+ "types-7": {
+  "id": "types-7",
+  "sec": "b-types",
+  "en": "Find the largest value a type can hold",
+  "note": "This is the difference C2.1 is built around: in C the wrap-around is undefined behaviour, in Python the number simply gets bigger.",
+  "c": {
+   "kind": "lit",
+   "code": "printf(\"%d\\\\n\", INT_MAX);"
+  },
+  "py": {
+   "kind": "no",
+   "text": "Python's ints are arbitrary precision: there is no largest one, and the overflow C2.1 demonstrates cannot happen. NumPy arrays do overflow, because they hold fixed-width types."
+  },
+  "r": {
+   "kind": "lit",
+   "code": "print(.Machine$integer.max)"
+  }
+ },
+ "flow-6": {
+  "id": "flow-6",
+  "sec": "b-flow",
+  "en": "Stop a loop early",
+  "note": "<code>break</code> leaves the innermost loop only. Leaving two takes a flag or a function you can return from.",
+  "c": {
+   "kind": "mined",
+   "code": "case '+': printf(\"%g\\n\", a + b); break;",
+   "src": "C2.4",
+   "line": 12
+  },
+  "py": {
+   "kind": "lit",
+   "code": "for x in xs:\n    if x < 0:\n        break"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "for (x in xs) {\n    if (x < 0) break\n}"
+  }
+ },
+ "flow-7": {
+  "id": "flow-7",
+  "sec": "b-flow",
+  "en": "Skip the rest of this iteration",
+  "note": "R spells it <code>next</code>, not <code>continue</code> &mdash; and <code>continue</code> is not an error in R, it is an undefined variable.",
+  "c": {
+   "kind": "lit",
+   "code": "for (int i = 0; i < n; i++) {\n    if (a[i] < 0) continue;\n    total += a[i];\n}"
+  },
+  "py": {
+   "kind": "lit",
+   "code": "for x in xs:\n    if x is None:\n        continue"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "for (x in xs) {\n    if (is.na(x)) next\n}"
+  }
+ },
+ "flow-8": {
+  "id": "flow-8",
+  "sec": "b-flow",
+  "en": "Pick one of many branches on a value",
+  "note": "C's <code>switch</code> falls through without <code>break</code>, which is the single most-asked exam question about it. R's <code>switch</code> is an expression that returns a value.",
+  "c": {
+   "kind": "mined",
+   "code": "switch (argv[2][0]) {",
+   "src": "C2.4",
+   "line": 11
+  },
+  "py": {
+   "kind": "lit",
+   "code": "match op:\n    case \"+\":\n        r = a + b"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "r <- switch(op, \"+\" = a + b, \"-\" = a - b, stop(\"no such op\"))"
+  }
+ },
+ "coll-9": {
+  "id": "coll-9",
+  "sec": "b-collect",
+  "en": "Count how many satisfy a condition",
+  "note": "In R and NumPy a logical vector sums as ones and zeros, so counting is the same operation as adding.",
+  "c": {
+   "kind": "lit",
+   "code": "int n_pos = 0;\nfor (int i = 0; i < n; i++)\n    if (a[i] > 0) n_pos++;"
+  },
+  "py": {
+   "kind": "lit",
+   "code": "n_pos = sum(x > 0 for x in xs)"
+  },
+  "r": {
+   "kind": "mined",
+   "code": "n_missing <- sum(is.na(df$revenue))",
+   "src": "D4.1",
+   "line": 10
+  }
+ },
+ "coll-10": {
+  "id": "coll-10",
+  "sec": "b-collect",
+  "en": "Apply a function to every column",
+  "note": "<code>vapply</code> over <code>sapply</code>: it states the type it expects back, so a column that returns something else fails there rather than three lines later.",
+  "c": {
+   "kind": "no",
+   "text": "No frames, so no columns to map over."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "out = num.apply(cv).round(4)",
+   "src": "D7.3",
+   "line": 24
+  },
+  "r": {
+   "kind": "mined",
+   "code": "is_num <- vapply(df, is.numeric, logical(1))",
+   "src": "D7.3",
+   "line": 18
+  }
+ },
+ "coll-11": {
+  "id": "coll-11",
+  "sec": "b-collect",
+  "en": "Build a lookup from key to value",
+  "note": "C has no dictionary in the standard library. A sorted table plus <code>bsearch</code>, or the hash map you write in C7.3, is the answer.",
+  "c": {
+   "kind": "lit",
+   "code": "struct { const char *k; int v; } table[] = {{\"a\", 1}, {\"b\", 2}};"
+  },
+  "py": {
+   "kind": "lit",
+   "code": "lookup = {\"a\": 1, \"b\": 2}"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "lookup <- c(a = 1, b = 2)"
+  }
+ },
+ "func-5": {
+  "id": "func-5",
+  "sec": "b-func",
+  "en": "Pass a function to another function",
+  "note": "C's function-pointer syntax reads outward from the name: <code>int (*fn)(int, int)</code> is a pointer to a function taking two ints and returning one.",
+  "c": {
+   "kind": "mined",
+   "code": "typedef int (*binop)(int, int);",
+   "src": "C3.5",
+   "line": 5
+  },
+  "py": {
+   "kind": "lit",
+   "code": "result = apply_twice(lambda v: v + 1, 3)"
+  },
+  "r": {
+   "kind": "mined",
+   "code": "print(sapply(df, class))",
+   "src": "D3.1",
+   "line": 11
+  }
+ },
+ "func-6": {
+  "id": "func-6",
+  "sec": "b-func",
+  "en": "Keep a function's own state between calls",
+  "note": "<code>static</code> inside a function means one variable for the whole program, not one per call. R's <code>&lt;&lt;-</code> reaches into the enclosing environment, which is the same idea done with closures.",
+  "c": {
+   "kind": "mined",
+   "code": "static int popcount(uint32_t x) {",
+   "src": "C2.3",
+   "line": 4
+  },
+  "py": {
+   "kind": "lit",
+   "code": "def counter():\n    counter.n += 1\n    return counter.n"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "make_counter <- function() { n <- 0; function() { n <<- n + 1; n } }"
+  }
+ },
+ "func-7": {
+  "id": "func-7",
+  "sec": "b-func",
+  "en": "Take a variable number of arguments",
+  "note": "This is the one place C's type checking simply stops, and the reason <code>-Wformat</code> exists as a special case in the compiler.",
+  "c": {
+   "kind": "no",
+   "text": "C can, with <code>&lt;stdarg.h&gt;</code>, and nothing checks the types &mdash; which is exactly why <code>printf</code> with the wrong specifier is undefined rather than an error."
+  },
+  "py": {
+   "kind": "lit",
+   "code": "def total(*values):\n    return sum(values)"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "total <- function(...) sum(...)"
+  }
+ },
+ "mem-4": {
+  "id": "mem-4",
+  "sec": "b-mem",
+  "en": "Grow an allocation that has run out of room",
+  "note": "Assign the result to a temporary first. <code>a = realloc(a, ...)</code> leaks the original block when it returns NULL.",
+  "c": {
+   "kind": "mined",
+   "code": "int *tmp = realloc(a, ncap * sizeof *a);   /* never assign to a directly */",
+   "src": "C4.3",
+   "line": 13
+  },
+  "py": {
+   "kind": "no",
+   "text": "A list grows itself, doubling behind the scenes. The amortised cost is the same; the bookkeeping is not yours."
+  },
+  "r": {
+   "kind": "no",
+   "text": "A vector grows by copying. Growing one inside a loop is the classic R performance bug &mdash; preallocate with <code>numeric(n)</code>."
+  }
+ },
+ "mem-5": {
+  "id": "mem-5",
+  "sec": "b-mem",
+  "en": "Copy a block of memory",
+  "note": "R copies on assignment (lazily), so <code>copy &lt;- original</code> really is a copy. Python's <code>=</code> is not &mdash; it binds a second name to the same object, which is why <code>.copy()</code> is there.",
+  "c": {
+   "kind": "mined",
+   "code": "memcpy(&bits, &f, sizeof bits);      /* defined; a pointer cast is not */",
+   "src": "C2.5",
+   "line": 8
+  },
+  "py": {
+   "kind": "lit",
+   "code": "copy = original.copy()"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "copy <- original"
+  }
+ },
+ "mem-6": {
+  "id": "mem-6",
+  "sec": "b-mem",
+  "en": "Ask for zeroed memory",
+  "note": "<code>malloc</code> gives you whatever was in that memory before; reading it is the fourth of the four memory bugs. <code>calloc</code> zeroes, and costs a little for it.",
+  "c": {
+   "kind": "lit",
+   "code": "int *a = calloc((size_t)n, sizeof *a);"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "out_loop = np.empty_like(x)",
+   "src": "D6.1",
+   "line": 7
+  },
+  "r": {
+   "kind": "lit",
+   "code": "v <- numeric(n)"
+  }
+ },
+ "file-6": {
+  "id": "file-6",
+  "sec": "b-file",
+  "en": "Close what you opened",
+  "note": "Python's <code>with</code> closes on the way out, including when an exception leaves early. In C the close is yours, on every path.",
+  "c": {
+   "kind": "mined",
+   "code": "fclose(f);",
+   "src": "C8.1",
+   "line": 13
+  },
+  "py": {
+   "kind": "lit",
+   "code": "with open(path) as f:\n    pass"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "con <- file(path); close(con)"
+  }
+ },
+ "clean-10": {
+  "id": "clean-10",
+  "sec": "b-clean",
+  "en": "Keep only the rows whose key is in a list",
+  "note": "The same operator in both, spelled differently: <code>.isin</code> and <code>%in%</code>.",
+  "c": {
+   "kind": "no",
+   "text": "No frames."
+  },
+  "py": {
+   "kind": "lit",
+   "code": "sel = df[df[\"region\"].isin([\"North\", \"South\"])]"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "sel <- df[df$region %in% c(\"North\", \"South\"), , drop = FALSE]"
+  }
+ },
+ "clean-11": {
+  "id": "clean-11",
+  "sec": "b-clean",
+  "en": "Rename a column",
+  "note": "pandas returns a new frame unless you pass <code>inplace=True</code>; the R form edits the names vector in place.",
+  "c": {
+   "kind": "no",
+   "text": "No frames."
+  },
+  "py": {
+   "kind": "lit",
+   "code": "df = df.rename(columns={\"rev\": \"revenue\"})"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "names(df)[names(df) == \"rev\"] <- \"revenue\""
+  }
+ },
+ "stat-8": {
+  "id": "stat-8",
+  "sec": "b-stat",
+  "en": "Get a specific percentile",
+  "note": "R has nine quantile types and defaults to 7; NumPy has one. They disagree on small samples, which is a real source of &ldquo;my IQR differs from yours&rdquo;.",
+  "c": {
+   "kind": "no",
+   "text": "No statistics library. Sort, then index &mdash; and decide which of the nine interpolation conventions you meant."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "q1, q3 = x.quantile(0.25), x.quantile(0.75)",
+   "src": "D4.2",
+   "line": 6
+  },
+  "r": {
+   "kind": "mined",
+   "code": "q <- quantile(x, c(0.25, 0.75))",
+   "src": "D4.2",
+   "line": 3
+  }
+ },
+ "stat-9": {
+  "id": "stat-9",
+  "sec": "b-stat",
+  "en": "Measure how two columns move together",
+  "note": "Pearson by default in both, which measures <i>linear</i> association only. A perfect parabola scores near zero.",
+  "c": {
+   "kind": "no",
+   "text": "No statistics library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(df.corr(method=\"pearson\").round(3).to_string())",
+   "src": "D8.3",
+   "line": 14
+  },
+  "r": {
+   "kind": "mined",
+   "code": "print(round(cor(df, method = \"pearson\"), 3))",
+   "src": "D8.3",
+   "line": 10
+  }
+ },
+ "stat-10": {
+  "id": "stat-10",
+  "sec": "b-stat",
+  "en": "Draw random numbers you can reproduce",
+  "note": "<code>rand() % 100</code> is biased unless 100 divides RAND_MAX+1, and it is the standard C teaching example anyway. The data languages give you a real generator.",
+  "c": {
+   "kind": "lit",
+   "code": "srand(42);\nint r = rand() % 100;"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "x = rng.normal(loc=50, scale=10, size=300)",
+   "src": "D5.1",
+   "line": 7
+  },
+  "r": {
+   "kind": "mined",
+   "code": "x  <- rnorm(300, mean = 50, sd = 10)",
+   "src": "D5.1",
+   "line": 4
+  }
+ },
+ "err-4": {
+  "id": "err-4",
+  "sec": "b-err",
+  "en": "Catch a failure and carry on",
+  "note": "R signals a <i>warning</i> where Python raises: <code>as.integer(\"abc\")</code> gives NA with a warning, so <code>tryCatch</code> has to catch the warning, not an error.",
+  "c": {
+   "kind": "no",
+   "text": "C has no exceptions. Every failure is a return value you check, which is why the check-every-call habit matters so much more here."
+  },
+  "py": {
+   "kind": "lit",
+   "code": "try:\n    v = int(text)\nexcept ValueError:\n    v = 0"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "v <- tryCatch(as.integer(text), warning = function(w) 0L)"
+  }
+ },
+ "err-5": {
+  "id": "err-5",
+  "sec": "b-err",
+  "en": "Warn without stopping",
+  "note": "A warning that nobody reads is the same as no warning. If the result is wrong without it, stop instead.",
+  "c": {
+   "kind": "mined",
+   "code": "fprintf(stderr, \"usage: %s <int> <int>\\n\", argv[0]);",
+   "src": "C1.2",
+   "line": 6
+  },
+  "py": {
+   "kind": "lit",
+   "code": "warnings.warn(\"using a default\")"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "warning(\"using a default\")"
+  }
+ },
+ "err-6": {
+  "id": "err-6",
+  "sec": "b-err",
+  "en": "Check the thing you just called actually worked",
+  "note": "This is the habit the whole section is about. The failure you do not check for is the one that shows up as a wrong number rather than an error.",
+  "c": {
+   "kind": "mined",
+   "code": "if (!a) { perror(\"malloc\"); return 1; }",
+   "src": "C4.2",
+   "line": 9
+  },
+  "py": {
+   "kind": "lit",
+   "code": "if not rows:\n    raise ValueError(f\"no rows read from {path}\")"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "if (nrow(df) == 0) stop(\"no rows read from \", path)"
+  }
+ },
+ "sort-1": {
+  "id": "sort-1",
+  "sec": "b-sort",
+  "en": "Sort an array of records by a field",
+  "note": "<code>qsort</code> takes the element size and a comparator because it sorts bytes it knows nothing about. The other two know the type, so they only need the key.",
+  "c": {
+   "kind": "mined",
+   "code": "qsort(r, n, sizeof *r, by_score_desc);",
+   "src": "C6.2",
+   "line": 15
+  },
+  "py": {
+   "kind": "mined",
+   "code": ".sort_values(\"total_revenue\", ascending=False)",
+   "src": "D3.3",
+   "line": 14
+  },
+  "r": {
+   "kind": "mined",
+   "code": "arrange(desc(total_revenue))",
+   "src": "D3.3",
+   "line": 17
+  }
+ },
+ "sort-2": {
+  "id": "sort-2",
+  "sec": "b-sort",
+  "en": "Write the comparison the sort will use",
+  "note": "C's comparator returns negative, zero or positive &mdash; not a bool. Returning <code>a - b</code> is the classic bug: it overflows for large values and silently mis-sorts.",
+  "c": {
+   "kind": "mined",
+   "code": "static int by_score_desc(const void *a, const void *b) {",
+   "src": "C6.2",
+   "line": 6
+  },
+  "py": {
+   "kind": "lit",
+   "code": "rows.sort(key=lambda r: -r[\"score\"])"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "rows <- rows[order(-rows$score), , drop = FALSE]"
+  }
+ },
+ "sort-3": {
+  "id": "sort-3",
+  "sec": "b-sort",
+  "en": "Find a value in a sorted array quickly",
+  "note": "Binary search is only correct on data sorted by the <i>same</i> comparator. C makes you pass it twice, which is where the two drift apart.",
+  "c": {
+   "kind": "mined",
+   "code": "int *hit = bsearch(&wanted[i], a, n, sizeof *a, cmp_int);",
+   "src": "C8.4",
+   "line": 19
+  },
+  "py": {
+   "kind": "lit",
+   "code": "i = bisect.bisect_left(xs, key)\nfound = i < len(xs) and xs[i] == key"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "i <- match(key, xs)"
+  }
+ },
+ "sort-4": {
+  "id": "sort-4",
+  "sec": "b-sort",
+  "en": "Search a small collection without sorting it",
+  "note": "Linear search is O(n) and needs no order at all. Below a few hundred elements it beats sorting first &mdash; the sort is O(n log n) before you have looked at anything.",
+  "c": {
+   "kind": "lit",
+   "code": "int found = -1;\nfor (int i = 0; i < n; i++)\n    if (a[i] == key) { found = i; break; }"
+  },
+  "py": {
+   "kind": "lit",
+   "code": "found = key in xs"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "found <- key %in% xs"
+  }
+ },
+ "sort-5": {
+  "id": "sort-5",
+  "sec": "b-sort",
+  "en": "Rank the top few without printing everything",
+  "note": "Sort then take the head is the honest version; a partial selection is faster and almost never worth it at coursework sizes.",
+  "c": {
+   "kind": "lit",
+   "code": "for (int i = 0; i < 3 && i < n; i++)\n    printf(\"%d\\n\", a[i]);"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "for term, n in counts.most_common(5):",
+   "src": "D11.1",
+   "line": 21
+  },
+  "r": {
+   "kind": "mined",
+   "code": "top <- head(sort(scores, decreasing = TRUE), 2)",
+   "src": "D11.2",
+   "line": 24
+  }
+ },
+ "struct-1": {
+  "id": "struct-1",
+  "sec": "b-struct",
+  "en": "Define a record type with named fields",
+  "note": "C fixes the layout at compile time; Python's dataclass and R's list are dictionaries with better manners, and both accept a field you never declared.",
+  "c": {
+   "kind": "mined",
+   "code": "typedef struct { double x, y; } Point;",
+   "src": "C6.1",
+   "line": 3
+  },
+  "py": {
+   "kind": "lit",
+   "code": "@dataclasses.dataclass\nclass Point:\n    x: float\n    y: float"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "pt <- list(x = 1.0, y = 2.0)"
+  }
+ },
+ "struct-2": {
+  "id": "struct-2",
+  "sec": "b-struct",
+  "en": "Read a field through a pointer",
+  "note": "<code>p-&gt;x</code> is <code>(*p).x</code>. The arrow exists because reaching a struct through a pointer is the normal case, not the exception.",
+  "c": {
+   "kind": "mined",
+   "code": "static void move(Point *p, double dx, double dy) { p->x += dx; p->y += dy; }",
+   "src": "C6.1",
+   "line": 5
+  },
+  "py": {
+   "kind": "lit",
+   "code": "value = point.x"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "value <- pt$x"
+  }
+ },
+ "struct-3": {
+  "id": "struct-3",
+  "sec": "b-struct",
+  "en": "Name a fixed set of states",
+  "note": "R's factor is the closest thing it has to an enum, and it is also how categorical data enters a model &mdash; the same construct doing two jobs.",
+  "c": {
+   "kind": "mined",
+   "code": "typedef enum { RED, GREEN, AMBER, LIGHT_COUNT } Light;",
+   "src": "C6.3",
+   "line": 3
+  },
+  "py": {
+   "kind": "lit",
+   "code": "class Light(enum.Enum):\n    RED = 0\n    GREEN = 1"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "light <- factor(\"RED\", levels = c(\"RED\", \"GREEN\", \"AMBER\"))"
+  }
+ },
+ "struct-4": {
+  "id": "struct-4",
+  "sec": "b-struct",
+  "en": "Hold one of several types in one value",
+  "note": "The tag and the active member must move together. Reading the member that was not last written is undefined, and the tag is the only thing stopping you.",
+  "c": {
+   "kind": "mined",
+   "code": "typedef enum { V_INT, V_DBL, V_STR } Kind;",
+   "src": "C6.4",
+   "line": 3
+  },
+  "py": {
+   "kind": "no",
+   "text": "Python needs nothing: a name can already refer to any type, and the object carries its own. The C construct exists because the compiler has to know the size in advance."
+  },
+  "r": {
+   "kind": "no",
+   "text": "R needs nothing either &mdash; a list element can hold any type. The tag C needs is what R stores in the object itself."
+  }
+ },
+ "struct-5": {
+  "id": "struct-5",
+  "sec": "b-struct",
+  "en": "Hide a type's contents from its user",
+  "note": "An incomplete type is privacy the compiler enforces: the caller cannot even name a field. Python's underscore is a convention and R's environment is a habit &mdash; neither is checked.",
+  "c": {
+   "kind": "mined",
+   "code": "typedef struct Counter Counter;",
+   "src": "C6.5",
+   "line": 5
+  },
+  "py": {
+   "kind": "lit",
+   "code": "self._count = 0"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "e <- new.env(parent = emptyenv())"
+  }
+ },
+ "text-1": {
+  "id": "text-1",
+  "sec": "b-text",
+  "en": "Split a string on a separator",
+  "note": "<code>strtok</code> keeps hidden state and edits the string in place, so two interleaved splits cannot both be right &mdash; and a string literal passed to it is undefined behaviour.",
+  "c": {
+   "kind": "mined",
+   "code": "for (char *tok = strtok(text, \" \"); tok; tok = strtok(NULL, \" \")) {",
+   "src": "C5.4",
+   "line": 13
+  },
+  "py": {
+   "kind": "mined",
+   "code": "words = re.findall(r\"[a-z]+\", d.lower())   # splits on any non-letter",
+   "src": "D11.1",
+   "line": 16
+  },
+  "r": {
+   "kind": "mined",
+   "code": "w <- unlist(strsplit(tolower(d), \"[^a-z]+\"))   # splits on any non-letter",
+   "src": "D11.1",
+   "line": 12
+  }
+ },
+ "text-2": {
+  "id": "text-2",
+  "sec": "b-text",
+  "en": "Lower-case a string",
+  "note": "The cast to <code>unsigned char</code> is not pedantry: <code>tolower</code> is undefined for a negative <code>char</code>, which is what a non-ASCII byte gives you on most platforms.",
+  "c": {
+   "kind": "lit",
+   "code": "for (int i = 0; s[i]; i++) s[i] = (char)tolower((unsigned char)s[i]);"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "clean = raw.str.strip().str.title()",
+   "src": "D2.3",
+   "line": 5
+  },
+  "r": {
+   "kind": "mined",
+   "code": "s <- tolower(s)",
+   "src": "D2.3",
+   "line": 4
+  }
+ },
+ "text-3": {
+  "id": "text-3",
+  "sec": "b-text",
+  "en": "Match a pattern rather than a fixed string",
+  "note": "Both languages use the same basic syntax. R doubles its backslashes because the string is parsed before the regex is.",
+  "c": {
+   "kind": "no",
+   "text": "C has no regular expressions in the standard library. POSIX <code>&lt;regex.h&gt;</code> exists on Linux and is not portable C; in practice this is where C programs start calling a library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "words = re.findall(r\"[a-z]+\", d.lower())   # splits on any non-letter",
+   "src": "D11.1",
+   "line": 16
+  },
+  "r": {
+   "kind": "lit",
+   "code": "hits <- grepl(\"^[A-Z]\", words)"
+  }
+ },
+ "text-4": {
+  "id": "text-4",
+  "sec": "b-text",
+  "en": "Turn a string of digits into a date",
+  "note": "Give the format explicitly. Left to guess, both will read 03/04/2026 as whichever of March and April their locale prefers, and neither will tell you.",
+  "c": {
+   "kind": "no",
+   "text": "C has <code>strptime</code> on POSIX and nothing in the standard library. Dates in portable C are a struct you fill in yourself."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "d = pd.to_datetime(s, format=\"%Y-%m-%d\")",
+   "src": "D2.2",
+   "line": 4
+  },
+  "r": {
+   "kind": "mined",
+   "code": "d <- as.Date(s, format = \"%Y-%m-%d\")",
+   "src": "D2.2",
+   "line": 2
+  }
+ },
+ "text-5": {
+  "id": "text-5",
+  "sec": "b-text",
+  "en": "Subtract two dates",
+  "note": "Both return a duration object rather than a number, which is why each needs a conversion before it prints as days.",
+  "c": {
+   "kind": "no",
+   "text": "No date type, so no subtraction &mdash; <code>difftime</code> is POSIX and works on <code>time_t</code> seconds."
+  },
+  "py": {
+   "kind": "lit",
+   "code": "days = (d.max() - d.min()).days"
+  },
+  "r": {
+   "kind": "mined",
+   "code": "cat(\"span days\", as.numeric(max(d) - min(d)), \"\\n\")",
+   "src": "D2.2",
+   "line": 5
+  }
+ },
+ "text-6": {
+  "id": "text-6",
+  "sec": "b-text",
+  "en": "Format a date for a human to read",
+  "note": "All three use the same <code>%</code> codes, inherited from C. It is one of the few places the three languages agree exactly.",
+  "c": {
+   "kind": "lit",
+   "code": "char buf[32];\nstrftime(buf, sizeof buf, \"%d %b %Y\", &tm);"
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(\"months   \", list(d.dt.strftime(\"%B\")))",
+   "src": "D2.2",
+   "line": 6
+  },
+  "r": {
+   "kind": "mined",
+   "code": "cat(\"months   \", format(d, \"%B\"), \"\\n\")",
+   "src": "D2.2",
+   "line": 4
+  }
+ },
+ "plot-1": {
+  "id": "plot-1",
+  "sec": "b-plot",
+  "en": "Start a figure and get somewhere to draw",
+  "note": "matplotlib hands you a figure and an axis; ggplot builds a description that is not drawn until it is printed or saved.",
+  "c": {
+   "kind": "no",
+   "text": "C has no plotting. A C program that needs a chart writes the numbers out and lets something else draw them &mdash; which is the honest answer to why this course is taught in Python and R."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "fig, ax = plt.subplots(figsize=(7, 4.5), dpi=150)",
+   "src": "D5.1",
+   "line": 10
+  },
+  "r": {
+   "kind": "mined",
+   "code": "p <- ggplot(df, aes(x = value)) +",
+   "src": "D5.1",
+   "line": 8
+  }
+ },
+ "plot-2": {
+  "id": "plot-2",
+  "sec": "b-plot",
+  "en": "Draw a histogram",
+  "note": "Choose the bin count deliberately. The default is a guess about your data that neither library will defend.",
+  "c": {
+   "kind": "no",
+   "text": "See above."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "ax.hist(x, bins=bins, edgecolor=\"white\")",
+   "src": "D5.1",
+   "line": 11
+  },
+  "r": {
+   "kind": "mined",
+   "code": "geom_histogram(bins = bins, colour = \"white\") +",
+   "src": "D5.1",
+   "line": 9
+  }
+ },
+ "plot-3": {
+  "id": "plot-3",
+  "sec": "b-plot",
+  "en": "Draw a scatter plot with a fitted line",
+  "note": "Plot the points before the line. A fitted line over a shape that is not linear is the most persuasive wrong picture in this course.",
+  "c": {
+   "kind": "no",
+   "text": "See above."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "ax.scatter(x, y, alpha=0.6, s=18)",
+   "src": "D5.2",
+   "line": 14
+  },
+  "r": {
+   "kind": "mined",
+   "code": "geom_point(alpha = 0.6, size = 1.8) +",
+   "src": "D5.2",
+   "line": 12
+  }
+ },
+ "plot-4": {
+  "id": "plot-4",
+  "sec": "b-plot",
+  "en": "Label the axes and the title",
+  "note": "An unlabelled axis is the fastest way to lose marks on a chart that is otherwise right.",
+  "c": {
+   "kind": "no",
+   "text": "See above."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "ax.set_xlabel(\"Value\")",
+   "src": "D5.1",
+   "line": 12
+  },
+  "r": {
+   "kind": "mined",
+   "code": "labs(x = \"Value\", y = \"Count\",",
+   "src": "D5.1",
+   "line": 10
+  }
+ },
+ "plot-5": {
+  "id": "plot-5",
+  "sec": "b-plot",
+  "en": "Save the figure to a file",
+  "note": "Set the DPI. The default is a screen resolution and looks soft in a printed report.",
+  "c": {
+   "kind": "no",
+   "text": "See above."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "fig.savefig(\"hist.png\")",
+   "src": "D5.1",
+   "line": 16
+  },
+  "r": {
+   "kind": "mined",
+   "code": "ggsave(\"hist.png\", p, width = 7, height = 4.5, dpi = 150)",
+   "src": "D5.1",
+   "line": 14
+  }
+ },
+ "model-1": {
+  "id": "model-1",
+  "sec": "b-model",
+  "en": "Split the data into train and test",
+  "note": "Split first, before anything is fitted or scaled. Every step that touches the test half before scoring inflates the score.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library. Every row in this section is Python and R only, and that is the reason the course is taught in them."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.3, random_state=1)",
+   "src": "D11.3",
+   "line": 17
+  },
+  "r": {
+   "kind": "mined",
+   "code": "idx <- sample(seq_len(n), size = round(0.7 * n))",
+   "src": "D11.3",
+   "line": 12
+  }
+ },
+ "model-2": {
+  "id": "model-2",
+  "sec": "b-model",
+  "en": "Standardise the features",
+  "note": "Mandatory wherever distance decides the answer &mdash; k-means, SVM, PCA. A feature measured in thousands otherwise dominates one measured in units, and the model is describing your unit choice.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "Xs = StandardScaler().fit_transform(X)     # mandatory: units differ hugely",
+   "src": "D12.1",
+   "line": 14
+  },
+  "r": {
+   "kind": "mined",
+   "code": "Xs <- scale(X)            # mandatory: units differ hugely",
+   "src": "D12.1",
+   "line": 7
+  }
+ },
+ "model-3": {
+  "id": "model-3",
+  "sec": "b-model",
+  "en": "Fit a classifier",
+  "note": "Both cap the depth. An uncapped tree fits the training set exactly and has learned the noise.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "tree = DecisionTreeClassifier(max_depth=3, random_state=1).fit(Xtr, ytr)",
+   "src": "D11.3",
+   "line": 19
+  },
+  "r": {
+   "kind": "mined",
+   "code": "tree <- rpart(churn ~ tenure + spend, data = tr,",
+   "src": "D11.3",
+   "line": 15
+  }
+ },
+ "model-4": {
+  "id": "model-4",
+  "sec": "b-model",
+  "en": "Fit a logistic regression",
+  "note": "R needs <code>family = binomial</code> and will happily fit a linear model to a 0/1 outcome without it &mdash; no warning, wrong model.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "fit = smf.logit(\"renewed ~ tenure + spend\", data=df).fit(disp=0)",
+   "src": "D10.3",
+   "line": 15
+  },
+  "r": {
+   "kind": "mined",
+   "code": "fit <- glm(renewed ~ tenure + spend, data = df, family = binomial)",
+   "src": "D10.3",
+   "line": 11
+  }
+ },
+ "model-5": {
+  "id": "model-5",
+  "sec": "b-model",
+  "en": "Predict with a fitted model",
+  "note": "R's <code>predict</code> needs <code>type=</code> to say what scale you want back; the default for a glm is the link, not the probability.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "pred = clf.predict(Xte)",
+   "src": "D13.1",
+   "line": 20
+  },
+  "r": {
+   "kind": "mined",
+   "code": "p   <- predict(fit, newdata = who, type = \"response\")",
+   "src": "D10.3",
+   "line": 23
+  }
+ },
+ "model-6": {
+  "id": "model-6",
+  "sec": "b-model",
+  "en": "Score the predictions",
+  "note": "Accuracy alone hides which class is wrong, and on an imbalanced problem it hides it completely &mdash; which is what the next row is for.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(f\"test  accuracy {accuracy_score(yte, tree.predict(Xte)):.3f}\")",
+   "src": "D11.3",
+   "line": 22
+  },
+  "r": {
+   "kind": "mined",
+   "code": "acc <- function(m, d) mean(predict(m, d) == d$y)",
+   "src": "D13.2",
+   "line": 19
+  }
+ },
+ "model-7": {
+  "id": "model-7",
+  "sec": "b-model",
+  "en": "Look at the confusion matrix",
+  "note": "Read the off-diagonal. Two models with the same accuracy can be making opposite mistakes, and only one of them may be acceptable.",
+  "c": {
+   "kind": "no",
+   "text": "No modelling library."
+  },
+  "py": {
+   "kind": "mined",
+   "code": "print(confusion_matrix(yte, tree.predict(Xte)))",
+   "src": "D11.3",
+   "line": 24
+  },
+  "r": {
+   "kind": "mined",
+   "code": "print(table(actual = te$churn, predicted = predict(tree, te, type = \"class\")))",
+   "src": "D11.3",
+   "line": 23
+  }
+ },
+ "pre-1": {
+  "id": "pre-1",
+  "sec": "b-pre",
+  "en": "Give a constant a name",
+  "note": "A <code>#define</code> is textual substitution before compilation, so it has no type and no scope. <code>static const int</code> has both and is the better default.",
+  "c": {
+   "kind": "mined",
+   "code": "#define MAX_WORDS 64",
+   "src": "C5.4",
+   "line": 4
+  },
+  "py": {
+   "kind": "lit",
+   "code": "MAX_WORDS = 64"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "MAX_WORDS <- 64"
+  }
+ },
+ "pre-2": {
+  "id": "pre-2",
+  "sec": "b-pre",
+  "en": "Stop a header being included twice",
+  "note": "Without the guard, a struct defined in that header is defined twice in the same translation unit and the compile fails somewhere unrelated.",
+  "c": {
+   "kind": "mined",
+   "code": "#ifndef UTIL_H",
+   "src": "C9.1",
+   "line": 4
+  },
+  "py": {
+   "kind": "no",
+   "text": "Python caches modules: importing the same module twice runs it once. There is nothing to guard."
+  },
+  "r": {
+   "kind": "no",
+   "text": "R's <code>library()</code> and <code>source()</code> are similarly idempotent for packages; a re-sourced script does re-run, which is a different problem."
+  }
+ },
+ "pre-3": {
+  "id": "pre-3",
+  "sec": "b-pre",
+  "en": "Write a macro that takes an argument",
+  "note": "Parenthesise every argument and the whole body. <code>#define SQUARE(x) x*x</code> turns <code>SQUARE(1+1)</code> into <code>1+1*1+1</code>, which is 3.",
+  "c": {
+   "kind": "mined",
+   "code": "#define ARRAY_LEN(a) (sizeof (a) / sizeof *(a))",
+   "src": "C9.1",
+   "line": 6
+  },
+  "py": {
+   "kind": "no",
+   "text": "Python has no macros. A function is evaluated once and behaves the same everywhere it is called, which is precisely what a macro does not guarantee."
+  },
+  "r": {
+   "kind": "no",
+   "text": "R has no macros either, though its lazy evaluation lets a function see its argument's unevaluated expression &mdash; closer to a macro than anything Python has."
+  }
+ },
+ "pre-4": {
+  "id": "pre-4",
+  "sec": "b-pre",
+  "en": "Compile several files into one program",
+  "note": "Compile each <code>.c</code> to an object file, then link them. The header declares; exactly one <code>.c</code> defines.",
+  "c": {
+   "kind": "lit",
+   "code": "gcc -std=c11 -Wall -Wextra -c util.c -o util.o"
+  },
+  "py": {
+   "kind": "no",
+   "text": "No compile step. A module is imported at run time and the interpreter finds it on <code>sys.path</code>."
+  },
+  "r": {
+   "kind": "no",
+   "text": "No compile step. <code>source()</code> runs another file, and a package is loaded with <code>library()</code>."
+  }
+ },
+ "conc-1": {
+  "id": "conc-1",
+  "sec": "b-conc",
+  "en": "Run a function on another thread",
+  "note": "Python has threads, but the global interpreter lock means they help with waiting and not with computing. For CPU work the answer there is processes too.",
+  "c": {
+   "kind": "mined",
+   "code": "if (pthread_create(&th[t], NULL, worker, &jobs[t]) != 0) {",
+   "src": "C10.1",
+   "line": 24
+  },
+  "py": {
+   "kind": "lit",
+   "code": "t = threading.Thread(target=worker, args=(job,))\nt.start()"
+  },
+  "r": {
+   "kind": "no",
+   "text": "Base R is single-threaded and has no thread API. Parallelism in R is processes &mdash; <code>parallel::mclapply</code> &mdash; not threads."
+  }
+ },
+ "conc-2": {
+  "id": "conc-2",
+  "sec": "b-conc",
+  "en": "Protect a shared value from two writers",
+  "note": "<code>total += n</code> is a read, an add and a write. Without the lock two threads can read the same old value, and the count silently comes out low.",
+  "c": {
+   "kind": "mined",
+   "code": "pthread_mutex_lock(&lock);",
+   "src": "C10.2",
+   "line": 15
+  },
+  "py": {
+   "kind": "lit",
+   "code": "with lock:\n    total += n"
+  },
+  "r": {
+   "kind": "no",
+   "text": "Nothing to protect: separate R processes do not share memory, so each returns a value and the parent combines them."
+  }
+ },
+ "conc-3": {
+  "id": "conc-3",
+  "sec": "b-conc",
+  "en": "Wait for the work to finish",
+  "note": "Reading a result before joining is reading memory another thread may still be writing &mdash; the bug that only appears on a loaded machine.",
+  "c": {
+   "kind": "mined",
+   "code": "for (int t = 0; t < T; t++) { pthread_join(th[t], NULL); total += jobs[t].sum; }",
+   "src": "C10.1",
+   "line": 31
+  },
+  "py": {
+   "kind": "lit",
+   "code": "t.join()"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "res <- parallel::mclapply(jobs, worker, mc.cores = 2)"
+  }
+ },
+ "conc-4": {
+  "id": "conc-4",
+  "sec": "b-conc",
+  "en": "Run a second program and read its output",
+  "note": "<code>fork</code> plus a pipe is the mechanism the other two wrap. Close the end you are not using, or the reader waits forever for an end-of-file that never comes.",
+  "c": {
+   "kind": "mined",
+   "code": "pid_t pid = fork();",
+   "src": "C10.3",
+   "line": 11
+  },
+  "py": {
+   "kind": "lit",
+   "code": "out = subprocess.run([\"ls\"], capture_output=True, text=True).stdout"
+  },
+  "r": {
+   "kind": "lit",
+   "code": "out <- system2(\"ls\", stdout = TRUE)"
   }
  },
  "err-3": {

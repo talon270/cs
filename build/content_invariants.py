@@ -193,6 +193,45 @@ INV_C: dict[str, str] = {
              "allocates nothing and an object can be in several lists at once. The "
              "invariant is that every node reached is inside an object of the type the "
              "container-of assumes.",
+    "C11.1": "The scan visits each element once and returns at the first match, so it "
+             "reports the <i>first</i> occurrence and not merely some occurrence. O(n), "
+             "and the sentinel is what makes the absent case distinguishable: -1 can "
+             "never be a valid index, while 0 always can.",
+    "C11.2": "The key, if it is present at all, is always inside <code>[lo, hi]</code> "
+             "— that is the invariant, and every step shrinks the range without ever "
+             "excluding it. The range halves each comparison, so ten elements cost at "
+             "most four and a thousand cost ten: O(log n). Correct only on data sorted "
+             "by the same order the comparisons assume.",
+    "C11.3": "After pass <code>i</code>, the first <code>i + 1</code> elements are the "
+             "smallest <code>i + 1</code> values in order, and nothing later in the "
+             "array is smaller than any of them. The comparison count is n(n-1)/2 "
+             "whatever the input, which is why it is predictable and why it is the "
+             "wrong sort to use on anything large.",
+    "C11.4": "At every point <code>best</code> is the largest value seen and "
+             "<code>second</code> the largest distinct value below it. The "
+             "<code>a[i] != best</code> guard is what makes 'distinct' true; without "
+             "it a repeated maximum satisfies both. One pass, O(n), and the "
+             "<code>INT_MIN</code> start is what leaves the all-equal case reportable "
+             "rather than silently wrong.",
+    "C11.5": "Everything outside <code>[i, j]</code> is already in its final position, "
+             "and each step restores that for one more pair. The loop runs n/2 times "
+             "because <code>i &lt; j</code> stops when they meet: run it n times and "
+             "each element is swapped twice, which is the identity.",
+    "C11.6": "The loop strictly decreases <code>n</code> by a factor of ten each "
+             "iteration, so it terminates in as many steps as the number has digits. "
+             "All three results accumulate in that single pass, and the reversal "
+             "identity <code>rev = rev * 10 + d</code> is exact until it overflows, "
+             "which for a <code>long</code> is past any input this question asks for.",
+    "C11.7": "Primality stops at <code>d * d &lt;= n</code> because a divisor above "
+             "&radic;n implies a matching one below it, so the second half of the range "
+             "can contain nothing new — that is the correctness argument, and it takes "
+             "the cost from O(n) to O(&radic;n). The perfect test is O(n/2) and the "
+             "Armstrong test is O(digits).",
+    "C11.8": "Every element is written exactly once and read exactly once per printing "
+             "pass, so all three outputs are O(N&sup2;) in the side length. The "
+             "diagonal is the sub-case <code>i == j</code>, which is why it is one "
+             "loop; the transpose swaps the indices at the point of use, which leaves "
+             "the traversal order unchanged and the printed shape reflected.",
 }
 
 INV_DS: dict[str, str] = {

@@ -5,6 +5,13 @@
 # A call into a user-defined function is therefore one step, not several, and
 # the stepper page says so rather than implying the three languages trace alike.
 #
+# Stepping into your own functions was built and then removed on 2026-08-22.
+# It worked, and it fired on 0 of the 39 R solutions: in every one of them the
+# call to a user function is nested inside cat() or sprintf() rather than made
+# at statement level, so reaching it needs a real evaluator — lazy arguments,
+# `...`, S3 dispatch — rather than a tree walk. Measured before deciding, and
+# the limitation is stated on the page instead of being half-fixed.
+#
 # Usage: Rscript --vanilla rstep.R <src.R> <out.json> [value-char-cap]
 
 args <- commandArgs(trailingOnly = TRUE)

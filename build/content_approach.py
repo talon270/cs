@@ -244,6 +244,38 @@ APPROACH_C = {
              "pointer back into its owner with the macro from the previous problem. One list "
              "implementation then serves every type, which is exactly why the kernel does it "
              "this way.",
+    "C11.1": "Walk the array once. The moment an element equals the key, you already "
+             "know the answer, so return there rather than setting a flag and "
+             "continuing. The interesting decision is what to return when nothing "
+             "matched: pick a value that could never be a legal index, and say in a "
+             "comment why zero is not that value.",
+    "C11.2": "Keep two bounds and a midpoint, and narrow whichever half cannot contain "
+             "the key. Decide up front what the loop condition is when the two bounds "
+             "meet — off by one there is the whole bug surface of this algorithm. "
+             "Compute the midpoint as the low bound plus half the gap rather than as "
+             "half the sum, and be able to say what that avoids.",
+    "C11.3": "State the invariant before writing anything: after pass i, the first i+1 "
+             "elements are the smallest i+1 values, in order. Then the code is the "
+             "sentence — find the smallest of what remains, swap it into place, print. "
+             "The outer loop stops one short of the end, and you should be able to say "
+             "why the last element needs no pass.",
+    "C11.4": "Two running values, and the order of the two assignments is the whole "
+             "problem: when a new best arrives the old best has to move down before it "
+             "is overwritten. Then decide what 'second' means when the largest value "
+             "appears twice, and what to report when every element is equal.",
+    "C11.5": "One index at each end, moving toward each other. Work out on paper how "
+             "many swaps a seven-element array needs before you write the loop bound — "
+             "the wrong bound gives you back the array you started with.",
+    "C11.6": "One loop peels digits off the number: the remainder by ten is the last "
+             "digit, dividing by ten drops it. All three answers fall out of that one "
+             "pass if you accumulate them together, so resist writing three loops.",
+    "C11.7": "Three small predicates, one loop each, and each returning early. For "
+             "primality decide where the loop can stop and be ready to justify it out "
+             "loud — that justification is worth marks in a way the code is not.",
+    "C11.8": "Two indices for the grid. The diagonal is the special case where they are "
+             "equal, so it is one loop, not two. For the transpose, change which index "
+             "you use where you read the element, not the order you loop in — and be "
+             "clear with yourself about the difference before you type it.",
 }
 
 
