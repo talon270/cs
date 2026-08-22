@@ -63,7 +63,7 @@ python3 build/verify_pages.py   # drives all five pages in a browser
 The first three need only `.venv`, which they find themselves. `verify_pages.py`
 needs Playwright, which lives outside that venv — run it with the `python3` that
 has it. Last full run, 2026-08-22: **52/52, 39/39 and 39/39 plus 28+28 Rosetta
-fragments, 33/33, all four bridge checks, and 388/388**.
+fragments, 33/33, all four bridge checks, and 392/392**.
 
 ## What's in each file
 

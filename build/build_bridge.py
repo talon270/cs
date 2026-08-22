@@ -47,6 +47,14 @@ HERO = """
 """
 
 CSS = """
+/* This is the only three-column page in the project: one intent, and what C,
+   Python and R each say, side by side. The shared cap of 1240px leaves each box
+   357px, and the longest mined line — 80 characters — wraps to four. Past a
+   1700px viewport there is room to give each box ~490px and two. Prose is
+   capped at 76ch by the shared stylesheet, so nothing else stretches with it,
+   and main stays centred rather than gaining a gutter on one side. */
+@media (min-width:1700px){ main{max-width:1560px} }
+
 .langbar{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
 .langbtn{appearance:none;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
@@ -57,19 +65,19 @@ CSS = """
   padding:15px 17px;margin:0 0 12px}
 .ent.done{border-color:var(--amber)}
 .ent-en{font-size:15.5px;font-weight:650;color:var(--fg);margin:0 0 10px;line-height:1.4}
-.cells{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
-@media (max-width:900px){.cells{grid-template-columns:1fr}}
-.cell{border:1px solid var(--rule);border-radius:9px;background:var(--bg-3);padding:9px 11px;
+.langrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+@media (max-width:900px){.langrow{grid-template-columns:1fr}}
+.langcell{border:1px solid var(--rule);border-radius:9px;background:var(--bg-3);padding:9px 11px;
   min-width:0;display:flex;flex-direction:column;gap:6px}
-.cell.absent{background:transparent;border-style:dashed}
+.langcell.absent{background:transparent;border-style:dashed}
 .cell-head{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
 .cell-head input{margin:0;accent-color:var(--amber);cursor:pointer}
-.cell pre{margin:0;font-family:var(--mono);font-size:12.3px;line-height:1.55;
+.langcell pre{margin:0;font-family:var(--mono);font-size:12.3px;line-height:1.55;
   white-space:pre-wrap;word-break:break-word;color:var(--fg)}
-.cell .src{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.cell .src a{color:var(--dim)}
-.cell .noeq{font-size:12.5px;color:var(--dim);line-height:1.55;margin:0}
+.langcell .src{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.langcell .src a{color:var(--dim)}
+.langcell .noeq{font-size:12.5px;color:var(--dim);line-height:1.55;margin:0}
 .ent-note{margin:10px 0 0;font-size:13px;color:var(--dim);line-height:1.55}
 .ent-note b{color:var(--fg)}
 .badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
@@ -133,7 +141,7 @@ def cell_html(row: dict, lang: str, label: str, file_link: str) -> str:
     c = row[lang]
     eid = row["id"]
     if c["kind"] == "no":
-        return (f'<div class="cell absent"><div class="cell-head">{label}'
+        return (f'<div class="langcell absent"><div class="cell-head">{label}'
                 f'<span class="badge">no equivalent</span></div>'
                 f'<p class="noeq">{c["text"]}</p></div>')
     if c["kind"] == "mined":
@@ -143,7 +151,7 @@ def cell_html(row: dict, lang: str, label: str, file_link: str) -> str:
     else:
         src = '<span class="src">authored &mdash; no solution here uses it</span>'
         badge = '<span class="badge auth">authored</span>'
-    return (f'<div class="cell"><div class="cell-head">'
+    return (f'<div class="langcell"><div class="cell-head">'
             f'<input type="checkbox" data-ent="{eid}" data-lang="{lang}" '
             f'aria-label="Mark {label} for this entry as drilled">{label}{badge}</div>'
             f'<pre>{esc(c["code"])}</pre>{src}</div>')
@@ -166,7 +174,7 @@ def phrasebook() -> str:
         for r in rows:
             out.append(f'  <div class="ent" id="e-{r["id"]}">')
             out.append(f'    <p class="ent-en">{esc(r["en"])}</p>')
-            out.append('    <div class="cells">')
+            out.append('    <div class="langrow">')
             for lang, label, _key, link in LANGS:
                 out.append("      " + cell_html(r, lang, label, link))
             out.append("    </div>")

@@ -634,6 +634,14 @@ table.grid3 td:first-child{white-space:normal}
   cursor:pointer;margin-left:8px}
 
 
+/* This is the only three-column page in the project: one intent, and what C,
+   Python and R each say, side by side. The shared cap of 1240px leaves each box
+   357px, and the longest mined line — 80 characters — wraps to four. Past a
+   1700px viewport there is room to give each box ~490px and two. Prose is
+   capped at 76ch by the shared stylesheet, so nothing else stretches with it,
+   and main stays centred rather than gaining a gutter on one side. */
+@media (min-width:1700px){ main{max-width:1560px} }
+
 .langbar{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
 .langbtn{appearance:none;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
@@ -644,19 +652,19 @@ table.grid3 td:first-child{white-space:normal}
   padding:15px 17px;margin:0 0 12px}
 .ent.done{border-color:var(--amber)}
 .ent-en{font-size:15.5px;font-weight:650;color:var(--fg);margin:0 0 10px;line-height:1.4}
-.cells{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
-@media (max-width:900px){.cells{grid-template-columns:1fr}}
-.cell{border:1px solid var(--rule);border-radius:9px;background:var(--bg-3);padding:9px 11px;
+.langrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+@media (max-width:900px){.langrow{grid-template-columns:1fr}}
+.langcell{border:1px solid var(--rule);border-radius:9px;background:var(--bg-3);padding:9px 11px;
   min-width:0;display:flex;flex-direction:column;gap:6px}
-.cell.absent{background:transparent;border-style:dashed}
+.langcell.absent{background:transparent;border-style:dashed}
 .cell-head{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
 .cell-head input{margin:0;accent-color:var(--amber);cursor:pointer}
-.cell pre{margin:0;font-family:var(--mono);font-size:12.3px;line-height:1.55;
+.langcell pre{margin:0;font-family:var(--mono);font-size:12.3px;line-height:1.55;
   white-space:pre-wrap;word-break:break-word;color:var(--fg)}
-.cell .src{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.cell .src a{color:var(--dim)}
-.cell .noeq{font-size:12.5px;color:var(--dim);line-height:1.55;margin:0}
+.langcell .src{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.langcell .src a{color:var(--dim)}
+.langcell .noeq{font-size:12.5px;color:var(--dim);line-height:1.55;margin:0}
 .ent-note{margin:10px 0 0;font-size:13px;color:var(--dim);line-height:1.55}
 .ent-note b{color:var(--fg)}
 .badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
@@ -777,46 +785,46 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-print-1">
     <p class="ent-en">Print a fixed line of text</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("Hello, C\n");</pre><span class="src">from <a href="c.html#C1.0a">C1.0a</a> line 4 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("descending")</pre><span class="src">from <a href="python.html#D2.2">D2.2</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("Hello, C\n");</pre><span class="src">from <a href="c.html#C1.0a">C1.0a</a> line 4 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("descending")</pre><span class="src">from <a href="python.html#D2.2">D2.2</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">C needs the <code>\n</code> spelled out; Python's <code>print</code> adds one; R's <code>cat</code> does not, which is why almost every <code>cat</code> in this course ends with <code>"\n"</code>.</p>
   </div>
   <div class="ent" id="e-print-2">
     <p class="ent-en">Print a label and a number on the same line</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (map_get(&amp;m, keys[i], &amp;v)) printf("%-6s = %d\n", keys[i], v);</pre><span class="src">from <a href="c.html#C7.3">C7.3</a> line 55 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("n      ", len(x))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 5 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (map_get(&amp;m, keys[i], &amp;v)) printf("%-6s = %d\n", keys[i], v);</pre><span class="src">from <a href="c.html#C7.3">C7.3</a> line 55 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("n      ", len(x))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 5 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Python separates arguments with a space for you. C and R only print what you asked for.</p>
   </div>
   <div class="ent" id="e-print-3">
     <p class="ent-en">Print a number to a fixed number of decimals</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("(%.1f, %.1f)\n", p.x, p.y);</pre><span class="src">from <a href="c.html#C6.1">C6.1</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(f"Q1={q1}  Q3={q3}  IQR={iqr}")</pre><span class="src">from <a href="python.html#D4.2">D4.2</a> line 11 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat(sprintf("Q1=%s  Q3=%s  IQR=%s\n", q[[1]], q[[2]], iqr))</pre><span class="src">from <a href="r.html#D4.2">D4.2</a> line 9 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("(%.1f, %.1f)\n", p.x, p.y);</pre><span class="src">from <a href="c.html#C6.1">C6.1</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(f"Q1={q1}  Q3={q3}  IQR={iqr}")</pre><span class="src">from <a href="python.html#D4.2">D4.2</a> line 11 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat(sprintf("Q1=%s  Q3=%s  IQR=%s\n", q[[1]], q[[2]], iqr))</pre><span class="src">from <a href="r.html#D4.2">D4.2</a> line 9 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R has no formatted-print statement: <code>sprintf</code> builds the string and <code>cat</code> prints it.</p>
   </div>
   <div class="ent" id="e-print-4">
     <p class="ent-en">Print a table so the columns line up</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("%-12s mine=%zu libc=%zu %s\n", t[i], my_strlen(t[i]), strlen(t[i]),</pre><span class="src">from <a href="c.html#C5.1">C5.1</a> line 13 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(clean.value_counts().to_string())</pre><span class="src">from <a href="python.html#D2.3">D2.3</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(table(clean))</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 11 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("%-12s mine=%zu libc=%zu %s\n", t[i], my_strlen(t[i]), strlen(t[i]),</pre><span class="src">from <a href="c.html#C5.1">C5.1</a> line 13 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(clean.value_counts().to_string())</pre><span class="src">from <a href="python.html#D2.3">D2.3</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(table(clean))</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 11 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">pandas and R print frames aligned already; in C the alignment is a width in the format string.</p>
   </div>
   <div class="ent" id="e-print-5">
     <p class="ent-en">Print to the error stream, not to output</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>fprintf(stderr, "usage: %s &lt;int&gt; &lt;int&gt;\n", argv[0]);</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>print("bad row", file=sys.stderr)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>message("bad row")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>fprintf(stderr, "usage: %s &lt;int&gt; &lt;int&gt;\n", argv[0]);</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>print("bad row", file=sys.stderr)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="print-5" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>message("bad row")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">Anything a person is meant to read while the real output is being piped elsewhere belongs on stderr.</p>
   </div>
@@ -827,46 +835,46 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-types-1">
     <p class="ent-en">Declare a whole number and give it a value</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int a = 4;</pre><span class="src">from <a href="c.html#C1.0b">C1.0b</a> line 4 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>n = 42</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>n &lt;- 42</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int a = 4;</pre><span class="src">from <a href="c.html#C1.0b">C1.0b</a> line 4 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>n = 42</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>n &lt;- 42</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">C is the only one that has to be told the type. In R, <code>n</code> is a numeric vector of length 1 — there is no scalar.</p>
   </div>
   <div class="ent" id="e-types-2">
     <p class="ent-en">Turn text into a number</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("%d\n", atoi(argv[1]) + atoi(argv[2]));</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 9 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>n = int("42")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>n &lt;- as.numeric("42")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("%d\n", atoi(argv[1]) + atoi(argv[2]));</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 9 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>n = int("42")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>n &lt;- as.numeric("42")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note"><code>atoi</code> cannot report failure — it returns 0 for <code>"abc"</code>. <code>strtol</code> is the honest version.</p>
   </div>
   <div class="ent" id="e-types-3">
     <p class="ent-en">Round a number for display</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("id=%d weight=%.1f tag=%s\n", back-&gt;id, back-&gt;weight, back-&gt;tag);</pre><span class="src">from <a href="c.html#C10.4">C10.4</a> line 15 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("mean   ", round(float(x.mean()), 3))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(round(out, 4))</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 20 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>printf("id=%d weight=%.1f tag=%s\n", back-&gt;id, back-&gt;weight, back-&gt;tag);</pre><span class="src">from <a href="c.html#C10.4">C10.4</a> line 15 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("mean   ", round(float(x.mean()), 3))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(round(out, 4))</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 20 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Python and R round the value; C's <code>%.2f</code> rounds only what is printed and leaves the number alone.</p>
   </div>
   <div class="ent" id="e-types-4">
     <p class="ent-en">Ask how big a value is in bytes</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (size_t i = 0; i &lt; sizeof t / sizeof *t; i++)</pre><span class="src">from <a href="c.html#C2.3">C2.3</a> line 12 &mdash; compiled and run</span></div>
-      <div class="cell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Python has no <code>sizeof</code> you would use in ordinary code. Objects carry their own size and the interpreter owns the layout; <code>sys.getsizeof</code> exists and answers a different question than C's.</p></div>
-      <div class="cell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R has <code>object.size()</code>, which reports the memory an object occupies — not the width of a type. R never asks you to know how many bytes a number takes.</p></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (size_t i = 0; i &lt; sizeof t / sizeof *t; i++)</pre><span class="src">from <a href="c.html#C2.3">C2.3</a> line 12 &mdash; compiled and run</span></div>
+      <div class="langcell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Python has no <code>sizeof</code> you would use in ordinary code. Objects carry their own size and the interpreter owns the layout; <code>sys.getsizeof</code> exists and answers a different question than C's.</p></div>
+      <div class="langcell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R has <code>object.size()</code>, which reports the memory an object occupies — not the width of a type. R never asks you to know how many bytes a number takes.</p></div>
     </div>
     <p class="ent-note"><code>sizeof *p</code> rather than <code>sizeof(int)</code> keeps the allocation correct when the type changes.</p>
   </div>
   <div class="ent" id="e-types-5">
     <p class="ent-en">Say a value is missing</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no missing value. A sentinel like <code>-1</code> or a separate <code>is_set</code> flag is the usual answer, and choosing a sentinel that is also a legal value is a classic bug.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>"revenue": [120.0, np.nan, 95.0, 140.0, np.nan],</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 5 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="types-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing = colSums(is.na(df)),</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 9 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no missing value. A sentinel like <code>-1</code> or a separate <code>is_set</code> flag is the usual answer, and choosing a sentinel that is also a legal value is a classic bug.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>"revenue": [120.0, np.nan, 95.0, 140.0, np.nan],</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 5 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="types-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing = colSums(is.na(df)),</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 9 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Python has two: <code>None</code> for 'no object' and <code>np.nan</code> for 'a number that is not there'. R has <code>NA</code>, and it is contagious through arithmetic.</p>
   </div>
@@ -877,47 +885,47 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-flow-1">
     <p class="ent-en">Do something only if a condition holds</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (argc != 3) {</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 5 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>if p &lt; 0.05:</pre><span class="src">from <a href="python.html#D9.3">D9.3</a> line 17 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>if (year &gt;= MAX_YEARS) {</pre><span class="src">from <a href="r.html#D6.3">D6.3</a> line 10 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (argc != 3) {</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 5 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>if p &lt; 0.05:</pre><span class="src">from <a href="python.html#D9.3">D9.3</a> line 17 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>if (year &gt;= MAX_YEARS) {</pre><span class="src">from <a href="r.html#D6.3">D6.3</a> line 10 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R's <code>if</code> takes one value, not a vector. Feed it a vector and modern R stops with an error rather than silently using the first element.</p>
   </div>
   <div class="ent" id="e-flow-2">
     <p class="ent-en">Repeat once for each item</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (int i = 0; i &lt; n; i++) a[i] = i * i;</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 11 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>for i in range(len(x)):</pre><span class="src">from <a href="python.html#D6.1">D6.1</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>for (i in seq_along(x)) out_loop[i] &lt;- x[i]^2</pre><span class="src">from <a href="r.html#D6.1">D6.1</a> line 5 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (int i = 0; i &lt; n; i++) a[i] = i * i;</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 11 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>for i in range(len(x)):</pre><span class="src">from <a href="python.html#D6.1">D6.1</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>for (i in seq_along(x)) out_loop[i] &lt;- x[i]^2</pre><span class="src">from <a href="r.html#D6.1">D6.1</a> line 5 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note"><code>seq_along(x)</code> rather than <code>1:length(x)</code>: the second one runs backwards from 1 to 0 when <code>x</code> is empty.</p>
   </div>
   <div class="ent" id="e-flow-3">
     <p class="ent-en">Repeat while something is still true</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>while (scanf("%d", &amp;v) == 1) {</pre><span class="src">from <a href="c.html#C4.3">C4.3</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>while total &lt; target:
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>while (scanf("%d", &amp;v) == 1) {</pre><span class="src">from <a href="c.html#C4.3">C4.3</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>while total &lt; target:
     total += step</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>while (balance &lt;= target &amp;&amp; year &lt; MAX_YEARS) {</pre><span class="src">from <a href="r.html#D6.3">D6.3</a> line 4 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>while (balance &lt;= target &amp;&amp; year &lt; MAX_YEARS) {</pre><span class="src">from <a href="r.html#D6.3">D6.3</a> line 4 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">The C form here is the idiom for 'read until the input runs out': the loop condition is the read itself.</p>
   </div>
   <div class="ent" id="e-flow-4">
     <p class="ent-en">Apply the same arithmetic to every element</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no vectorised arithmetic. The loop <i>is</i> the idiom, which is why the equivalent C is three lines and the Python is one — and why C's version is usually the faster of the two.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>out_vec = x ** 2</pre><span class="src">from <a href="python.html#D6.1">D6.1</a> line 13 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>out_vec &lt;- x^2</pre><span class="src">from <a href="r.html#D6.1">D6.1</a> line 9 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no vectorised arithmetic. The loop <i>is</i> the idiom, which is why the equivalent C is three lines and the Python is one — and why C's version is usually the faster of the two.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>out_vec = x ** 2</pre><span class="src">from <a href="python.html#D6.1">D6.1</a> line 13 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>out_vec &lt;- x^2</pre><span class="src">from <a href="r.html#D6.1">D6.1</a> line 9 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">In Python and R this is the difference between a program that takes 12 ms and one that takes 65 seconds — measured, in D6.1.</p>
   </div>
   <div class="ent" id="e-flow-5">
     <p class="ent-en">Choose a value per element without a loop</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>y[i] = (x[i] &gt; 0) ? 1 : 0;</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>band = np.where(score &gt;= 70, "High", "Low")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>band &lt;- ifelse(score &gt;= 70, "High", "Low")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>y[i] = (x[i] &gt; 0) ? 1 : 0;</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>band = np.where(score &gt;= 70, "High", "Low")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="flow-5" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>band &lt;- ifelse(score &gt;= 70, "High", "Low")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">C's <code>?:</code> is per value; <code>np.where</code> and <code>ifelse</code> are per vector, and both return a new vector rather than modifying one.</p>
   </div>
@@ -928,74 +936,74 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-coll-1">
     <p class="ent-en">Make a list of numbers</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int a[] = { 42, 7, 19, 3, 88, 25 };</pre><span class="src">from <a href="c.html#C8.4">C8.4</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>x = np.array([4, 8, 15, 16, 23, 42])</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- c(4, 8, 15, 16, 23, 42)</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 1 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int a[] = { 42, 7, 19, 3, 88, 25 };</pre><span class="src">from <a href="c.html#C8.4">C8.4</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>x = np.array([4, 8, 15, 16, 23, 42])</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- c(4, 8, 15, 16, 23, 42)</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 1 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R's <code>c()</code> is 'combine'. It is the most-used function in the language and it flattens: <code>c(1, c(2, 3))</code> is three elements, not two.</p>
   </div>
   <div class="ent" id="e-coll-2">
     <p class="ent-en">Read the first element</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>int first = a[0];</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>first = x[0]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>first &lt;- x[1]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>int first = a[0];</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>first = x[0]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>first &lt;- x[1]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">This is the single most common cross-language mistake in DOM207: R counts from 1, and <code>x[0]</code> in R is not an error — it returns an empty vector.</p>
   </div>
   <div class="ent" id="e-coll-3">
     <p class="ent-en">Take a slice of consecutive elements</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no slice. You pass a pointer to where the run starts and a length: <code>f(a + 2, 5)</code>. Nothing is copied and nothing checks that those five elements exist.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>mid = x[2:7]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>mid &lt;- x[3:7]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no slice. You pass a pointer to where the run starts and a length: <code>f(a + 2, 5)</code>. Nothing is copied and nothing checks that those five elements exist.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>mid = x[2:7]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>mid &lt;- x[3:7]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">Python's end is exclusive, R's is inclusive. The same five elements are written two different ways.</p>
   </div>
   <div class="ent" id="e-coll-4">
     <p class="ent-en">Count the elements</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>#define ARRAY_LEN(a) (sizeof (a) / sizeof *(a))</pre><span class="src">from <a href="c.html#C9.1">C9.1</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("n      ", len(x))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 5 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>#define ARRAY_LEN(a) (sizeof (a) / sizeof *(a))</pre><span class="src">from <a href="c.html#C9.1">C9.1</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("n      ", len(x))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 5 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("n      ", length(x), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 3 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">The C idiom only works where the array was declared. Pass it to a function and it decays to a pointer, and the same expression silently computes 8/4.</p>
   </div>
   <div class="ent" id="e-coll-5">
     <p class="ent-en">Keep only the elements that pass a test</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>for (int i = 0; i &lt; n; i++)
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>for (int i = 0; i &lt; n; i++)
     if (a[i] &gt; 0) keep[k++] = a[i];</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("\nskipped non-numeric:", [c for c in df.columns if c not in num.columns])</pre><span class="src">from <a href="python.html#D7.3">D7.3</a> line 26 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- x[!is.na(x)]</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 5 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("\nskipped non-numeric:", [c for c in df.columns if c not in num.columns])</pre><span class="src">from <a href="python.html#D7.3">D7.3</a> line 26 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- x[!is.na(x)]</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 5 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R filters by indexing with a logical vector — the brackets do the work, and there is no function call at all.</p>
   </div>
   <div class="ent" id="e-coll-6">
     <p class="ent-en">Build a table with named columns</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no data frame. The nearest thing is an array of structs, and every operation on it — filter, group, join — is a loop you write yourself.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df = pd.DataFrame({</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 4 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df &lt;- data.frame(</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 1 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no data frame. The nearest thing is an array of structs, and every operation on it — filter, group, join — is a loop you write yourself.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df = pd.DataFrame({</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 4 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df &lt;- data.frame(</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 1 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">pandas keeps an index alongside the rows; R's data frame has row names it mostly ignores. That difference surfaces the first time you filter and the numbering does not restart.</p>
   </div>
   <div class="ent" id="e-coll-7">
     <p class="ent-en">Get one column out of a table</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames, no columns. See the previous row.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>col = df["revenue"]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing &lt;- sum(is.na(df$revenue))</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 10 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames, no columns. See the previous row.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>col = df["revenue"]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing &lt;- sum(is.na(df$revenue))</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 10 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note"><code>df$revenue</code> matches partially in base R — <code>df$rev</code> can return the same column, which is convenient until a second column starts with the same letters.</p>
   </div>
   <div class="ent" id="e-coll-8">
     <p class="ent-en">Keep the rows that pass a test</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">A loop over an array of structs, writing survivors into a second array.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-8" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>big = df[df["revenue"] &gt; 100]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="coll-8" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>big &lt;- df[df$revenue &gt; 100, ]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">A loop over an array of structs, writing survivors into a second array.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-8" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>big = df[df["revenue"] &gt; 100]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="coll-8" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>big &lt;- df[df$revenue &gt; 100, ]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">The comma in the R version is not optional: <code>df[cond]</code> without it selects <i>columns</i>.</p>
   </div>
@@ -1006,37 +1014,37 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-func-1">
     <p class="ent-en">Define a function that takes two numbers</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>static int op_add(int a, int b) { return a + b; }</pre><span class="src">from <a href="c.html#C3.5">C3.5</a> line 7 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>def to_lakh(amount, per_lakh=100_000):</pre><span class="src">from <a href="python.html#D7.1">D7.1</a> line 1 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>title_case &lt;- function(s) {</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 3 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>static int op_add(int a, int b) { return a + b; }</pre><span class="src">from <a href="c.html#C3.5">C3.5</a> line 7 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>def to_lakh(amount, per_lakh=100_000):</pre><span class="src">from <a href="python.html#D7.1">D7.1</a> line 1 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>title_case &lt;- function(s) {</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 3 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">In R a function is a value assigned to a name like any other value, which is why it is written with <code>&lt;-</code>.</p>
   </div>
   <div class="ent" id="e-func-2">
     <p class="ent-en">Give an argument a default</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no default arguments. The usual answers are two functions, one calling the other, or a struct of options — both of which are more ceremony than the feature is worth.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>def to_lakh(amount, per_lakh=100_000):</pre><span class="src">from <a href="python.html#D7.1">D7.1</a> line 1 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>to_lakh &lt;- function(amount, per_lakh = 1e5) {</pre><span class="src">from <a href="r.html#D7.1">D7.1</a> line 4 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no default arguments. The usual answers are two functions, one calling the other, or a struct of options — both of which are more ceremony than the feature is worth.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>def to_lakh(amount, per_lakh=100_000):</pre><span class="src">from <a href="python.html#D7.1">D7.1</a> line 1 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>to_lakh &lt;- function(amount, per_lakh = 1e5) {</pre><span class="src">from <a href="r.html#D7.1">D7.1</a> line 4 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R evaluates a default lazily, in the function's own environment, so a default may refer to another argument.</p>
   </div>
   <div class="ent" id="e-func-3">
     <p class="ent-en">Return more than one value</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C returns exactly one value. You return a struct, or you pass a pointer for the second result to be written through — which is what <code>divmod</code>-style functions do.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>return lo, hi</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>list(mean   = mean(x),</pre><span class="src">from <a href="r.html#D7.2">D7.2</a> line 5 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C returns exactly one value. You return a struct, or you pass a pointer for the second result to be written through — which is what <code>divmod</code>-style functions do.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>return lo, hi</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>list(mean   = mean(x),</pre><span class="src">from <a href="r.html#D7.2">D7.2</a> line 5 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R returns the last expression evaluated, so an explicit <code>return()</code> is optional — and worth writing anyway.</p>
   </div>
   <div class="ent" id="e-func-4">
     <p class="ent-en">Change the caller's variable from inside</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="func-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>*out = v;</pre><span class="src">from <a href="c.html#C8.3">C8.3</a> line 15 &mdash; compiled and run</span></div>
-      <div class="cell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Python passes references to objects, but rebinding a name inside a function never touches the caller's name. Mutating a list or a frame in place does; returning a new value is the habit worth having.</p></div>
-      <div class="cell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R copies on modify. A function cannot change its caller's variable — which is the whole reason R code returns new objects instead of editing old ones.</p></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="func-4" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>*out = v;</pre><span class="src">from <a href="c.html#C8.3">C8.3</a> line 15 &mdash; compiled and run</span></div>
+      <div class="langcell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Python passes references to objects, but rebinding a name inside a function never touches the caller's name. Mutating a list or a frame in place does; returning a new value is the habit worth having.</p></div>
+      <div class="langcell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R copies on modify. A function cannot change its caller's variable — which is the whole reason R code returns new objects instead of editing old ones.</p></div>
     </div>
     <p class="ent-note">This is the single largest difference between C and the other two, and the reason C needs pointers at all.</p>
   </div>
@@ -1047,28 +1055,28 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-mem-1">
     <p class="ent-en">Ask for memory at run time</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="mem-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int *a = malloc((size_t)n * sizeof *a);</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Never. Objects are allocated when created and freed when the last reference goes away.</p></div>
-      <div class="cell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">Never. R allocates on assignment and collects garbage on its own.</p></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="mem-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>int *a = malloc((size_t)n * sizeof *a);</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">Never. Objects are allocated when created and freed when the last reference goes away.</p></div>
+      <div class="langcell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">Never. R allocates on assignment and collects garbage on its own.</p></div>
     </div>
     <p class="ent-note"><code>sizeof *a</code>, not <code>sizeof(int)</code>: change <code>a</code>'s type later and the allocation follows it.</p>
   </div>
   <div class="ent" id="e-mem-2">
     <p class="ent-en">Check that the allocation worked</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="mem-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (!a) { perror("malloc"); return 1; }</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 9 &mdash; compiled and run</span></div>
-      <div class="cell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">An allocation that fails raises <code>MemoryError</code>; there is nothing to check.</p></div>
-      <div class="cell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R stops with 'cannot allocate vector of size…'. There is nothing to check.</p></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="mem-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (!a) { perror("malloc"); return 1; }</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 9 &mdash; compiled and run</span></div>
+      <div class="langcell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">An allocation that fails raises <code>MemoryError</code>; there is nothing to check.</p></div>
+      <div class="langcell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">R stops with 'cannot allocate vector of size…'. There is nothing to check.</p></div>
     </div>
     <p class="ent-note">Every <code>malloc</code> in this file is followed by this line. That is not style — an unchecked NULL is the second of the four memory bugs.</p>
   </div>
   <div class="ent" id="e-mem-3">
     <p class="ent-en">Give the memory back</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="mem-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>free(a);</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 14 &mdash; compiled and run</span></div>
-      <div class="cell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">The garbage collector does it. <code>del</code> removes a name, not an object.</p></div>
-      <div class="cell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">The garbage collector does it. <code>rm()</code> removes a name, not an object.</p></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="mem-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>free(a);</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 14 &mdash; compiled and run</span></div>
+      <div class="langcell absent"><div class="cell-head">Python<span class="badge">no equivalent</span></div><p class="noeq">The garbage collector does it. <code>del</code> removes a name, not an object.</p></div>
+      <div class="langcell absent"><div class="cell-head">R<span class="badge">no equivalent</span></div><p class="noeq">The garbage collector does it. <code>rm()</code> removes a name, not an object.</p></div>
     </div>
     <p class="ent-note">One owner per allocation, and the owner frees it. Two owners is a double free; no owner is a leak.</p>
   </div>
@@ -1079,47 +1087,47 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-file-1">
     <p class="ent-en">Read a line of text safely</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (int n = 1; fgets(line, sizeof line, f); n++)</pre><span class="src">from <a href="c.html#C8.1">C8.1</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>line = input()</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>line &lt;- readline()</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>for (int n = 1; fgets(line, sizeof line, f); n++)</pre><span class="src">from <a href="c.html#C8.1">C8.1</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>line = input()</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>line &lt;- readline()</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note"><code>fgets</code> takes the buffer size and stops there. <code>gets</code> did not, which is why it was removed from the language in C11.</p>
   </div>
   <div class="ent" id="e-file-2">
     <p class="ent-en">Read numbers from standard input until they run out</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>while (scanf("%d", &amp;v) == 1) {</pre><span class="src">from <a href="c.html#C4.3">C4.3</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>nums = [int(t) for t in sys.stdin.read().split()]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>nums &lt;- scan(file("stdin"), quiet = TRUE)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>while (scanf("%d", &amp;v) == 1) {</pre><span class="src">from <a href="c.html#C4.3">C4.3</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>nums = [int(t) for t in sys.stdin.read().split()]</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>nums &lt;- scan(file("stdin"), quiet = TRUE)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note"><code>scanf</code> returns how many items it converted, so <code>== 1</code> is 'one number arrived'. Testing for EOF any other way gets the last line wrong.</p>
   </div>
   <div class="ent" id="e-file-3">
     <p class="ent-en">Open a file and fail loudly if it is not there</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>FILE *f = fopen(argv[1], "r");</pre><span class="src">from <a href="c.html#C8.1">C8.1</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>with open(path) as f:
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>FILE *f = fopen(argv[1], "r");</pre><span class="src">from <a href="c.html#C8.1">C8.1</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>with open(path) as f:
     text = f.read()</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>text &lt;- readLines(path)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>text &lt;- readLines(path)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">C returns NULL and sets <code>errno</code>; Python and R raise. Only one of the three lets you carry on by accident.</p>
   </div>
   <div class="ent" id="e-file-4">
     <p class="ent-en">Read a CSV into a table</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no CSV reader. Splitting a line on commas correctly — quotes, embedded commas, CRLF — is a few hundred lines nobody should write twice.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>back = pd.read_csv(path)</pre><span class="src">from <a href="python.html#D3.2">D3.2</a> line 14 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>back &lt;- read.csv(path, stringsAsFactors = FALSE)</pre><span class="src">from <a href="r.html#D3.2">D3.2</a> line 12 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no CSV reader. Splitting a line on commas correctly — quotes, embedded commas, CRLF — is a few hundred lines nobody should write twice.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>back = pd.read_csv(path)</pre><span class="src">from <a href="python.html#D3.2">D3.2</a> line 14 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>back &lt;- read.csv(path, stringsAsFactors = FALSE)</pre><span class="src">from <a href="r.html#D3.2">D3.2</a> line 12 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note"><code>stringsAsFactors = FALSE</code> stopped being necessary in R 4.0, and is still written because the failure it prevented was so unpleasant.</p>
   </div>
   <div class="ent" id="e-file-5">
     <p class="ent-en">Write the result back out</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>size_t w = fwrite(out, sizeof *out, 5, f);</pre><span class="src">from <a href="c.html#C8.2">C8.2</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df.to_csv(path, index=False)          # index=False or you gain a column</pre><span class="src">from <a href="python.html#D3.2">D3.2</a> line 12 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>write.csv(df, path, row.names = FALSE)   # row.names=FALSE or you gain a column</pre><span class="src">from <a href="r.html#D3.2">D3.2</a> line 10 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>size_t w = fwrite(out, sizeof *out, 5, f);</pre><span class="src">from <a href="c.html#C8.2">C8.2</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df.to_csv(path, index=False)          # index=False or you gain a column</pre><span class="src">from <a href="python.html#D3.2">D3.2</a> line 12 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="file-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>write.csv(df, path, row.names = FALSE)   # row.names=FALSE or you gain a column</pre><span class="src">from <a href="r.html#D3.2">D3.2</a> line 10 &mdash; compiled and run</span></div>
     </div>
   </div>
 </section>
@@ -1129,80 +1137,80 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-clean-1">
     <p class="ent-en">Count the missing values in each column</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames. See section 04.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>"n_missing": df.isna().sum(),</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 11 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing = colSums(is.na(df)),</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 9 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames. See section 04.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>"n_missing": df.isna().sum(),</pre><span class="src">from <a href="python.html#D2.1">D2.1</a> line 11 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>n_missing = colSums(is.na(df)),</pre><span class="src">from <a href="r.html#D2.1">D2.1</a> line 9 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Do this before anything else. Every later number is conditional on what was not there.</p>
   </div>
   <div class="ent" id="e-clean-2">
     <p class="ent-en">Fill missing values with the median</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df["revenue"] = df["revenue"].fillna(med)</pre><span class="src">from <a href="python.html#D4.1">D4.1</a> line 15 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df$revenue[is.na(df$revenue)] &lt;- med</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 12 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df["revenue"] = df["revenue"].fillna(med)</pre><span class="src">from <a href="python.html#D4.1">D4.1</a> line 15 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df$revenue[is.na(df$revenue)] &lt;- med</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 12 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R has no <code>fillna</code>: you index with the NA positions and assign into them. The bracket is the verb.</p>
   </div>
   <div class="ent" id="e-clean-3">
     <p class="ent-en">Drop rows with missing values</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>x = pd.Series(x).dropna()</pre><span class="src">from <a href="python.html#D7.3">D7.3</a> line 11 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- x[!is.na(x)]</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 5 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>x = pd.Series(x).dropna()</pre><span class="src">from <a href="python.html#D7.3">D7.3</a> line 11 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-3" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>x &lt;- x[!is.na(x)]</pre><span class="src">from <a href="r.html#D7.3">D7.3</a> line 5 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Both of these silently change n. Print how many rows went, every time — a mean over a shrunken table is a different claim.</p>
   </div>
   <div class="ent" id="e-clean-4">
     <p class="ent-en">Convert a column to another type</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>y = (r &gt; 1.4).astype(int)</pre><span class="src">from <a href="python.html#D13.2">D13.2</a> line 16 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>pred &lt;- factor(as.integer(prob &gt; 0.5), levels = c(0, 1))</pre><span class="src">from <a href="r.html#D13.1">D13.1</a> line 13 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>y = (r &gt; 1.4).astype(int)</pre><span class="src">from <a href="python.html#D13.2">D13.2</a> line 16 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>pred &lt;- factor(as.integer(prob &gt; 0.5), levels = c(0, 1))</pre><span class="src">from <a href="r.html#D13.1">D13.1</a> line 13 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R's <code>as.numeric</code> on a factor returns the level codes, not the numbers you can see. That is the factor trap, and it is silent.</p>
   </div>
   <div class="ent" id="e-clean-5">
     <p class="ent-en">Remove duplicate rows</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df = df.drop_duplicates()</pre><span class="src">from <a href="python.html#D4.1">D4.1</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df &lt;- df[!duplicated(df), ]</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 7 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>df = df.drop_duplicates()</pre><span class="src">from <a href="python.html#D4.1">D4.1</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>df &lt;- df[!duplicated(df), ]</pre><span class="src">from <a href="r.html#D4.1">D4.1</a> line 7 &mdash; compiled and run</span></div>
     </div>
   </div>
   <div class="ent" id="e-clean-6">
     <p class="ent-en">Join two tables on a shared key</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames. A nested loop, or a hash table you write.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>joined = sales.merge(lookup, on="code", how="left")</pre><span class="src">from <a href="python.html#D4.3">D4.3</a> line 13 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>joined &lt;- left_join(sales, lookup, by = "code")</pre><span class="src">from <a href="r.html#D4.3">D4.3</a> line 15 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames. A nested loop, or a hash table you write.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>joined = sales.merge(lookup, on="code", how="left")</pre><span class="src">from <a href="python.html#D4.3">D4.3</a> line 13 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>joined &lt;- left_join(sales, lookup, by = "code")</pre><span class="src">from <a href="r.html#D4.3">D4.3</a> line 15 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Always check what did not match afterwards. A left join that finds nothing is not an error — it is a table full of NA.</p>
   </div>
   <div class="ent" id="e-clean-7">
     <p class="ent-en">Group by a column and summarise each group</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>out = (df.groupby("region")</pre><span class="src">from <a href="python.html#D3.3">D3.3</a> line 10 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>group_by(region) |&gt;</pre><span class="src">from <a href="r.html#D3.3">D3.3</a> line 12 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>out = (df.groupby("region")</pre><span class="src">from <a href="python.html#D3.3">D3.3</a> line 10 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>group_by(region) |&gt;</pre><span class="src">from <a href="r.html#D3.3">D3.3</a> line 12 &mdash; compiled and run</span></div>
     </div>
   </div>
   <div class="ent" id="e-clean-8">
     <p class="ent-en">Turn long data wide</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-8" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>wide = (joined.pivot_table(index="product", columns="region",</pre><span class="src">from <a href="python.html#D4.3">D4.3</a> line 18 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-8" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>pivot_wider(names_from = region, values_from = revenue, values_fill = 0)</pre><span class="src">from <a href="r.html#D4.3">D4.3</a> line 23 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-8" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>wide = (joined.pivot_table(index="product", columns="region",</pre><span class="src">from <a href="python.html#D4.3">D4.3</a> line 18 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-8" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>pivot_wider(names_from = region, values_from = revenue, values_fill = 0)</pre><span class="src">from <a href="r.html#D4.3">D4.3</a> line 23 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Wide is for reading, long is for plotting and modelling. Most of the reshaping in this course is one direction and back.</p>
   </div>
   <div class="ent" id="e-clean-9">
     <p class="ent-en">Count how many of each category</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-9" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(clean.value_counts().to_string())</pre><span class="src">from <a href="python.html#D2.3">D2.3</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="clean-9" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(table(clean))</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 11 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-9" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(clean.value_counts().to_string())</pre><span class="src">from <a href="python.html#D2.3">D2.3</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="clean-9" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(table(clean))</pre><span class="src">from <a href="r.html#D2.3">D2.3</a> line 11 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R's <code>table()</code> drops NA by default and pandas' <code>value_counts()</code> does too — both hide the category you most need to see.</p>
   </div>
@@ -1213,64 +1221,64 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-stat-1">
     <p class="ent-en">Take the mean of a column</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>double mean = sum / (double)n;</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("mean   ", round(float(x.mean()), 3))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("mean   ", round(mean(x), 3), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 4 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>double mean = sum / (double)n;</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("mean   ", round(float(x.mean()), 3))</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-1" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("mean   ", round(mean(x), 3), "\n")</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 4 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">The C cast is not optional: <code>sum / n</code> with two ints is integer division, and 7/2 is 3.</p>
   </div>
   <div class="ent" id="e-stat-2">
     <p class="ent-en">Take the standard deviation</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no statistics library. You write the two-pass or Welford algorithm yourself — and the naive one-pass formula loses precision on real data.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("sd     ", round(float(x.std(ddof=1)), 3))   # ddof=1 = sample sd</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("sd     ", round(sd(x), 3), "\n")      # sd() is already the sample sd</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C has no statistics library. You write the two-pass or Welford algorithm yourself — and the naive one-pass formula loses precision on real data.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print("sd     ", round(float(x.std(ddof=1)), 3))   # ddof=1 = sample sd</pre><span class="src">from <a href="python.html#D1.1">D1.1</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-2" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>cat("sd     ", round(sd(x), 3), "\n")      # sd() is already the sample sd</pre><span class="src">from <a href="r.html#D1.1">D1.1</a> line 6 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">NumPy defaults to <code>ddof=0</code> — the population formula. R's <code>sd</code> is always the sample one. Compare the two without <code>ddof=1</code> and they disagree, every time.</p>
   </div>
   <div class="ent" id="e-stat-3">
     <p class="ent-en">Show the type of every column</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(df.dtypes.to_string())</pre><span class="src">from <a href="python.html#D3.1">D3.1</a> line 12 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>str(df)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No frames.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>print(df.dtypes.to_string())</pre><span class="src">from <a href="python.html#D3.1">D3.1</a> line 12 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>str(df)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">pandas prints dtypes; R's <code>str()</code> prints type, length and the first few values of every column at once.</p>
   </div>
   <div class="ent" id="e-stat-4">
     <p class="ent-en">Compare the means of two groups</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>student = stats.ttest_ind(a, b, equal_var=True)</pre><span class="src">from <a href="python.html#D9.2">D9.2</a> line 8 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>student &lt;- t.test(a, b, var.equal = TRUE)</pre><span class="src">from <a href="r.html#D9.2">D9.2</a> line 5 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-4" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>student = stats.ttest_ind(a, b, equal_var=True)</pre><span class="src">from <a href="python.html#D9.2">D9.2</a> line 8 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-4" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>student &lt;- t.test(a, b, var.equal = TRUE)</pre><span class="src">from <a href="r.html#D9.2">D9.2</a> line 5 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">R's <code>t.test</code> defaults to Welch — unequal variances. SciPy's defaults to the pooled test, so the two disagree unless you pass <code>equal_var=False</code>.</p>
   </div>
   <div class="ent" id="e-stat-5">
     <p class="ent-en">Fit a straight line</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>fit = smf.ols("revenue ~ spend + heads + C(region)", data=df).fit()</pre><span class="src">from <a href="python.html#D10.1">D10.1</a> line 16 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>fit &lt;- lm(revenue ~ spend, data = df)</pre><span class="src">from <a href="r.html#D5.2">D5.2</a> line 8 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-5" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>fit = smf.ols("revenue ~ spend + heads + C(region)", data=df).fit()</pre><span class="src">from <a href="python.html#D10.1">D10.1</a> line 16 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-5" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>fit &lt;- lm(revenue ~ spend, data = df)</pre><span class="src">from <a href="r.html#D5.2">D5.2</a> line 8 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Both take a formula string of the same shape: outcome on the left of <code>~</code>, predictors on the right.</p>
   </div>
   <div class="ent" id="e-stat-6">
     <p class="ent-en">Read the coefficients back out</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>lo, hi = fit.conf_int().loc["spend"]</pre><span class="src">from <a href="python.html#D10.1">D10.1</a> line 24 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(summary(fit)$coefficients)</pre><span class="src">from <a href="r.html#D10.1">D10.1</a> line 12 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">No statistics library.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-6" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>lo, hi = fit.conf_int().loc["spend"]</pre><span class="src">from <a href="python.html#D10.1">D10.1</a> line 24 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-6" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>print(summary(fit)$coefficients)</pre><span class="src">from <a href="r.html#D10.1">D10.1</a> line 12 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Report the interval, not just the point estimate. A coefficient without its spread is a claim without its confidence.</p>
   </div>
   <div class="ent" id="e-stat-7">
     <p class="ent-en">Set the random seed so the run repeats</p>
-    <div class="cells">
-      <div class="cell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C's <code>rand</code> is seeded with <code>srand(time(NULL))</code>, and none of these fifty solutions needs randomness. Nothing in this file uses it, so nothing here can show you a line that was actually run.</p></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>rng = np.random.default_rng(42)</pre><span class="src">from <a href="python.html#D5.1">D5.1</a> line 6 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="stat-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>set.seed(42)</pre><span class="src">from <a href="r.html#D5.1">D5.1</a> line 3 &mdash; compiled and run</span></div>
+    <div class="langrow">
+      <div class="langcell absent"><div class="cell-head">C<span class="badge">no equivalent</span></div><p class="noeq">C's <code>rand</code> is seeded with <code>srand(time(NULL))</code>, and none of these fifty solutions needs randomness. Nothing in this file uses it, so nothing here can show you a line that was actually run.</p></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-7" data-lang="py" aria-label="Mark Python for this entry as drilled">Python</div><pre>rng = np.random.default_rng(42)</pre><span class="src">from <a href="python.html#D5.1">D5.1</a> line 6 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="stat-7" data-lang="r" aria-label="Mark R for this entry as drilled">R</div><pre>set.seed(42)</pre><span class="src">from <a href="r.html#D5.1">D5.1</a> line 3 &mdash; compiled and run</span></div>
     </div>
     <p class="ent-note">Every solution in DOM207 seeds. A result you cannot reproduce is not a result, and the marker will run your file.</p>
   </div>
@@ -1281,28 +1289,28 @@ table.grid3 td:first-child{white-space:normal}
   <div class="rule"></div>
   <div class="ent" id="e-err-1">
     <p class="ent-en">Report a system error with its cause</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (!a) { perror("malloc"); return 1; }</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 9 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>raise RuntimeError(f"could not read {path}")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>stop("could not read ", path)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>if (!a) { perror("malloc"); return 1; }</pre><span class="src">from <a href="c.html#C4.2">C4.2</a> line 9 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>raise RuntimeError(f"could not read {path}")</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-1" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>stop("could not read ", path)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note"><code>perror</code> prints your message, a colon, and the text of <code>errno</code> — the part that says what actually went wrong.</p>
   </div>
   <div class="ent" id="e-err-2">
     <p class="ent-en">Stop the program with a failure status</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>return 1;</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 7 &mdash; compiled and run</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>sys.exit(1)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>quit(status = 1)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="c" aria-label="Mark C for this entry as drilled">C</div><pre>return 1;</pre><span class="src">from <a href="c.html#C1.2">C1.2</a> line 7 &mdash; compiled and run</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>sys.exit(1)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-2" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>quit(status = 1)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">A non-zero exit status is how a shell script or a marker's harness learns that your program did not work.</p>
   </div>
   <div class="ent" id="e-err-3">
     <p class="ent-en">Assert something you believe must be true</p>
-    <div class="cells">
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>assert(n &gt; 0);</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>assert n &gt; 0, "n must be positive"</pre><span class="src">authored &mdash; no solution here uses it</span></div>
-      <div class="cell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>stopifnot(n &gt; 0)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+    <div class="langrow">
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="c" aria-label="Mark C for this entry as drilled">C<span class="badge auth">authored</span></div><pre>assert(n &gt; 0);</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="py" aria-label="Mark Python for this entry as drilled">Python<span class="badge auth">authored</span></div><pre>assert n &gt; 0, "n must be positive"</pre><span class="src">authored &mdash; no solution here uses it</span></div>
+      <div class="langcell"><div class="cell-head"><input type="checkbox" data-ent="err-3" data-lang="r" aria-label="Mark R for this entry as drilled">R<span class="badge auth">authored</span></div><pre>stopifnot(n &gt; 0)</pre><span class="src">authored &mdash; no solution here uses it</span></div>
     </div>
     <p class="ent-note">An assertion documents an assumption and fails at the moment it stops holding, rather than three functions later.</p>
   </div>

@@ -151,6 +151,42 @@ def check_patterns(fails: list) -> int:
     return len(B.PATTERNS)
 
 
+def check_css(fails: list) -> int:
+    """bridge.html must not reuse a class name the shared stylesheet defines.
+
+    Found the hard way: `.cell` and `.cells` are cheet.html's memory-diagram
+    cells — `width:76px; text-align:center` — and every phrasebook code box
+    inherited that width, rendering 76px wide and 733px tall with one character
+    per line. Overriding it would have worked until the next collision; the
+    check is that there is no collision at all."""
+    import re
+    import build_bridge
+    import shell
+
+    def classes(css: str) -> set[str]:
+        return set(re.findall(r"\.([A-Za-z][\w-]*)", css))
+
+    # What matters is a bare rule the shared sheet applies to the class itself:
+    # `.cell{...}` or `.cell:last-child{...}` will style my element wherever it
+    # sits. `.topic.done>span` and `.path li .when` cannot — they require an
+    # ancestor or a second class my markup never has — so reusing `.done` and
+    # `.when` is safe and is not reported.
+    shared = shell.base_css() + shell.EXTRA_CSS
+    declared = set()
+    for sel in re.findall(r"([^{}]+)\{", shared):
+        for part in sel.split(","):
+            part = part.strip()
+            m = re.fullmatch(r"\.([A-Za-z][\w-]*)((?::[\w-]+(?:\([^)]*\))?)*)", part)
+            if m:
+                declared.add(m.group(1))
+
+    mine = classes(build_bridge.CSS)
+    clash = sorted(mine & declared)
+    for c in clash:
+        fails.append(f"bridge CSS reuses .{c}, which the shared stylesheet already defines")
+    return len(mine)
+
+
 def main() -> int:
     fails: list[str] = []
 
@@ -170,11 +206,13 @@ def main() -> int:
           f"3 · prerequisite graph                  : {g['topics']} topics, "
           f"{g['edges']} edges")
 
+    ncls = check_css(fails)
     npat = check_patterns(fails)
     authored = sum(1 for r in ROWS.values() for l in ("c", "py", "r")
                    if r[l]["kind"] == "lit")
-    print(f"4 · patterns and cap                    : {npat} patterns, links resolve; "
-          f"{authored} authored cells (cap {AUTHOR_CAP})")
+    print(f"4 · patterns, cap and CSS               : {npat} patterns, links resolve; "
+          f"{authored} authored cells (cap {AUTHOR_CAP}); "
+          f"{ncls} own classes, none colliding with the shared stylesheet")
     if authored > AUTHOR_CAP:
         fails.append(f"authored cells {authored} exceed the cap of {AUTHOR_CAP}")
 

@@ -270,3 +270,45 @@ set of files.
   fundamentals view says that where it is shown.
 - **Hours, sessions and streaks.** They belong to Study Tracker, and two apps
   answering one question would eventually disagree.
+
+---
+
+## Correction, 2026-08-22 (after publishing)
+
+### A11 · BUG (high): every phrasebook code box rendered 76px wide
+
+Reported by you, found by measuring rather than by looking. `bridge.html`
+named its three-up grid `.cells` and each box `.cell` — and `cheet.html`'s
+stylesheet, which every page inherits through `shell.base_css()`, already
+defines those two for the **memory diagrams**:
+
+```css
+.cells{display:flex}
+.cell{width:76px;border-right:none;padding:9px 8px;text-align:center}
+```
+
+Same specificity, earlier in the file, and my block set every property except
+`width`. So the grid columns computed correctly at 356px each while every
+`.cell` inside them stayed **76px wide and 733px tall**, wrapping an 80-character
+line to roughly sixty rows of one character.
+
+**Fix:** rename to `.langrow` / `.langcell` rather than override. Overriding
+`width` would have fixed this instance and left `text-align:center`,
+`border-right:none` and `.cell:last-child` still landing on my markup, which is
+how the next collision goes unnoticed.
+
+**Two guards, because the class of bug matters more than the instance:**
+
+- `verify_bridge.py` now fails if `bridge.html`'s own CSS declares a class the
+  shared stylesheet already styles with a bare rule (`.cell`, `.cell:last-child`).
+  Descendant- or compound-scoped names like `.path li .when` and `.topic.done`
+  cannot reach my markup and are deliberately not reported.
+- `verify_pages.py` asserts the rendered geometry in both themes: the narrowest
+  of the 128 code boxes must be at least 240px and the tallest at most 160px.
+  It measures 439px and 66px.
+
+**Also changed:** `main{max-width:1240px}` is shared by all five pages, and this
+is the only three-column one. Past a 1700px viewport `bridge.html` raises its
+own cap to 1560px, which takes each box from 357px to 463px and the worst line
+from four wrapped rows to three. Prose stays capped at 76ch by the shared sheet,
+and the gutters stay equal — 46px each at 1920, measured.

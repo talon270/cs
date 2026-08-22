@@ -942,6 +942,24 @@ def check_bridge(b) -> None:
         theme = "dark" if dark else "light"
         n_ent = pg.eval_on_selector_all(".ent", "e => e.length")
         check(n_ent == len(ROWS), f"bridge.html [{theme}]: {n_ent} entries rendered")
+
+        # A code box that collapsed is the bug this check exists for: `.cell`
+        # and `.cells` collided with cheet.html's memory-diagram rules and every
+        # box rendered 76px wide and 733px tall, one character per line. The
+        # assertion is on the rendered geometry, because that is what broke.
+        geo = pg.evaluate("""() => {
+          const r = e => e.getBoundingClientRect();
+          const boxes = [...document.querySelectorAll('.langcell pre')].map(r);
+          return { minW: Math.round(Math.min(...boxes.map(b => b.width))),
+                   maxH: Math.round(Math.max(...boxes.map(b => b.height))),
+                   n: boxes.length };
+        }""")
+        check(geo["minW"] >= 240,
+              f"bridge.html [{theme}]: narrowest of {geo['n']} code boxes is "
+              f"{geo['minW']}px wide")
+        check(geo["maxH"] <= 160,
+              f"bridge.html [{theme}]: tallest code box is {geo['maxH']}px "
+              "(a collapsed column would be far taller)")
         check(not errs, f"bridge.html [{theme}]: {len(errs)} console errors {errs[:2]}")
         check(not remote, f"bridge.html [{theme}]: no network request")
         ctx.close()
