@@ -1027,6 +1027,115 @@ def check_bridge(b) -> None:
     ctx.close()
 
 
+def check_approach(b) -> None:
+    """bridge.html's Approach mode, driven the way it is used: type a problem,
+    press the button, read what comes back. Three bands, both themes, and the
+    assertion that a typed problem never reaches the three study keys."""
+    print("\nAPPROACH")
+    for dark in (False, True):
+        theme = "dark" if dark else "light"
+        ctx, pg, errs, remote = new_page(b, dark=dark)
+        pg.goto((CS / "bridge.html").as_uri())
+        pg.wait_for_timeout(400)
+        pg.click('.modebtn[data-mode="approach"]')
+        pg.wait_for_timeout(200)
+
+        check(pg.eval_on_selector_all("button[data-apeg]", "e => e.length") == 4,
+              f"approach [{theme}]: the empty state offers four worked examples")
+        check(pg.eval_on_selector_all("button[data-aphist]", "e => e.length") == 0,
+              f"approach [{theme}]: a fresh profile shows no history section")
+
+        # A pattern-band question, in the worksheet's own words.
+        pg.fill("#apIn", "Find the second largest element in an array.")
+        pg.click('button[data-act="apsolve"]')
+        pg.wait_for_timeout(300)
+        head = pg.eval_on_selector(".ap-band h3", "e => e.textContent")
+        check(head == "Second largest, without sorting",
+              f"approach [{theme}]: a worksheet question matches its pattern — {head!r}")
+        check(pg.eval_on_selector_all(".ap-step", "e => e.length") >= 3,
+              f"approach [{theme}]: the plan has steps")
+        check(pg.eval_on_selector_all(".ap-ev span", "e => e.length") >= 1,
+              f"approach [{theme}]: the words that fired the match are shown")
+
+        # Expanding a step shows a line with the solution it came from.
+        pg.locator(".ap-step summary").nth(1).click()
+        pg.wait_for_timeout(150)
+        code = pg.locator(".ap-step").nth(1).locator("pre").inner_text()
+        check(len(code.strip()) > 0,
+              f"approach [{theme}]: a step expands in place to its verified line")
+
+        # Composed band: no pattern, steps ordered by stage.
+        pg.fill("#apIn", "Read the CSV, count the missing values in each column, "
+                         "and write the cleaned table back out.")
+        pg.click('button[data-act="apsolve"]')
+        pg.wait_for_timeout(300)
+        cls = pg.eval_on_selector(".ap-band", "e => e.className")
+        check("ap-comp" in cls or "ap-band" == cls.strip(),
+              f"approach [{theme}]: a multi-part data question produces a plan")
+
+        # The floor. This is the check the general scope makes load-bearing.
+        pg.fill("#apIn", "Set up a Kubernetes ingress with TLS termination.")
+        pg.click('button[data-act="apsolve"]')
+        pg.wait_for_timeout(300)
+        check("ap-weak" in pg.eval_on_selector(".ap-band", "e => e.className"),
+              f"approach [{theme}]: an out-of-scope problem lands in the weak band")
+        check(pg.eval_on_selector_all(".ap-step", "e => e.length") == 0,
+              f"approach [{theme}]: and shows no steps at all")
+        check(pg.eval_on_selector_all('button[data-act="apcopy"]', "e => e.length") == 1,
+              f"approach [{theme}]: and offers the clipboard export instead")
+
+        keys = pg.evaluate("""() => ['studyTools.c.v1','studyTools.python.v1',
+            'studyTools.r.v1'].map(k => localStorage.getItem(k))""")
+        check(all(k is None for k in keys),
+              f"approach [{theme}]: four problems typed, nothing written to the "
+              "three study keys")
+
+        stored = pg.evaluate("() => JSON.parse(localStorage.getItem('studyTools.approach.v1'))")
+        check(stored and stored.get("v") == 1 and len(stored.get("hist", [])) == 3,
+              f"approach [{theme}]: history holds the three typed problems")
+        check(all("t" in h and "steps" not in h for h in stored.get("hist", [])),
+              f"approach [{theme}]: history stores the text, never the rendered plan")
+
+        # Language: inferred, then overridden, and the reason is printed either way.
+        pg.fill("#apIn", "Reverse an array using pointers, without using indexing.")
+        pg.click('button[data-act="apsolve"]')
+        pg.wait_for_timeout(300)
+        why = pg.eval_on_selector(".ap-lang", "e => e.textContent")
+        check("pointers are a C question" in why,
+              f"approach [{theme}]: the language is inferred and says why — {why[:60]!r}")
+        pg.click('button[data-aplang="r"]')
+        pg.wait_for_timeout(300)
+        why = pg.eval_on_selector(".ap-lang", "e => e.textContent")
+        check("Showing R" in why and "you chose it" in why,
+              f"approach [{theme}]: the override wins and says so")
+
+        check(not errs, f"approach [{theme}]: {len(errs)} console errors {errs[:2]}")
+        check(not remote, f"approach [{theme}]: no network request")
+        ctx.close()
+
+    # History survives a reload and re-runs rather than replaying.
+    ctx, pg, errs, _ = new_page(b)
+    pg.goto((CS / "bridge.html").as_uri())
+    pg.wait_for_timeout(400)
+    pg.click('.modebtn[data-mode="approach"]')
+    pg.fill("#apIn", "Count how many even and odd numbers are in an array.")
+    pg.click('button[data-act="apsolve"]')
+    pg.wait_for_timeout(300)
+    pg.reload()
+    pg.wait_for_timeout(500)
+    pg.click('.modebtn[data-mode="approach"]')
+    pg.wait_for_timeout(200)
+    check(pg.eval_on_selector_all("button[data-aphist]", "e => e.length") == 1,
+          "approach: the problem is still there after a reload")
+    pg.locator("button[data-aphist]").first.click()
+    pg.wait_for_timeout(300)
+    check(pg.eval_on_selector(".ap-band h3", "e => e.textContent")
+          == "Count the ones that match",
+          "approach: re-opening it runs the matcher again and gets today's answer")
+    check(not errs, f"approach: history, {len(errs)} console errors {errs[:2]}")
+    ctx.close()
+
+
 def check_reentry(b) -> None:
     """A profile with old ticks gets the re-entry panel; a fresh one does not."""
     print("\nRE-ENTRY")
@@ -1150,6 +1259,7 @@ def main() -> int:
         check_trace(b)
         check_stepper(b)
         check_bridge(b)
+        check_approach(b)
         check_reentry(b)
         check_denominator(b)
         b.close()

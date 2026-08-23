@@ -12,6 +12,14 @@ English sentence on the left and what all three languages say on the right, plus
 a drill and a catalogue of problem-to-approach patterns taken from CSD101's own
 worksheets and papers.
 
+`bridge.html` also carries **Approach**, which starts one step earlier than any
+other index here: you paste the problem — the whole worksheet question, in its
+own words — and it returns the numbered steps. No model is involved and nothing
+leaves the page; it matches your words against trigger vocabulary authored for
+all 115 phrasebook entries and all 28 patterns, and when nothing clears the bar
+it says the problem is outside what these files cover instead of answering
+anyway.
+
 Every solution in the three language files also carries **the run itself** —
 every executed line and every variable at every step, recorded under gdb and
 `sys.settrace` before the page was built, and replayable a step at a time.
@@ -58,13 +66,18 @@ python3 build/verify_ds.py      # runs all 78 solutions, then the Rosetta table
 python3 build/verify_errors.py  # reproduces all 33 quoted error messages
 python3 build/verify_bridge.py  # phrasebook, drill checker, prerequisite graph
 python3 build/verify_authored.py # compiles or runs every authored phrasebook line
+python3 build/verify_approach.py # the matcher, against real course questions
 python3 build/verify_pages.py   # drives all five pages in a browser
 ```
 
-The first three need only `.venv`, which they find themselves. `verify_pages.py`
-needs Playwright, which lives outside that venv — run it with the `python3` that
-has it. Last full run, 2026-08-22: **60/60, 39/39 and 39/39 plus 28+28 Rosetta
-fragments, 33/33, all four bridge checks, 104/104 authored lines, and 392/392**.
+The first three need only `.venv`, which they find themselves.
+`verify_approach.py` also needs `node`, because it runs `build/solve_engine.js`
+— the same file the page inlines — rather than a Python copy of it.
+`verify_pages.py` needs Playwright, which lives outside that venv — run it with
+the `python3` that has it. Last full run, 2026-08-23: **60/60, 39/39 and 39/39
+plus 28+28 Rosetta fragments, 33/33, all four bridge checks, 104/104 authored
+lines, 65/66 course questions matched with 21/21 out-of-scope problems refused,
+and 429/429**.
 
 ## What's in each file
 
@@ -73,7 +86,7 @@ fragments, 33/33, all four bridge checks, 104/104 authored lines, and 392/392**.
 | `c.html` | 5 stages, 124 topics, floor to a kernel patch, plus a CSD101 map | 24 sections + decoder + glossary | 60, all compiled, each with a real transcript | 32 trace questions, 38 glossary entries, 13 decoded errors, 8 diagrams |
 | `python.html` | 10 stages, 138 topics, DOM207 modules 1–13 | 12 sections + decoder + glossary + Rosetta + test chooser | 39, all executed | 17 recall questions, project scaffolding |
 | `r.html` | 10 stages, 138 topics, the same modules | 10 sections + the same four | the same 39, in R | 17 recall questions, project scaffolding |
-| `bridge.html` | — | 115 English intents × 3 languages | drill, one language per session | 28 problem-to-approach patterns, 69 written reasons a language has no equivalent |
+| `bridge.html` | — | 115 English intents × 3 languages | drill, one language per session | 28 problem-to-approach patterns, 69 written reasons a language has no equivalent, and Approach — a problem in English, steps out |
 | `index.html` | launcher with per-file coverage | — | — | a from-zero primer, a whole-tool re-entry screen, honest degradation when storage is unreadable |
 
 Every file has three modes in one rail — Roadmap, Reference, Challenges — with
@@ -215,6 +228,46 @@ to change, so no mechanical wrong form exists for them; that count is printed
 rather than skipped. The generator has been wrong twice and the checker never
 was: it spaced out the exponent in `1e-9` into three tokens, and it renamed
 variables inside string literals. Both were found by this check failing.
+
+**Approach refuses more often than it answers, and that is the feature.** Scope
+was set to general programming, not to the course — which is a licence to bluff
+unless something holds the floor. It does three things instead. A plan is only
+built when the evidence clears a stated threshold, and the plan prints the score
+and the threshold next to each other. A candidate scores nothing on word overlap
+alone: it has to be named by an authored trigger first, because *"Robin decides
+between two dining halls"* shares the word *two* with *"Protect a shared value
+from two writers"*, and that alone once made a mutex a step in a lunch problem.
+And `verify_approach.py` runs 21 problems that must **not** match — a web server,
+a Kubernetes ingress, a Terraform module, an index-tuning question that shares
+the words *index* and *table* with the corpus — and fails the build if any of
+them produces a plan. Last run: 21 of 21 refused, and 65 of 66 real worksheet
+questions matched exactly, with the 66th landing on a second defensible pattern
+that is named in the output rather than hidden.
+
+**A composed plan says which half of it is verified and which half is inferred.**
+When no pattern matches, Approach builds the plan out of individual phrasebook
+entries. Each of those steps is a line that was compiled or executed — that half
+is proven. The *order* is not: it comes from a stage tag (input · validate ·
+transform · compute · present · cleanup) authored onto all 115 entries, which is
+right for most problems and is not a law. The plan is banded and labelled
+accordingly, and the ordering rule exists because the two cheaper rules are both
+wrong on the same sentence: *"print the average of the numbers in the file"*
+names printing first and reading last, and phrasebook order puts printing first
+because printing is section 01.
+
+**The matcher is written once and run twice.** `build/solve_engine.js` is inlined
+verbatim into `bridge.html` and executed by `verify_approach.py` under `node`, so
+the ranking that is proved is the ranking that ships. The older pairing in this
+repo — `bridge_check.py` and the drill's JavaScript `check()` — is the same rule
+written twice, which is survivable for a whitespace comparison and would not be
+for a function with five weights and four thresholds in it.
+
+**A typed problem is not coverage, so it goes in its own key.** Approach writes
+`studyTools.approach.v1` and never touches the three study keys the drill merges
+into; `verify_pages.py` types four problems and asserts all three remain unset.
+It stores the text you typed, never the plan it rendered: re-opening an old
+problem runs today's matcher, so a renamed entry id can never leave a stored plan
+pointing at nothing.
 
 **A second program now writes your progress, so it can undo itself.** A
 phrasebook entry drilled in C is C coverage, so `bridge.html` writes into
@@ -358,11 +411,11 @@ cannot read one it prints a dash and explains why, never a fabricated 0%.
 
 | Solid — verified | Assumed — a choice made |
 |---|---|
-| 52 of 52 C solutions compile `-Werror` and run ASan-clean | That 1.5 × IQR is a reasonable default outlier rule |
+| 60 of 60 C solutions compile `-Werror` and run ASan-clean | That 1.5 × IQR is a reasonable default outlier rule |
 | 39 of 39 Python solutions run on pandas 3.0.5, sklearn 1.9.0 | That the analyst/ML seam belongs after module 10 |
 | 39 of 39 R solutions run on R 4.6.1, ggplot2 4.0.3 | That ~52 C and ~39 DS challenges is the right budget |
 | DOM207's 13 modules and grading weights, from the outline PDF | That C deserves the largest file, from your stated priority |
-| 297 of 297 page checks: 0 console errors, 0 network calls, both themes, 1920px and 1440px | Every hour estimate — derived from topic count, not measured |
+| 429 of 429 page checks: 0 console errors, 0 network calls, both themes, 1920px and 1440px | Every hour estimate — derived from topic count, not measured |
 | Coverage totals, counted from the DOM by `verify_pages.py` | That drive-by checkpatch patches are now poor first targets |
 | 33 of 33 quoted error messages reproduce on this machine | That ten days is the right shape for the start-here routes |
 | 28 of 28 Rosetta fragments execute in both languages | Which 103 terms a beginner needs defined |
@@ -371,9 +424,12 @@ cannot read one it prints a dash and explains why, never a fabricated 0%.
 | 32 of 32 trace answers captured from gcc **and** clang | That 32 questions is the right budget for 12 lecture units |
 | CSD101's 12 units and exam shape, from the course's own papers | Which of this file's sections each lecture maps to |
 | 130 of 130 recorded runs, every value produced by gdb, `sys.settrace` or `rstep.R` | That per-statement granularity is enough for the 13 R solutions that define functions |
-| 93 of 93 phrasebook lines still verbatim in the solution they name | That the English sentence beside a line is the sentence you would have said |
+| 172 of 172 phrasebook lines still verbatim in the solution they name | That the English sentence beside a line is the sentence you would have said |
 | 243 prerequisite edges taken from CSD101's lecture order | 2,228 prerequisite edges — my judgement, and the re-entry screen says so |
-| 533 correct drill forms accepted, 120 wrong forms rejected | That text comparison is a good enough proxy for a line being right |
+| 1,156 correct drill forms accepted, 252 wrong forms rejected | That text comparison is a good enough proxy for a line being right |
+| 65 of 66 real course questions match the pattern or the entries they should | The trigger vocabulary itself — 115 authored lists, and a miss is a missing word |
+| 21 of 21 out-of-scope problems refused, with the closest non-matches printed | Where the four thresholds sit; they were moved until the fixtures passed and are printed on the page |
+| The engine `verify_approach.py` runs is the file `bridge.html` inlines | That the stage of an entry is where that step usually goes |
 
 The kernel roadmap sits between the columns: the process steps are documented
 fact from `submitting-patches.rst`, while the judgement that a checkpatch sweep
@@ -410,13 +466,14 @@ index.html          launcher, and the whole-tool re-entry screen
 c.html              C: roadmap + reference + challenges + steppers
 python.html         Python, DOM207 modules 1-13
 r.html              R, the same modules and problems
-bridge.html         English -> C, Python and R: phrasebook, drill, patterns
+bridge.html         English -> C, Python and R: phrasebook, drill, patterns, approach
 cheet.html          the original C reference — c.html supersedes it
 PLAN-study-tools.md   the original plan, with the findings that shaped it
 PLAN-beginner-layer.md the beginner layer, and what shipped differently
 PLAN-c-depth.md       the depth pass on c.html: transcripts, gdb, diagrams
 PLAN-csd101.md        what was taken from the course folder, and what was not
 PLAN-bridge.md        the bridge, the stepper, the invariants and the graph
+PLAN-approach.md      the English-in, steps-out mode: findings, build, out of scope
 build/              authoring tooling; not needed to use the files
 ```
 

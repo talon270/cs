@@ -22,6 +22,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import content_bridge as B  # noqa: E402
+import content_c  # noqa: E402
+import content_ds_problems as DSP  # noqa: E402
+import content_solve as SOLVE  # noqa: E402
 import shell  # noqa: E402
 
 from content_bridge_out import ROWS  # noqa: E402
@@ -130,11 +133,91 @@ CSS = """
 .restore button{appearance:none;background:transparent;border:1px solid var(--rule);
   color:var(--fg);font-family:var(--mono);font-size:11.5px;padding:5px 11px;border-radius:7px;
   cursor:pointer;margin-top:8px}
+
+/* ---- Approach --------------------------------------------------------
+   Own prefix on every class, because the shared stylesheet already owns a
+   dozen of the obvious short names, and check_css in verify_bridge.py fails
+   the build on a collision rather than letting one be discovered as a
+   76px-wide code box. That check reads this comment too, so no class name is
+   spelled with its dot here. */
+.ap-box{max-width:820px}
+.ap-box textarea{width:100%;min-height:96px;background:var(--bg-3);color:var(--fg);
+  border:1px solid var(--rule);border-radius:9px;padding:12px 14px;font-family:var(--sans);
+  font-size:14px;line-height:1.6;resize:vertical}
+.ap-box textarea:focus{outline:none;border-color:var(--amber)}
+.ap-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.ap-bar button{appearance:none;background:var(--bg-3);border:1px solid var(--rule);
+  color:var(--fg);font-family:var(--mono);font-size:12px;padding:6px 13px;border-radius:7px;
+  cursor:pointer}
+.ap-bar button.ap-go{background:var(--amber);color:var(--accent-text);border-color:var(--amber);
+  font-weight:700}
+.ap-bar button:hover{border-color:var(--amber)}
+.ap-bar button[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.ap-sep{width:1px;height:20px;background:var(--rule);margin:0 4px}
+.ap-msg{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.ap-plan{margin:20px 0 0;max-width:820px}
+.ap-band{border:1px solid var(--rule);border-left:3px solid var(--amber);border-radius:11px;
+  background:var(--bg-2);padding:15px 17px;margin:0 0 14px}
+.ap-band.ap-weak{border-left-color:var(--rose)}
+.ap-band.ap-comp{border-left-color:var(--teal)}
+.ap-band h3{margin:0 0 6px;font-size:16px;color:var(--fg)}
+.ap-band p{margin:0 0 8px;font-size:13.5px;line-height:1.6;color:var(--dim)}
+.ap-band p:last-child{margin-bottom:0}
+.ap-band b{color:var(--fg)}
+.ap-ev{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0}
+.ap-ev span{font-family:var(--mono);font-size:10.5px;border:1px solid var(--rule);
+  border-radius:99px;padding:2px 9px;color:var(--amber)}
+.ap-lang{font-size:12.5px;color:var(--dim);margin:10px 0 0;line-height:1.55}
+.ap-stage{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);margin:16px 0 7px;display:flex;gap:9px;align-items:baseline}
+.ap-stage i{font-style:normal;color:var(--fg)}
+.ap-step{border:1px solid var(--rule);border-radius:10px;background:var(--bg-2);margin:0 0 8px}
+.ap-step>summary{cursor:pointer;list-style:none;padding:12px 15px;font-size:13.8px;
+  line-height:1.55;display:flex;gap:11px;align-items:flex-start}
+.ap-step>summary::-webkit-details-marker{display:none}
+.ap-step>summary:hover{border-color:var(--amber)}
+.ap-num{font-family:var(--mono);font-size:11px;color:var(--amber);flex:0 0 auto;padding-top:2px}
+.ap-body{padding:0 15px 14px 41px}
+.ap-body pre{margin:0;font-family:var(--mono);font-size:12.3px;line-height:1.55;
+  background:var(--bg-3);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;
+  overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--fg)}
+.ap-src{font-family:var(--mono);font-size:10px;color:var(--dim);margin:6px 0 0}
+.ap-src a{color:var(--dim)}
+.ap-why{font-size:12.5px;color:var(--dim);line-height:1.55;margin:8px 0 0}
+.ap-why b{color:var(--fg)}
+.ap-also{font-size:12.5px;color:var(--dim);margin:14px 0 0;line-height:1.55}
+.ap-also a{color:var(--amber);text-decoration:none}
+.ap-hist{margin:22px 0 0;max-width:820px}
+.ap-hist h3{margin:0 0 8px;font-size:14px;color:var(--fg)}
+.ap-item{display:block;width:100%;text-align:left;appearance:none;background:var(--bg-2);
+  border:1px solid var(--rule);border-radius:9px;padding:10px 13px;margin:0 0 7px;
+  color:var(--fg);font-size:13.2px;line-height:1.5;cursor:pointer;font-family:var(--sans)}
+.ap-item:hover{border-color:var(--amber)}
+.ap-item em{display:block;font-style:normal;font-family:var(--mono);font-size:10.5px;
+  color:var(--dim);margin-top:4px}
 """
 
 
 def esc(s: str) -> str:
     return shell.esc(s)
+
+
+def challenge_index() -> list[tuple[str, str, str, str]]:
+    """(id, lang, name, task) for all 130 verified solutions.
+
+    Approach names one only on a strong match: they are the most grounded
+    thing in these files — compiled, run and step-traced — so pointing at the
+    wrong one spends a problem you could have worked.
+    """
+    out = []
+    for s in content_c.SETS:
+        for it in s["items"]:
+            out.append((it["id"], "c", it.get("name") or it["id"], it["task"]))
+    for s in DSP.SETS:
+        for it in s["items"]:
+            for lang in ("py", "r"):
+                out.append((it["id"], lang, it.get("name") or it["id"], it["task"]))
+    return out
 
 
 def cell_html(row: dict, lang: str, label: str, file_link: str) -> str:
@@ -228,6 +311,42 @@ DRILL = """
     you are sure you are right, mark it correct: you are the better judge, and the tick
     is yours either way.</p>
   </div>
+</section>
+"""
+
+
+APPROACH = """
+<section id="a-main" data-num="&#8226;" data-title="Approach">
+  <div class="sec-head"><span class="sec-num">&#8226;</span><h2>Type the problem. Get the steps.</h2></div>
+  <p class="sec-blurb">The phrasebook is indexed by the sentence you would say for
+  <i>one line</i>. This is the step before that: a whole problem statement, in the
+  words the worksheet used, and what it decomposes into. Paste the question &mdash;
+  the longer the better, since every extra word is more for it to match on.</p>
+  <div class="rule"></div>
+  <div class="ap-box">
+    <textarea id="apIn" spellcheck="false"
+      placeholder="Store n numbers in an array and find the second largest element."
+      aria-label="The problem, in English"></textarea>
+    <div class="ap-bar">
+      <button class="ap-go" data-act="apsolve">Build the plan</button>
+      <span class="ap-sep"></span>
+      <button data-aplang="auto" aria-pressed="true">Auto</button>
+      <button data-aplang="c" aria-pressed="false">C</button>
+      <button data-aplang="py" aria-pressed="false">Python</button>
+      <button data-aplang="r" aria-pressed="false">R</button>
+      <span class="ap-msg" id="apMsg"></span>
+    </div>
+  </div>
+  <div class="ap-plan" id="apOut"></div>
+  <div class="ap-hist" id="apHist"></div>
+  <p class="drill-note"><b>What this is, and what it is not.</b> It matches the words
+  you typed against the trigger vocabulary written for all 115 phrasebook entries and
+  all 28 patterns &mdash; it does not read your problem, and there is no model behind
+  it. Every step it shows is a line that was compiled or executed; when it composes a
+  plan rather than matching a pattern, the <i>steps</i> are verified and the
+  <i>order</i> is inferred from each entry's stage, which the plan says on itself.
+  Below the threshold it stops rather than guessing, because most of programming is
+  outside what these four files cover.</p>
 </section>
 """
 
@@ -418,7 +537,7 @@ JS = r"""
 
 JS += r"""
   /* ---- modes, nav, search ---------------------------------------------- */
-  var modes = ["phrasebook", "drill", "patterns"];
+  var modes = ["phrasebook", "drill", "patterns", "approach"];
   var mode = "phrasebook";
 
   function sectionsOf(m) {
@@ -449,6 +568,7 @@ JS += r"""
     buildNav();
     filter();
     if (m === "drill") drillPaint();
+    if (m === "approach") { var ta = document.getElementById("apIn"); if (ta) ta.focus(); }
     window.scrollTo(0, 0);
   }
 
@@ -738,6 +858,278 @@ JS += r"""
   buildQueue();
   setMode("phrasebook");
   saveSelf();
+"""
+
+JS += r"""
+  /* ---- Approach ---------------------------------------------------------
+     The mode's own state lives in its own key. The bridge already writes the
+     three study keys — guarded, snapshotted, and recorded as a risk when it
+     was built — because a drilled entry genuinely is coverage. A problem you
+     typed is not coverage of anything, and free text does not belong in the
+     object index.html reads its progress numbers out of. */
+  var AP_KEY = "studyTools.approach.v1";
+  var AP_SCHEMA = 1;
+  var AP_CAP = 20;
+
+  var ap = { v: AP_SCHEMA, lang: null, hist: [] };
+  try {
+    var apRaw = JSON.parse(localStorage.getItem(AP_KEY));
+    if (apRaw && typeof apRaw === "object") {
+      /* A key written by a newer version of this page is left alone rather
+         than trampled: read what is understood, write nothing back until the
+         next deliberate save. */
+      ap.lang = LANGS.indexOf(apRaw.lang) > -1 ? apRaw.lang : null;
+      ap.hist = Array.isArray(apRaw.hist) ? apRaw.hist.filter(function (h) {
+        return h && typeof h.t === "string";
+      }).slice(0, AP_CAP) : [];
+    }
+  } catch (e) {}
+
+  function apSave() {
+    try { localStorage.setItem(AP_KEY, JSON.stringify(ap)); } catch (e) { warn(); }
+  }
+
+  var engine = window.SolveEngine.createEngine(SOLVE_DATA);
+  var apLast = null;
+
+  function apMsg(m) {
+    var el = document.getElementById("apMsg");
+    if (!el) return;
+    el.textContent = m;
+    setTimeout(function () { if (el.textContent === m) el.textContent = ""; }, 6000);
+  }
+
+  function apStageLabel(id) {
+    for (var i = 0; i < SOLVE_DATA.stages.length; i++)
+      if (SOLVE_DATA.stages[i].id === id) return SOLVE_DATA.stages[i];
+    return { label: id, blurb: "" };
+  }
+
+  function apSteps(p) {
+    var out = "", last = null, n = 0;
+    p.steps.forEach(function (st) {
+      if (st.stage !== last) {
+        last = st.stage;
+        var s = apStageLabel(st.stage);
+        out += '<div class="ap-stage"><i>' + esc(s.label) + "</i>" + esc(s.blurb) + "</div>";
+      }
+      n++;
+      var body;
+      if (st.code) {
+        body = "<pre>" + esc(st.code) + "</pre>" +
+          '<p class="ap-src">' +
+          (st.src ? "from " + esc(st.src) + " &mdash; compiled and run &middot; " : "") +
+          'phrasebook <a href="#e-' + st.row + '">' + st.row + "</a></p>" +
+          (st.note ? '<p class="ap-why">' + st.note + "</p>" : "");
+      } else if (st.row) {
+        body = '<p class="ap-why"><b>' + LABEL[p.lang] + " has no line for this.</b> " +
+          "The phrasebook entry <a href=\"#e-" + st.row + '">' + st.row +
+          "</a> says why.</p>";
+      } else {
+        body = '<p class="ap-why">This step is a decision, not a line. There is ' +
+          "nothing to copy &mdash; that is the point of it being here.</p>";
+      }
+      out += '<details class="ap-step"><summary><span class="ap-num">' + n +
+             '</span><span>' + esc(st.text) + "</span></summary>" +
+             '<div class="ap-body">' + body + "</div></details>";
+    });
+    return out;
+  }
+
+  function apPrompt(p, text) {
+    var lines = ["I am working on this problem:", "", text, "",
+                 "I am writing it in " + LABEL[p.lang] + ".", "",
+                 "My study files did not have a pattern for this. The closest " +
+                 "things they did have were:"];
+    p.nearest.patterns.forEach(function (x) {
+      lines.push("  - pattern " + x.id + ": " + x.name + " (score " + x.score + ")");
+    });
+    p.nearest.entries.forEach(function (x) {
+      lines.push("  - phrasebook " + x.id + ": " + x.en + " (score " + x.score + ")");
+    });
+    lines.push("", "Break the problem into steps the way those patterns are " +
+                   "written: what to read in, what to check, what to compute, " +
+                   "what to print. Do not write the program.");
+    return lines.join("\n");
+  }
+
+  function apCopy(str) {
+    var ta = document.createElement("textarea");
+    ta.value = str;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    if (ok) { apMsg("Copied. Paste it wherever you ask questions."); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(str).then(function () {
+        apMsg("Copied. Paste it wherever you ask questions.");
+      }, function () { apMsg("This browser refused the clipboard on a file:// page."); });
+    } else {
+      apMsg("This browser refused the clipboard on a file:// page.");
+    }
+  }
+
+  function apRender(p, text) {
+    var out = document.getElementById("apOut");
+    if (!out) return;
+    apLast = { p: p, text: text };
+
+    var langbar = "Showing <b>" + LABEL[p.lang] + "</b> &mdash; " + esc(p.langWhy) + ".";
+    var head = "";
+
+    if (p.band === "pattern") {
+      head =
+        '<div class="ap-band"><h3>' + esc(p.pattern.name) + "</h3>" +
+        '<p><b>This matched a pattern.</b> Every step below is that pattern\'s, and ' +
+        "the pattern was taken from a question you were actually set.</p>" +
+        "<p>" + p.pattern.shape + "</p>" +
+        "<p><b>Seen as:</b> " + p.pattern.seen + "</p>" +
+        (p.mismatch ? "<p>" + esc(p.mismatch) + "</p>" : "") +
+        '<div class="ap-ev">' + p.words.map(function (w) {
+          return "<span>" + esc(w) + "</span>";
+        }).join("") + "</div>" +
+        '<p class="ap-lang">' + langbar + " Matched on the words above; the pattern " +
+        "scored " + (Math.round(p.scores.pattern * 10) / 10) + " against a threshold of " +
+        p.thresholds.pattern + '. <a href="#' + p.pattern.id + '">See it in Patterns</a>.</p>' +
+        "</div>";
+    } else if (p.band === "composed") {
+      head =
+        '<div class="ap-band ap-comp"><h3>No single pattern fits &mdash; this is composed</h3>' +
+        "<p><b>The steps are verified; the order is inferred.</b> Each one is a " +
+        "phrasebook entry whose line was compiled or run. Nothing here knows they " +
+        "belong together: they are ordered by the stage each entry is tagged with, " +
+        "which is right for most problems and is not a law.</p>" +
+        '<div class="ap-ev">' + p.words.map(function (w) {
+          return "<span>" + esc(w) + "</span>";
+        }).join("") + "</div>" +
+        '<p class="ap-lang">' + langbar + "</p></div>";
+    } else {
+      head =
+        '<div class="ap-band ap-weak"><h3>This is outside what these files cover</h3>' +
+        "<p><b>Nothing matched well enough to answer it, so nothing is shown.</b> " +
+        "The patterns here were mined from CSD101&rsquo;s worksheets and " +
+        "DOM207&rsquo;s problem sets; the phrasebook is 115 entries of C, Python and " +
+        "R. A plan built from a weak match would look exactly like a good one, which " +
+        "is the reason for stopping instead.</p>" +
+        "<p>The closest things it found &mdash; and none of them cleared the bar:</p>" +
+        '<div class="ap-ev">' +
+        p.nearest.patterns.filter(function (x) { return x.score > 0; }).map(function (x) {
+          return "<span>" + esc(x.name) + " " + x.score + "</span>";
+        }).join("") +
+        p.nearest.entries.filter(function (x) { return x.score > 0; }).map(function (x) {
+          return "<span>" + esc(x.id) + " " + x.score + "</span>";
+        }).join("") +
+        "</div>" +
+        '<div class="ap-bar"><button data-act="apcopy">Copy this as a prompt</button>' +
+        '<span class="ap-msg">Your problem plus the closest rows found, on the ' +
+        "clipboard. Nothing is sent anywhere.</span></div></div>";
+    }
+
+    var also = "";
+    if (p.runner) {
+      also = '<p class="ap-also">Also considered: <a href="#' + p.runner.id + '">' +
+        esc(p.runner.name) + "</a> (" + (Math.round(p.runner.score * 10) / 10) +
+        (p.band === "composed" ? ", under the " + p.thresholds.pattern + " a pattern needs" : "") +
+        ").</p>";
+    }
+    var chal = "";
+    if (p.challenge) {
+      chal = '<p class="ap-also">This is close to <b>' + esc(p.challenge.id) + " &middot; " +
+        esc(p.challenge.name) + "</b> &mdash; a challenge in " +
+        (p.challenge.lang === "c" ? '<a href="c.html#' + p.challenge.id + '">c.html</a>'
+         : p.challenge.lang === "py" ? '<a href="python.html#' + p.challenge.id + '">python.html</a>'
+         : '<a href="r.html#' + p.challenge.id + '">r.html</a>') +
+        " that is already solved, run and step-traced. Work it there.</p>";
+    }
+
+    out.innerHTML = head + chal + (p.steps.length ? apSteps(p) : "") + also;
+    out.scrollIntoView({ block: "start", behavior: "instant" });
+  }
+
+  function apRun(text, push) {
+    text = String(text || "").trim();
+    if (!text) { apMsg("Type the problem first."); return; }
+    var p = engine.plan(text, ap.lang ? { lang: ap.lang } : { remembered: self_.lang });
+    apRender(p, text);
+    if (push !== false) {
+      ap.hist = ap.hist.filter(function (h) { return h.t !== text; });
+      ap.hist.unshift({ t: text, lang: p.lang, at: Date.now() });
+      if (ap.hist.length > AP_CAP) ap.hist.length = AP_CAP;
+      apSave();
+      apPaintHist();
+    }
+  }
+
+  function apWhen(ms) {
+    var d = Math.floor((Date.now() - ms) / 86400000);
+    return d <= 0 ? "today" : d === 1 ? "yesterday" : d + " days ago";
+  }
+
+  function apPaintHist() {
+    var el = document.getElementById("apHist");
+    if (!el) return;
+    var out = "";
+    if (ap.hist.length) {
+      out += "<h3>What you asked before</h3>";
+      /* The text is stored, never the plan. An old problem re-opened runs
+         through today's matcher, so it gets today's answer instead of a
+         rendering pointing at entry ids that may since have been renamed. */
+      out += ap.hist.map(function (h, i) {
+        return '<button class="ap-item" data-aphist="' + i + '">' + esc(h.t) +
+               "<em>" + apWhen(h.at) + " &middot; shown in " +
+               (LABEL[h.lang] || "C") + " &middot; re-runs against today&rsquo;s corpus</em></button>";
+      }).join("");
+    }
+    out += "<h3" + (ap.hist.length ? ' style="margin-top:20px"' : "") + ">Four to try</h3>";
+    out += AP_EXAMPLES.map(function (e, i) {
+      return '<button class="ap-item" data-apeg="' + i + '">' + esc(e.text) +
+             "<em>" + esc(e.note) + "</em></button>";
+    }).join("");
+    el.innerHTML = out;
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-act], button[data-aphist], button[data-apeg], button[data-aplang]");
+    if (!b) return;
+    if (b.dataset.act === "apsolve") {
+      apRun(document.getElementById("apIn").value, true);
+    } else if (b.dataset.act === "apcopy") {
+      if (apLast) apCopy(apPrompt(apLast.p, apLast.text));
+    } else if (b.dataset.aphist !== undefined) {
+      var h = ap.hist[+b.dataset.aphist];
+      if (h) { document.getElementById("apIn").value = h.t; apRun(h.t, false); }
+    } else if (b.dataset.apeg !== undefined) {
+      var eg = AP_EXAMPLES[+b.dataset.apeg];
+      if (eg) { document.getElementById("apIn").value = eg.text; apRun(eg.text, false); }
+    } else if (b.dataset.aplang !== undefined) {
+      ap.lang = b.dataset.aplang === "auto" ? null : b.dataset.aplang;
+      apSave();
+      document.querySelectorAll("button[data-aplang]").forEach(function (x) {
+        x.setAttribute("aria-pressed",
+          String(x.dataset.aplang === (ap.lang || "auto")));
+      });
+      if (apLast) apRun(apLast.text, false);
+      else apMsg(ap.lang ? "Plans will come out in " + LABEL[ap.lang] + "."
+                         : "The language will be read out of what you type.");
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && mode === "approach") {
+      var t = document.getElementById("apIn");
+      if (t) apRun(t.value, true);
+    }
+  });
+
+  document.querySelectorAll("button[data-aplang]").forEach(function (x) {
+    x.setAttribute("aria-pressed", String(x.dataset.aplang === (ap.lang || "auto")));
+  });
+  apPaintHist();
 })();
 """
 
@@ -753,9 +1145,15 @@ def main() -> None:
     absent = sum(1 for r in ROWS.values() for l in ("c", "py", "r")
                  if r[l]["kind"] == "no")
 
+    solve_data = SOLVE.data(B.ENTRIES, B.PATTERNS, ROWS, challenge_index())
+    engine_src = (shell.CS / "build" / "solve_engine.js").read_text(encoding="utf-8")
+
     js = (JS.replace("__ROWS__", json.dumps(ROWS, separators=(",", ":")))
             .replace("__ORDER__", json.dumps(order, separators=(",", ":")))
             .replace("__TOTALS__", json.dumps(totals, separators=(",", ":"))))
+    js = ("var SOLVE_DATA = " + json.dumps(solve_data, separators=(",", ":")) + ";\n"
+          + "var AP_EXAMPLES = " + json.dumps(SOLVE.EXAMPLES, separators=(",", ":"))
+          + ";\n" + js)
 
     covcards = "".join(
         f'<div class="covcard" id="cov-{lang}">&mdash;</div>' for lang, *_ in LANGS)
@@ -797,7 +1195,7 @@ if(s&&(s.theme==="light"||s.theme==="dark"))document.documentElement.setAttribut
   <div class="rail-head">
     <div>
       <p class="mark"><span>B</span>ridge</p>
-      <div class="mark-sub">phrasebook · drill · patterns</div>
+      <div class="mark-sub">phrasebook · drill · patterns · approach</div>
     </div>
     <button class="railbtn" id="railbtn" aria-expanded="false">Menu</button>
   </div>
@@ -805,6 +1203,7 @@ if(s&&(s.theme==="light"||s.theme==="dark"))document.documentElement.setAttribut
     <button class="modebtn" data-mode="phrasebook" aria-pressed="true">Phrasebook</button>
     <button class="modebtn" data-mode="drill" aria-pressed="false">Drill</button>
     <button class="modebtn" data-mode="patterns" aria-pressed="false">Patterns</button>
+    <button class="modebtn" data-mode="approach" aria-pressed="false">Approach</button>
   </div>
   <div class="search-wrap">
     <input id="q" type="search" placeholder="Search the English: missing, join, reverse…"
@@ -855,11 +1254,21 @@ if(s&&(s.theme==="light"||s.theme==="dark"))document.documentElement.setAttribut
 {patterns()}
 </div>
 
+<div class="mode" id="mode-approach">
+{APPROACH}
+</div>
+
 </main>
 </div>
 
 <a href="#" class="totop" id="totop" aria-label="Back to top">↑</a>
 
+<script>
+/* build/solve_engine.js, inlined verbatim. build/verify_approach.py runs this
+   same file under node against 66 labelled course questions and 21 that must
+   not match, so the ranking that is proved is the ranking that ships. */
+{engine_src}
+</script>
 <script>
 {js}
 </script>

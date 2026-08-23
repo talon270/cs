@@ -35,11 +35,13 @@ CARDS = [
     dict(slug="bridge", key="studyTools.bridge.v1", name="Bridge", sub="all three",
          accent="#3FD1BE",
          line="The English sentence on the left, and what C, Python and R each say on "
-              "the right &mdash; 93 of those lines lifted from solutions that compile "
-              "and run, with the solution id printed beside them. Plus a drill, and "
-              "sixteen problem-to-approach patterns taken from CSD101&rsquo;s own "
-              "worksheets and papers.",
-         tags=["54 entries", "16 patterns", "counts toward the other three"]),
+              "the right &mdash; 172 of those lines lifted from solutions that compile "
+              "and run, with the solution id printed beside them. Plus a drill, "
+              "28 problem-to-approach patterns taken from CSD101&rsquo;s own worksheets "
+              "and papers, and <b>Approach</b>: type a problem in plain English and it "
+              "returns the steps, or says the problem is outside what these files cover.",
+         tags=["115 entries", "28 patterns", "English in, steps out",
+               "counts toward the other three"]),
 ]
 
 
