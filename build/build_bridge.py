@@ -59,6 +59,16 @@ CSS = """
 @media (min-width:1700px){ main{max-width:1560px} }
 
 .langbar{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
+
+/* Four modes, not three. .modebar/.modebtn in shell.py are flex:1 in a
+   fixed 268px rail, sized for the three other files' mode bars — four
+   buttons' minimum text widths sum past that before the gaps and padding
+   are even counted, so "Approach" pokes out past the rail edge rather than
+   shrinking. A 2x2 grid, scoped to this file's own bar, fits the same four
+   labels without touching the flex row every other file still uses. */
+.modebar-4{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.modebar-4 .modebtn{flex:none}
+
 .langbtn{appearance:none;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
   padding:5px 12px;border-radius:7px;cursor:pointer}
@@ -1199,7 +1209,7 @@ if(s&&(s.theme==="light"||s.theme==="dark"))document.documentElement.setAttribut
     </div>
     <button class="railbtn" id="railbtn" aria-expanded="false">Menu</button>
   </div>
-  <div class="modebar">
+  <div class="modebar modebar-4">
     <button class="modebtn" data-mode="phrasebook" aria-pressed="true">Phrasebook</button>
     <button class="modebtn" data-mode="drill" aria-pressed="false">Drill</button>
     <button class="modebtn" data-mode="patterns" aria-pressed="false">Patterns</button>
