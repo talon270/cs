@@ -236,10 +236,11 @@ pre::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px}
   position:absolute;top:7px;right:7px;background:var(--bg-3);border:1px solid var(--rule);
   color:var(--dimmer);font-family:var(--mono);font-size:10px;letter-spacing:.08em;
   text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;
-  opacity:0;transition:opacity .15s,color .15s;
+  opacity:0;transition:opacity .15s,color .15s,border-color .15s,transform .1s;
 }
 .codewrap:hover .copy,.copy:focus{opacity:1}
 .copy:hover{color:var(--amber);border-color:var(--amber)}
+.copy:active{transform:translateY(1px)}
 
 /* ---------- tables ---------- */
 .tw{overflow-x:auto;margin:0 0 12px}
@@ -263,10 +264,11 @@ section.hide,.card.hide{display:none}
   position:fixed;right:22px;bottom:22px;width:38px;height:38px;border-radius:50%;
   background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   display:grid;place-items:center;text-decoration:none;font-size:15px;
-  opacity:0;pointer-events:none;transition:opacity .2s,color .15s;z-index:20;
+  opacity:0;pointer-events:none;transition:opacity .2s,color .15s,border-color .15s,transform .1s;z-index:20;
 }
 .totop.show{opacity:1;pointer-events:auto}
 .totop:hover{color:var(--amber);border-color:var(--amber)}
+.totop:active{transform:translateY(1px) scale(.96)}
 .railbtn{display:none}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
@@ -281,7 +283,10 @@ section.hide,.card.hide{display:none}
     display:block;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
     font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;
     padding:6px 11px;border-radius:5px;cursor:pointer;
+    transition:color .12s,border-color .12s;
   }
+  .railbtn:hover{color:var(--fg);border-color:var(--line-strong)}
+  .railbtn:active{transform:translateY(1px)}
   nav{display:none;max-height:52vh}
   nav.open{display:block}
   .slash{display:none}
@@ -307,15 +312,19 @@ main{max-width:1240px;margin-inline:auto}
   flex:1;appearance:none;background:transparent;border:1px solid var(--rule);
   color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
   text-transform:uppercase;padding:7px 4px;border-radius:6px;cursor:pointer;
+  transition:color .12s,border-color .12s,background .12s,transform .1s;
 }
 .modebtn:hover{color:var(--fg);border-color:var(--line-strong)}
+.modebtn:active{transform:translateY(1px)}
 .modebtn[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--accent-text);font-weight:600}
 .railfoot{margin-top:auto;padding:12px 16px;border-top:1px solid var(--rule-soft);display:flex;gap:8px;align-items:center}
 .iconbtn{
   appearance:none;background:transparent;border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;
+  transition:color .12s,border-color .12s,transform .1s;
 }
 .iconbtn:hover{color:var(--fg);border-color:var(--line-strong)}
+.iconbtn:active{transform:translateY(1px)}
 .covline{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);letter-spacing:.04em}
 
 /* Modes are three stacked documents; only the active one is in the flow. */
@@ -631,7 +640,9 @@ table.grid3 td:first-child{white-space:normal}
 .re-note b{color:var(--fg)}
 .ghostbtn{appearance:none;background:transparent;border:1px solid currentColor;
   color:inherit;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:6px;
-  cursor:pointer;margin-left:8px}
+  cursor:pointer;margin-left:8px;transition:opacity .12s,transform .1s}
+.ghostbtn:hover{opacity:.75}
+.ghostbtn:active{transform:translateY(1px)}
 
 
 /* This is the only three-column page in the project: one intent, and what C,
@@ -655,7 +666,10 @@ table.grid3 td:first-child{white-space:normal}
 
 .langbtn{appearance:none;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
-  padding:5px 12px;border-radius:7px;cursor:pointer}
+  padding:5px 12px;border-radius:7px;cursor:pointer;
+  transition:color .12s,border-color .12s,transform .1s}
+.langbtn:hover{color:var(--fg);border-color:var(--line-strong)}
+.langbtn:active{transform:translateY(1px)}
 .langbtn[aria-pressed="true"]{background:var(--amber);color:var(--accent-text);
   border-color:var(--amber);font-weight:700}
 .ent{border:1px solid var(--rule);border-radius:11px;background:var(--bg-2);
@@ -706,10 +720,11 @@ table.grid3 td:first-child{white-space:normal}
 .drill-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .drill-bar button{appearance:none;background:var(--bg-3);border:1px solid var(--rule);
   color:var(--fg);font-family:var(--mono);font-size:12px;padding:6px 13px;border-radius:7px;
-  cursor:pointer}
+  cursor:pointer;transition:border-color .12s,transform .1s}
 .drill-bar button.primary{background:var(--amber);color:var(--accent-text);border-color:var(--amber);
   font-weight:700}
 .drill-bar button:hover{border-color:var(--amber)}
+.drill-bar button:active{transform:translateY(1px)}
 .verdict{margin:12px 0 0;font-size:13.5px;line-height:1.6;padding:11px 13px;border-radius:9px;
   border:1px solid var(--rule);background:var(--bg-3)}
 .verdict.ok{border-color:var(--teal);color:var(--fg)}
@@ -726,7 +741,9 @@ table.grid3 td:first-child{white-space:normal}
 .restore b{color:var(--fg)}
 .restore button{appearance:none;background:transparent;border:1px solid var(--rule);
   color:var(--fg);font-family:var(--mono);font-size:11.5px;padding:5px 11px;border-radius:7px;
-  cursor:pointer;margin-top:8px}
+  cursor:pointer;margin-top:8px;transition:border-color .12s,transform .1s}
+.restore button:hover{border-color:var(--amber)}
+.restore button:active{transform:translateY(1px)}
 
 /* ---- Approach --------------------------------------------------------
    Own prefix on every class, because the shared stylesheet already owns a
@@ -742,10 +759,11 @@ table.grid3 td:first-child{white-space:normal}
 .ap-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .ap-bar button{appearance:none;background:var(--bg-3);border:1px solid var(--rule);
   color:var(--fg);font-family:var(--mono);font-size:12px;padding:6px 13px;border-radius:7px;
-  cursor:pointer}
+  cursor:pointer;transition:border-color .12s,transform .1s}
 .ap-bar button.ap-go{background:var(--amber);color:var(--accent-text);border-color:var(--amber);
   font-weight:700}
 .ap-bar button:hover{border-color:var(--amber)}
+.ap-bar button:active{transform:translateY(1px)}
 .ap-bar button[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
 .ap-sep{width:1px;height:20px;background:var(--rule);margin:0 4px}
 .ap-msg{font-family:var(--mono);font-size:11px;color:var(--dim)}
