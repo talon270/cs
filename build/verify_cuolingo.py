@@ -152,9 +152,24 @@ def browser(html: str) -> None:
         pg.wait_for_timeout(120)
         desc = pg.inner_text("#spd")
         check("clicking a span explains it", len(desc) > 25 and "\u2014" in desc, desc[:60])
-        pg.locator("#brkToggle").click()
-        pg.wait_for_timeout(100)
-        check("the full list expands", pg.locator("#brkall.on div").count() == spans)
+        check("every piece is listed, not hidden behind a toggle",
+              pg.locator("#brkall div").count() == spans)
+        check("the clicked piece is singled out in the list",
+              pg.locator("#brkall div.on").count() == 1)
+
+        # The layout fault this replaced: 387px rail blocks and 370px of stranded
+        # background each side at 1920.
+        pg.set_viewport_size({"width": 1920, "height": 1080})
+        pg.wait_for_timeout(200)
+        geo = pg.evaluate("""() => {
+          const r = document.getElementById('rail');
+          return {block: Math.round(r.children[0].getBoundingClientRect().height),
+                  side: Math.round(document.querySelector('.wrap').getBoundingClientRect().left),
+                  units: document.querySelectorAll('#navrail .unit').length};
+        }""")
+        check("rail blocks are as tall as their text", geo["block"] < 230, f"{geo['block']}px")
+        check("side margin is not a canyon at 1920", geo["side"] < 230, f"{geo['side']}px")
+        check("the unit list fills the left column", geo["units"] >= 10, f"{geo['units']} units")
 
         # Teach before test on a brand new item, then a real click on a real option.
         pg.locator("#gotit").click()
