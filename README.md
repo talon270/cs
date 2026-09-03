@@ -40,6 +40,17 @@ entries, four options each, a unit tree over the 17 sections and SM-2 spacing on
 top. It teaches an item once before it ever asks, then never shows the answer
 first again. Open it and it runs; it works on a phone.
 
+**One language at a time.** It asks which on the first run rather than choosing
+for you, and the bar in the header switches whenever you want. Each language
+keeps its own schedule, so switching resets nothing. The other language still
+supplies wrong answers — that is the point of them.
+
+**Every line breaks down character by character.** 2,502 spans across the 173
+answers, 14.5 per line: the quotes, the escape, the format placeholder, the
+semicolon, each with what it does. Click any piece of the line. The spans always
+reconstruct the line exactly, which the verifier checks, because a breakdown with
+a gap in it shows you a character that is not there.
+
 **`duolingcc.py` drills production.** The 60 C problems and 39 Python problems,
 with their tiers and their three-rung hints. You write the code, `gcc` or
 `python3` runs it, and the output is compared against a transcript recorded from

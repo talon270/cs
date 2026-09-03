@@ -146,6 +146,41 @@ CSS = """
 .unit .ct{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
 .unit.tailu{border-style:dashed}
 .hide{display:none}
+.langbar{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.langbar button{appearance:none;font:inherit;font-size:12.5px;cursor:pointer;padding:6px 13px;
+  background:var(--surface-2);color:var(--text-dim);border:0;border-right:1px solid var(--border)}
+.langbar button:last-child{border-right:0}
+.langbar button[aria-pressed=true]{background:var(--accent);color:var(--accent-text);font-weight:600}
+.choose{display:grid;gap:10px;margin:16px 0 0}
+.choose button{appearance:none;font:inherit;text-align:left;cursor:pointer;padding:15px 17px;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:11px}
+.choose button:hover{border-color:var(--accent)}
+.choose b{display:block;font-size:15px;margin-bottom:3px;color:var(--text-strong)}
+.choose span{font-size:13px;color:var(--text-dim)}
+.brk{margin:14px 0 0;border-top:1px solid var(--border);padding-top:14px}
+.brk h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--text-dim);margin:0 0 10px;font-weight:600}
+.brkline{font-family:var(--mono);font-size:14.5px;line-height:2;white-space:pre-wrap;
+  word-break:break-word;margin-bottom:10px}
+.sp{appearance:none;font:inherit;background:none;border:0;padding:1px 0;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--text)}
+.sp:hover,.sp[aria-pressed=true]{border-bottom-color:var(--accent);background:var(--wash-1)}
+.sp:focus-visible{outline:2px solid var(--ring-focus);outline-offset:1px}
+.sp.kw,.sp.fn{color:var(--accent);font-weight:600}
+.sp.text,.sp.esc,.sp.fmt,.sp.num{color:var(--good)}
+.sp.op,.sp.punct{color:var(--text-dim)}
+.sp.comment{color:var(--text-dim);font-style:italic}
+.sp.amb{border-bottom:2px dashed var(--warn)}
+.spd{font-size:13.5px;color:var(--text);background:var(--surface-2);border:1px solid var(--border);
+  border-radius:9px;padding:11px 13px;min-height:44px;line-height:1.55}
+.spd code{font-family:var(--mono);font-size:12.5px;color:var(--text-strong)}
+.spd .amb{color:var(--warn);font-weight:600}
+.brkall{margin:10px 0 0;display:none}
+.brkall.on{display:block}
+.brkall div{display:flex;gap:11px;padding:5px 0;border-top:1px solid var(--border);font-size:13px}
+.brkall code{font-family:var(--mono);min-width:90px;color:var(--text-strong);word-break:break-all}
+.linkbtn{appearance:none;background:none;border:0;color:var(--accent);font:inherit;font-size:12.5px;
+  cursor:pointer;padding:0;text-decoration:underline}
 """
 
 PAGE = """<!doctype html>
@@ -164,6 +199,10 @@ PAGE = """<!doctype html>
       <button id="tabTree" aria-selected="false">Units</button>
       <button id="tabData" aria-selected="false">Your data</button>
       <button class="iconbtn" id="themebtn">System</button>
+    </div>
+    <div class="langbar" id="langbar">
+      <button data-l="c" aria-pressed="false">C</button>
+      <button data-l="py" aria-pressed="false">Python</button>
     </div>
   </div>
   <div id="warn" class="banner hide"></div>
@@ -206,7 +245,7 @@ JS = r"""
 
   function today() { return Math.floor(Date.now() / 86400000); }
   function blank() {
-    return { v: SCHEMA_VERSION, cards: {}, done: {},
+    return { v: SCHEMA_VERSION, cards: {}, done: {}, lang: null,
              streak: { count: 0, last: null, grace: 2 },
              seeded: false, seedFound: 0, theme: null, changed: {} };
   }
@@ -271,9 +310,14 @@ JS = r"""
   D.units.forEach(function (u) { if (!u.tail) u.items.forEach(function (id) { order.push(id); }); });
   D.units.forEach(function (u) { if (u.tail) u.items.forEach(function (id) { order.push(id); }); });
 
+  function inLang(id) {
+    var it = BY[id];
+    return !state.lang || !it || it.lang === state.lang;
+  }
+
   function buildQueue() {
     var t = today(), due = [], fresh = [];
-    order.forEach(function (id) {
+    order.filter(inLang).forEach(function (id) {
       var c = state.cards[id];
       if (!c) { fresh.push(id); }
       else if (c.due <= t && c.reps >= 0 && c.introduced) { due.push(id); }
@@ -289,10 +333,12 @@ JS = r"""
   function counts() {
     var recog = 0, prod = 0, cards = state.cards;
     for (var id in cards) {
+      if (!inLang(id)) continue;
       if (cards[id].reps > 0) recog++;
       if (cards[id].rung >= 1 && cards[id].reps > 0) prod++;
     }
-    return { recog: recog, prod: prod };
+    var total = D.items.filter(function (i) { return !state.lang || i.lang === state.lang; }).length;
+    return { recog: recog, prod: prod, total: total };
   }
 
   function rail() {
@@ -303,6 +349,7 @@ JS = r"""
       : "No existing ticks were found, so every item starts unseen. That is a finding, not a default.";
     var h = "";
     h += '<div class="rblock"><h3>Today</h3>'
+       + row("language", state.lang === "c" ? "C" : state.lang === "py" ? "Python" : "both")
        + row("due", q.list.length) + row("backlog", q.backlog)
        + row("streak", state.streak.count + " (+" + state.streak.grace + "g)")
        + '<p class="rnote">' + esc(seedNote) + '</p></div>';
@@ -313,8 +360,8 @@ JS = r"""
          + '</div>';
     }
     h += '<div class="rblock"><h3>Counts</h3>'
-       + row("recognised", k.recog + " / " + D.items.length)
-       + row("recalled", k.prod + " / " + D.items.length)
+       + row("recognised", k.recog + " / " + k.total)
+       + row("recalled", k.prod + " / " + k.total)
        + '<p class="rnote">Two figures, never one. Picking the right line from four is not '
        + 'the same as producing it, so they are never added together.</p></div>';
     el.innerHTML = h;
@@ -327,8 +374,78 @@ JS = r"""
   }
 
   /* ---- drill ------------------------------------------------------------ */
+  /* Q3 revised 2026-09-03: you do one language at a time. The first run asks
+     which rather than picking for you, and the answer is a setting, not a lock —
+     the bar in the header switches it whenever you want. */
+  function chooser() {
+    document.getElementById("vDrill").innerHTML =
+      '<p class="en">Which language are you drilling?</p>'
+      + '<p class="note" style="margin:6px 0 0">One at a time. You can switch whenever you like, '
+      + 'and each language keeps its own schedule — switching does not reset anything.</p>'
+      + '<div class="choose">'
+      + '<button data-l="c"><b>C</b><span>69 items. Printing, memory and ownership, the '
+      + 'preprocessor, your own types.</span></button>'
+      + '<button data-l="py"><b>Python</b><span>104 items. Collections, functions, text and '
+      + 'dates, plus a DOM207 tail you can leave alone.</span></button>'
+      + '</div>';
+    [].slice.call(document.querySelectorAll(".choose button")).forEach(function (b) {
+      b.onclick = function () { setLang(b.getAttribute("data-l")); };
+    });
+    rail();
+  }
+
+  function setLang(l) {
+    state.lang = l; save();
+    [].slice.call(document.querySelectorAll("#langbar button")).forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-l") === l));
+    });
+    q = buildQueue(); pos = 0; answered = 0; correct = 0; paint();
+  }
+
+  /* ---- character breakdown ---------------------------------------------- */
+  function breakdown(it, open) {
+    if (!it.spans) return "";
+    var line = "", all = "", n = 0;
+    it.spans.forEach(function (s, i) {
+      if (s.k === "ws") { line += esc(s.t); return; }
+      line += '<button class="sp ' + s.k + (s.amb ? " amb" : "") + '" data-s="' + i
+            + '" aria-pressed="false" title="' + esc(s.d || "") + '">' + esc(s.t) + '</button>';
+      all += '<div><code>' + esc(s.t) + '</code><span>' + (s.amb ? '<span class="amb">read from position: </span>' : '')
+           + esc(s.d || "") + '</span></div>';
+      n++;
+    });
+    return '<div class="brk"><h4>What every character does</h4>'
+         + '<div class="brkline">' + line + '</div>'
+         + '<div class="spd" id="spd">Click any part of the line. '
+         + n + ' pieces. Dashed underlines are read from position, not parsed.</div>'
+         + '<button class="linkbtn" id="brkToggle" style="margin-top:9px">Show all ' + n + '</button>'
+         + '<div class="brkall' + (open ? " on" : "") + '" id="brkall">' + all + '</div></div>';
+  }
+
+  function wireBreakdown(it) {
+    var btns = [].slice.call(document.querySelectorAll(".sp"));
+    btns.forEach(function (b) {
+      b.onclick = function () {
+        btns.forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var s = it.spans[+b.getAttribute("data-s")];
+        document.getElementById("spd").innerHTML =
+          "<code>" + esc(s.t) + "</code> &mdash; "
+          + (s.amb ? '<span class="amb">read from position, not parsed: </span>' : "")
+          + esc(s.d || "");
+      };
+    });
+    var tg = document.getElementById("brkToggle");
+    if (tg) tg.onclick = function () {
+      var a = document.getElementById("brkall");
+      a.classList.toggle("on");
+      tg.textContent = a.classList.contains("on") ? "Hide the list" : "Show all";
+    };
+  }
+
   function paint() {
     var el = document.getElementById("vDrill");
+    if (!state.lang) { chooser(); return; }
     if (pos >= q.list.length) {
       if (answered) { bumpStreak(); save(); }
       el.innerHTML = answered
@@ -368,8 +485,11 @@ JS = r"""
       h += '<div class="teach"><p>New. Here it is once, then you are asked.</p><pre>'
          + esc(it.answer) + '</pre>'
          + (it.note ? '<p style="margin-top:8px">' + it.note + '</p>' : '') + '</div>'
-         + '<div class="opts"><button class="opt" id="gotit">Got it — ask me</button></div>';
+         + breakdown(it, false)
+         + '<div class="opts" style="margin-top:16px">'
+         + '<button class="opt" id="gotit">Got it — ask me</button></div>';
       el.innerHTML = h;
+      wireBreakdown(it);
       document.getElementById("gotit").onclick = function () {
         c.introduced = true; state.cards[it.id] = c; save(); paint();
       };
@@ -406,8 +526,20 @@ JS = r"""
     answered++; if (ok) correct++;
     save();
     var e = document.getElementById("expl");
-    if (e && it.note) e.innerHTML = it.note;
-    setTimeout(function () { pos++; phase = "ask"; paint(); }, ok ? 900 : 2400);
+    if (e) {
+      e.innerHTML = (it.note || it.text || "") + breakdown(it, false);
+      wireBreakdown(it);
+    }
+    /* A wrong answer earns time to read the breakdown rather than being swept
+       away by a timer; you advance when you say so. */
+    var bar = document.createElement("div");
+    bar.className = "opts";
+    bar.style.marginTop = "14px";
+    bar.innerHTML = '<button class="opt" id="nextBtn">Next</button>';
+    if (e) e.parentNode.appendChild(bar);
+    document.getElementById("nextBtn").onclick = function () {
+      pos++; phase = "ask"; paint();
+    };
   }
 
   function wireMcq(it, c) {
@@ -463,11 +595,13 @@ JS = r"""
   function paintTree() {
     var h = '<div class="units">';
     D.units.forEach(function (u) {
-      var done = u.items.filter(function (id) {
+      var mine = u.items.filter(inLang);
+      if (!mine.length) return;
+      var done = mine.filter(function (id) {
         var c = state.cards[id]; return c && c.reps > 0;
       }).length;
       h += '<div class="unit' + (u.tail ? " tailu" : "") + '"><span class="nm">' + esc(u.title)
-         + '</span><span class="ct">' + done + " / " + u.items.length
+         + '</span><span class="ct">' + done + " / " + mine.length
          + (u.tail ? " &middot; tail" : "") + '</span></div>';
     });
     h += '</div><p class="note">Dashed units are the tail: three phrasebook sections carry no C at '
@@ -526,6 +660,10 @@ JS = r"""
     state.theme = state.theme === null ? "light" : state.theme === "light" ? "dark" : null;
     applyTheme(); save();
   };
+  [].slice.call(document.querySelectorAll("#langbar button")).forEach(function (b) {
+    b.onclick = function () { setLang(b.getAttribute("data-l")); };
+  });
+
   var TABS = { tabDrill: "vDrill", tabTree: "vTree", tabData: "vData" };
   Object.keys(TABS).forEach(function (t) {
     document.getElementById(t).onclick = function () {
@@ -537,7 +675,13 @@ JS = r"""
     };
   });
 
-  function start() { seed(); q = buildQueue(); pos = 0; answered = 0; correct = 0; applyTheme(); paint(); }
+  function start() {
+    seed();
+    [].slice.call(document.querySelectorAll("#langbar button")).forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-l") === state.lang));
+    });
+    q = buildQueue(); pos = 0; answered = 0; correct = 0; applyTheme(); paint();
+  }
   window.__cuolingo = { state: function () { return state; }, queue: function () { return q; },
                         paint: paint, start: start, data: D };
   start();

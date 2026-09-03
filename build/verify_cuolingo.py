@@ -67,6 +67,20 @@ def main() -> int:
         print(f"       note: {len(three)} item(s) have 3 options, not 4 — no fourth plausible "
               f"wrong answer exists for them: {three}")
 
+    # The breakdown must reconstruct the line exactly — a span table with a gap
+    # in it would show the reader a character that does not exist, or hide one
+    # that does.
+    bad_span = [i["id"] for i in items
+                if "".join(s["t"] for s in i["spans"]) != i["answer"]]
+    check("spans rebuild every line exactly", not bad_span, str(bad_span[:3]))
+    nspans = sum(len([s for s in i["spans"] if s["k"] != "ws"]) for i in items)
+    described = sum(1 for i in items for s in i["spans"] if s["k"] != "ws" and s.get("d"))
+    check("every span carries a description", described == nspans,
+          f"{described}/{nspans}")
+    amb = sum(1 for i in items for s in i["spans"] if s.get("amb"))
+    print(f"       note: {amb} of {nspans} spans ({amb / nspans * 100:.1f}%) are read from "
+          f"position rather than parsed, and say so")
+
     only_mut = sum(1 for i in items if set(i["sources"]) - {"answer"} == {"mutate"})
     check("no item rests on mutation alone", only_mut == 0, f"{only_mut}")
 
@@ -112,10 +126,35 @@ def browser(html: str) -> None:
         pg.wait_for_timeout(400)
         check("page loads with no console errors", not errs, "; ".join(errs[:2]))
 
+        # It must ask which language rather than picking one.
+        check("first run asks for a language",
+              "Which language" in pg.inner_text("#vDrill")
+              and pg.locator(".choose button").count() == 2)
+        check("nothing is queued before that choice",
+              pg.evaluate("window.__cuolingo.state().lang") is None)
+        pg.locator('.choose button[data-l="c"]').click()
+        pg.wait_for_timeout(200)
+
         check("an item is on screen", pg.locator("#vDrill .en").count() == 1,
               pg.locator("#vDrill .en").inner_text()[:40])
         check("the rail rendered", pg.locator("#rail .rblock").count() >= 2)
         check("seed reported honestly", "No existing ticks were found" in pg.inner_text("#rail"))
+        qlangs = pg.evaluate("window.__cuolingo.queue().list.map(function(i){"
+                             "return window.__cuolingo.data.items"
+                             ".concat(window.__cuolingo.data.absences)"
+                             ".filter(function(x){return x.id===i})[0].lang})")
+        check("the queue holds one language only", set(qlangs) == {"c"}, str(sorted(set(qlangs))))
+
+        # The breakdown is on the teach card, before the question is asked.
+        spans = pg.locator("#vDrill .sp").count()
+        check("the breakdown is on the teach card", spans >= 3, f"{spans} spans")
+        pg.locator("#vDrill .sp").first.click()
+        pg.wait_for_timeout(120)
+        desc = pg.inner_text("#spd")
+        check("clicking a span explains it", len(desc) > 25 and "\u2014" in desc, desc[:60])
+        pg.locator("#brkToggle").click()
+        pg.wait_for_timeout(100)
+        check("the full list expands", pg.locator("#brkall.on div").count() == spans)
 
         # Teach before test on a brand new item, then a real click on a real option.
         pg.locator("#gotit").click()
@@ -126,6 +165,28 @@ def browser(html: str) -> None:
         pg.wait_for_timeout(200)
         card = pg.evaluate("Object.values(window.__cuolingo.state().cards)[0]")
         check("a click writes a card", card and card["reps"] >= 0, json.dumps(card))
+
+        # Answering reveals the breakdown and waits, rather than sweeping on.
+        check("the breakdown follows the answer", pg.locator("#expl .sp").count() >= 3)
+        first = pg.inner_text("#vDrill .en")
+        check("Next is offered, not a timer", pg.locator("#nextBtn").count() == 1)
+        pg.locator("#nextBtn").click()
+        pg.wait_for_timeout(250)
+        check("Next advances", pg.inner_text("#vDrill .en") != first)
+
+        # Switching language changes the queue and resets nothing.
+        before = pg.evaluate("Object.keys(window.__cuolingo.state().cards).length")
+        pg.locator('#langbar button[data-l="py"]').click()
+        pg.wait_for_timeout(250)
+        qlangs2 = pg.evaluate("window.__cuolingo.queue().list.map(function(i){"
+                              "return window.__cuolingo.data.items"
+                              ".concat(window.__cuolingo.data.absences)"
+                              ".filter(function(x){return x.id===i})[0].lang})")
+        after = pg.evaluate("Object.keys(window.__cuolingo.state().cards).length")
+        check("switching language switches the queue", set(qlangs2) == {"py"}, str(sorted(set(qlangs2))))
+        check("switching resets no cards", after >= before, f"{before} -> {after}")
+        pg.locator('#langbar button[data-l="c"]').click()
+        pg.wait_for_timeout(150)
 
         wrote = pg.evaluate("localStorage.getItem('studyTools.c.v1')")
         check("did not write the C study file", wrote is None)

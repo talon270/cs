@@ -24,6 +24,7 @@ from collections import Counter
 
 from content_bridge_out import ROWS
 import content_bridge
+import explain
 
 SECTION_TITLE = {s[0]: s[2] for s in content_bridge.SECTIONS}
 
@@ -137,6 +138,7 @@ def build_items() -> tuple[list[dict], Counter]:
                 "sources": ["answer" if i == 0 else wrong[i - 1][1] for i in order],
                 "correct": order.index(0),
                 "src": (row.get(lang) or {}).get("src", ""),
+                "spans": explain.explain(answer, lang),
                 "hash": hashlib.sha256(
                     (row["en"] + "\x00" + answer).encode("utf-8")).hexdigest()[:12],
             })
