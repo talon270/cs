@@ -105,16 +105,19 @@ CSS = """
 .tabs button:hover,.iconbtn:hover{border-color:var(--accent)}
 .grid{display:grid;grid-template-columns:214px minmax(0,1fr) 254px;gap:16px;
   align-items:start}
-@media (max-width:1240px){.grid{grid-template-columns:minmax(0,1fr) 244px}
-  #navrail{display:none}}
-@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}
-  .rail{position:static;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:11px;
   padding:17px 19px}
 
 /* Rails. align-content:start is the fix for the stretched blocks: the column is
-   as tall as the page, its blocks are as tall as their text. */
+   as tall as the page, its blocks are as tall as their text. This has to come
+   before the responsive @media blocks below -- same specificity, so whichever
+   is later in the sheet wins, and #navrail{display:none} silently lost to this
+   rule until it was moved ahead of it. */
 .rail,#navrail{display:grid;gap:11px;align-content:start;position:sticky;top:16px}
+@media (max-width:1240px){.grid{grid-template-columns:minmax(0,1fr) 244px}
+  #navrail{display:none}}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}}
 .rblock{background:var(--surface);border:1px solid var(--border);border-radius:10px;
   padding:11px 13px}
 .rblock h3{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
