@@ -12,3 +12,7 @@ __pycache__/
 # Timestamped backups taken before large single-file edits
 *.backup-*
 *.backup-*.html
+
+# duolingcc's review history. Personal, and the only copy that exists.
+duolingcc-progress.json
+duolingcc-progress.*.json
