@@ -100,7 +100,7 @@ def main() -> int:
     check("no alert or confirm", not re.search(r"\b(alert|confirm)\s*\(", html))
 
     try:
-        browser(html)
+        browser(html, items)
     except ImportError:
         print("  -   browser checks skipped: playwright not installed")
 
@@ -112,7 +112,7 @@ def main() -> int:
     return 0
 
 
-def browser(html: str) -> None:
+def browser(html: str, items: list[dict]) -> None:
     from playwright.sync_api import sync_playwright
 
     errs: list[str] = []
@@ -156,6 +156,24 @@ def browser(html: str) -> None:
               pg.locator("#brkall div").count() == spans)
         check("the clicked piece is singled out in the list",
               pg.locator("#brkall div.on").count() == 1)
+
+        # The explainer must never grow a scrollbar of its own, on any item.
+        # sort-4/c is the worst case in the set at 37 pieces.
+        worst = max(items, key=lambda i: len([s for s in i["spans"] if s["k"] != "ws"]))
+        pg.evaluate("id => { const q = window.__cuolingo.queue(); q.list.unshift(id); "
+                    "window.__cuolingo.paint(); }", worst["id"])
+        pg.wait_for_timeout(250)
+        scroll = pg.evaluate("""() => {
+          const a = document.getElementById('brkall');
+          return {inner: a.scrollHeight > a.clientHeight + 1, n: a.children.length,
+                  cols: getComputedStyle(a).gridTemplateColumns.split(' ').length};
+        }""")
+        check("the explainer never scrolls inside itself",
+              not scroll["inner"], f"{worst['id']}, {scroll['n']} pieces")
+        check("a long list uses columns instead of height", scroll["cols"] >= 2,
+              f"{scroll['cols']} columns")
+        pg.evaluate("window.__cuolingo.start()")
+        pg.wait_for_timeout(200)
 
         # The layout fault this replaced: 387px rail blocks and 370px of stranded
         # background each side at 1920.

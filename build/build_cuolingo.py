@@ -201,10 +201,13 @@ CSS = """
 .spd code{font-family:var(--mono);font-size:12px;color:var(--text-strong)}
 .spd .amb{color:var(--warn);font-weight:600}
 .brkall{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
-  padding:4px 11px;max-height:340px;overflow:auto}
+  padding:4px 11px}
+.brkall.many{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));
+  column-gap:20px;padding:4px 13px}
 .brkall div{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--border);font-size:12px;
   line-height:1.45;border-radius:5px}
 .brkall div:first-child{border-top:0}
+.brkall.many div:first-child{border-top:1px solid var(--border)}
 .brkall div.on{background:var(--wash-1);margin-inline:-6px;padding-inline:6px}
 .brkall code{font-family:var(--mono);min-width:70px;color:var(--text-strong);word-break:break-all}
 .brkall span{color:var(--text-dim)}
@@ -488,12 +491,15 @@ JS = r"""
            + esc(s.d || "") + '</span></div>';
       n++;
     });
+    /* Short lines put the list beside the line. Long ones put it underneath and
+       let it use the full width, so it never needs a scrollbar of its own. */
+    var many = n > 18;
     return '<div class="brk"><h4>What every character does &mdash; ' + n + ' pieces</h4>'
-         + '<div class="brkgrid wide">'
+         + '<div class="brkgrid' + (many ? "" : " wide") + '">'
          + '<div><div class="brkline">' + line + '</div>'
          + '<div class="spd" id="spd">Click any piece of the line to single it out. '
          + 'A dashed underline means the reading was taken from position, not parsed.</div></div>'
-         + '<div class="brkall on" id="brkall">' + all + '</div>'
+         + '<div class="brkall' + (many ? " many" : "") + '" id="brkall">' + all + '</div>'
          + '</div></div>';
   }
 
@@ -510,8 +516,6 @@ JS = r"""
           + esc(s.d || "");
         var rows = [].slice.call(document.querySelectorAll("#brkall div"));
         rows.forEach(function (r) { r.classList.toggle("on", r.getAttribute("data-r") === i); });
-        var hit = document.querySelector('#brkall div[data-r="' + i + '"]');
-        if (hit) hit.scrollIntoView({ block: "nearest" });
       };
     });
   }
