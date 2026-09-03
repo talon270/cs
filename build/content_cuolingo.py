@@ -24,6 +24,7 @@ from collections import Counter
 
 from content_bridge_out import ROWS
 import content_bridge
+import content_errors
 import explain
 
 SECTION_TITLE = {s[0]: s[2] for s in content_bridge.SECTIONS}
@@ -167,9 +168,64 @@ def build_absences() -> list[dict]:
     return out
 
 
+# The message is the stem and the options are lines of code. PLAN-cuolingo.md
+# step 9. Every message in content_errors.py was reproduced on this machine, so
+# the stem is a transcript, not a paraphrase of one.
+ERROR_SEC = "b-err"
+
+
+def build_errors() -> list[dict]:
+    """One item per reproduced error message: read it, pick the line that caused it.
+
+    Reading a compiler message is the skill that transfers between every language
+    in this course, and it is the one thing a phrasebook row cannot teach.
+    """
+    rng = random.Random(SEED + 1)
+    out: list[dict] = []
+    for lang, errs in (("c", content_errors.C_ERRORS), ("py", content_errors.PY_ERRORS)):
+        # `expect` is what the message must contain when reproduced. py-cow has
+        # none: it is a silent-behaviour item whose "message" is that there
+        # isn't one, so "which line printed this" has no answer to pick.
+        pool = [e for e in errs if e.get("expect") and e.get("msg") and e.get("snippet")]
+        for e in pool:
+            answer = e["snippet"]
+            # A distractor that produces the same failure is not wrong, and
+            # teaching it as wrong teaches something false (A3). c-segv and
+            # c-asan-segv are the same three lines under two toolchains, so
+            # they are matched by snippet text rather than by id.
+            others = [o for o in pool
+                      if o["id"] != e["id"] and o["snippet"].strip() != answer.strip()]
+            rng.shuffle(others)
+            options = [answer] + [o["snippet"] for o in others[:OPTIONS - 1]]
+            order = list(range(len(options)))
+            rng.shuffle(order)
+            out.append({
+                "id": f"err/{e['id']}",
+                "kind": "err",
+                "lang": lang,
+                "sec": ERROR_SEC,
+                "sec_title": SECTION_TITLE.get(ERROR_SEC, ERROR_SEC),
+                "en": "Which line produced this?",
+                "stage": e.get("stage", ""),
+                "msg": e["msg"],
+                "options": [options[i] for i in order],
+                "correct": order.index(0),
+                # settle() renders `note` as the explanation, so cause and fix
+                # travel in the field the drill already knows how to show.
+                "note": e["cause"] + " " + e["fix"],
+                "hash": hashlib.sha256(
+                    (e["msg"] + "\x00" + answer).encode("utf-8")).hexdigest()[:12],
+            })
+    return out
+
+
 if __name__ == "__main__":
     items, census = build_items()
     absent = build_absences()
+    errs = build_errors()
+    print(f"error items: {len(errs)}  "
+          f"(C {sum(1 for e in errs if e['lang'] == 'c')}, "
+          f"Python {sum(1 for e in errs if e['lang'] == 'py')})")
     print(f"items: {len(items)}  (C {census['items/c']}, Python {census['items/py']})")
     print(f"absence items: {len(absent)}")
     print("distractor sources:")

@@ -395,7 +395,9 @@ def main() -> None:
             # its unit of work is an item answered, not a section read.
             import content_cuolingo
             items, _ = content_cuolingo.build_items()
-            totals["cuolingo"] = len(items) + len(content_cuolingo.build_absences())
+            totals["cuolingo"] = (len(items)
+                                  + len(content_cuolingo.build_absences())
+                                  + len(content_cuolingo.build_errors()))
             continue
         src = (shell.CS / f"{c['slug']}.html").read_text(encoding="utf-8")
         totals[c["slug"]] = (len(re.findall(r'class="topic"', src))

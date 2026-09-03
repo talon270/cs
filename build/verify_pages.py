@@ -327,7 +327,10 @@ def check_counts(b) -> None:
     src = (CS / "index.html").read_text(encoding="utf-8")
     declared = {m.group(1): int(m.group(2))
                 for m in re.finditer(r'slug:"(\w+)",key:"[^"]+",total:(\d+)', src)}
-    check(len(declared) == 4, f"index.html declares four totals: {declared}")
+    # Five cards: the three language pages, the phrasebook, and the drill. This
+    # said four until 2026-09-03 and had been failing since cuolingo joined the
+    # launcher — the count, not the totals, was the stale part.
+    check(len(declared) == 5, f"index.html declares five totals: {declared}")
 
     import content_bridge
     BR = {"c": content_bridge.totals_for("c"),
@@ -336,6 +339,17 @@ def check_counts(b) -> None:
     check(declared.get("bridge") == sum(BR.values()),
           f"index.html's bridge total is the union of the three: {declared.get('bridge')} "
           f"vs {sum(BR.values())}")
+
+    # The drill's denominator is its own item count, so it moves whenever the
+    # content modules do. Asserting it here is what caught it going stale when
+    # the 22 error items were added.
+    import content_cuolingo
+    cu_items, _ = content_cuolingo.build_items()
+    cu_total = (len(cu_items) + len(content_cuolingo.build_absences())
+                + len(content_cuolingo.build_errors()))
+    check(declared.get("cuolingo") == cu_total,
+          f"index.html's cuolingo total is its item count: {declared.get('cuolingo')} "
+          f"vs {cu_total}")
 
     for f in LANG_PAGES:
         slug = f[:-5]

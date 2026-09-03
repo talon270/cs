@@ -43,17 +43,19 @@ def blank_of(code: str) -> tuple[str, str] | None:
     return tok, code.replace(tok, "█" * len(tok), 1)
 
 
-def units(items: list[dict], absences: list[dict]) -> list[dict]:
+def units(items: list[dict], absences: list[dict], errors: list[dict]) -> list[dict]:
     order = [s[0] for s in content_bridge.SECTIONS]
     title = {s[0]: s[2] for s in content_bridge.SECTIONS}
     out = []
     for sec in order:
         ids = [i["id"] for i in items if i["sec"] == sec]
         abs_ids = [a["id"] for a in absences if a["sec"] == sec]
-        if not ids and not abs_ids:
+        err_ids = [e["id"] for e in errors if e["sec"] == sec]
+        if not ids and not abs_ids and not err_ids:
             continue
         langs = sorted({i["lang"] for i in items if i["sec"] == sec})
-        out.append({"id": sec, "title": title.get(sec, sec), "items": ids + abs_ids,
+        out.append({"id": sec, "title": title.get(sec, sec),
+                    "items": ids + abs_ids + err_ids,
                     "langs": langs, "tail": sec in DS_ONLY})
     return out
 
@@ -61,13 +63,15 @@ def units(items: list[dict], absences: list[dict]) -> list[dict]:
 def main() -> int:
     items, census = C.build_items()
     absences = C.build_absences()
+    errors = C.build_errors()
     for it in items:
         b = blank_of(it["answer"])
         if b:
             it["blank_token"], it["blank"] = b
-    us = units(items, absences)
+    us = units(items, absences, errors)
 
-    data = {"items": items, "absences": absences, "units": us,
+    data = {"items": items, "absences": absences, "errors": errors, "units": us,
+            "tail": sorted(DS_ONLY),
             "built": census["items/c"] + census["items/py"]}
 
     html = PAGE.replace("__TOKENS__", shell.token_css("quartz", "basalt")) \
@@ -79,6 +83,7 @@ def main() -> int:
     trunk = [u for u in us if not u["tail"]]
     print(f"wrote {OUT}  {OUT.stat().st_size:,} bytes")
     print(f"  {len(items)} items, {len(absences)} absence items, "
+          f"{len(errors)} error items, "
           f"{len(trunk)} trunk units + {len(us) - len(trunk)} tail units")
     print(f"  with a second rung: {sum(1 for i in items if 'blank' in i)}")
     return 0
@@ -142,15 +147,24 @@ CSS = """
 /* Options: two across when they are short enough to read side by side. */
 .opts{display:grid;gap:7px;margin:0 0 11px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
 .opts.one{grid-template-columns:minmax(0,1fr)}
-.opt{display:block;width:100%;text-align:left;font-family:var(--mono);font-size:13px;
+.opt{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;
+  font-family:var(--mono);font-size:13px;
   background:var(--surface-2);color:var(--text);border:1px solid var(--border);
   border-radius:8px;padding:10px 12px;cursor:pointer;white-space:pre-wrap;word-break:break-word}
+.opt>span{flex:1;min-width:0}
 .opt:hover:not([disabled]){border-color:var(--accent)}
 .opt:focus-visible{outline:2px solid var(--ring-focus);outline-offset:2px}
 .opt.right{border-color:var(--accent);background:var(--wash-1)}
 .opt.wrong{border-color:var(--danger);color:var(--danger)}
 .opt[disabled]{cursor:default;opacity:.75}
 .opt.right,.opt.wrong{opacity:1}
+/* The digit that answers this option, printed on it. A shortcut you cannot see
+   is a shortcut nobody uses, so it is part of the chip, not a help screen. */
+kbd{font-family:var(--mono);font-size:10.5px;line-height:1.5;padding:0 5px;border-radius:4px;
+  background:var(--surface-3);border:1px solid var(--border);color:var(--text-dim);
+  flex:0 0 auto;font-weight:600}
+.opt[disabled] kbd{opacity:.55}
+.go kbd{background:transparent;border-color:currentColor;color:inherit;opacity:.7;margin-left:5px}
 .go{appearance:none;font:inherit;font-size:13px;font-weight:600;cursor:pointer;
   background:var(--accent);color:var(--accent-text);border:1px solid var(--accent);
   border-radius:8px;padding:9px 20px;justify-self:start}
@@ -167,6 +181,22 @@ CSS = """
 .note{font-size:12.5px;color:var(--text-dim);line-height:1.55;margin:8px 0 0}
 .banner{border:1px solid var(--warn);background:var(--wash-2);color:var(--text);
   border-radius:9px;padding:9px 12px;font-size:12.5px;margin-bottom:13px}
+/* Cram is a mode you must not be in by accident, so its banner stays on screen
+   for every item rather than announcing itself once at the start. */
+.banner.cram{display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  border-color:var(--accent);background:var(--wash-1)}
+.banner.cram button{margin-left:auto}
+
+/* An error item: the message exactly as the toolchain printed it. */
+.errmsg{font-family:var(--mono);font-size:12.5px;line-height:1.5;margin:0 0 13px;
+  background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--danger);
+  border-radius:0 8px 8px 0;padding:11px 13px;color:var(--text-strong);
+  white-space:pre-wrap;word-break:break-word;overflow-x:auto}
+
+/* Settings row */
+.check{display:flex;gap:9px;align-items:center;font-size:13px;cursor:pointer;
+  color:var(--text-strong)}
+.check input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
 
 /* Language switch */
 .langbar{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
@@ -277,6 +307,10 @@ PAGE = """<!doctype html>
           <input type="file" id="fileRestore" accept="application/json,.json" hidden>
         </div>
         <p class="note" id="dataMsg"></p>
+        <h3 style="margin:22px 0 8px">The DOM207 tail</h3>
+        <label class="check"><input type="checkbox" id="tailOn">
+          <span>Queue the tail as well</span></label>
+        <p class="note" id="tailNote"></p>
       </section>
     </main>
     <aside class="rail" id="rail"></aside>
@@ -292,27 +326,38 @@ JS = r"""
 "use strict";
 (function () {
   var D = JSON.parse(document.getElementById("data").textContent);
-  var KEY = "studyTools.cuolingo.v1", SCHEMA_VERSION = 1;
+  var KEY = "studyTools.cuolingo.v1", SCHEMA_VERSION = 2;
   var CAP = 20, EASE_START = 2.5, EASE_FLOOR = 1.3;
   var SEED_KEYS = { c: "studyTools.c.v1", py: "studyTools.python.v1" };
   var BY = {}; D.items.forEach(function (i) { BY[i.id] = i; });
   D.absences.forEach(function (a) { a.absent = true; BY[a.id] = a; });
+  D.errors.forEach(function (e) { BY[e.id] = e; });
+  /* Which ids belong to the DOM207 tail, so the queue can leave them out. */
+  var TAILID = {};
+  D.units.forEach(function (u) {
+    if (u.tail) u.items.forEach(function (id) { TAILID[id] = true; });
+  });
 
   function today() { return Math.floor(Date.now() / 86400000); }
   function blank() {
     return { v: SCHEMA_VERSION, cards: {}, done: {}, lang: null, log: [],
              streak: { count: 0, last: null, grace: 2 },
-             seeded: false, seedFound: 0, theme: null, changed: {} };
+             seeded: false, seedFound: 0, theme: null, changed: {}, tail: false };
   }
   function migrate(s) {
     if (!s || typeof s !== "object") return blank();
-    if (s.v === SCHEMA_VERSION) return s;
-    if (!s.v) { var b = blank(); for (var k in s) b[k] = s[k]; b.v = SCHEMA_VERSION; s = b; }
+    if (!s.v) { var b = blank(); for (var k in s) b[k] = s[k]; b.v = 1; s = b; }
+    /* 1 -> 2: the DOM207 tail became a setting instead of always being queued,
+       and it starts off, which is what the language chooser has always claimed.
+       Cards already earned on tail items are kept untouched — switching the
+       tail back on finds every interval where it was left. */
+    if (s.v === 1) { if (typeof s.tail !== "boolean") s.tail = false; s.v = 2; }
     /* Runs on every load, not only on a bump: a field added between builds is
        otherwise missing on any profile that never crossed one. */
     if (!Array.isArray(s.log)) s.log = [];
     if (!s.done || typeof s.done !== "object") s.done = {};
     if (!s.cards || typeof s.cards !== "object") s.cards = {};
+    if (typeof s.tail !== "boolean") s.tail = false;
     return s;
   }
   var state;
@@ -374,31 +419,59 @@ JS = r"""
     var it = BY[id];
     return !state.lang || !it || it.lang === state.lang;
   }
+  function queued(id) { return inLang(id) && (state.tail || !TAILID[id]); }
 
   function buildQueue() {
     var t = today(), due = [], fresh = [];
-    order.filter(inLang).forEach(function (id) {
+    order.filter(queued).forEach(function (id) {
       var c = state.cards[id];
       if (!c) { fresh.push(id); }
       else if (c.due <= t && c.reps >= 0 && c.introduced) { due.push(id); }
       else if (!c.introduced) { fresh.push(id); }
     });
     due.sort(function (a, b) { return state.cards[a].due - state.cards[b].due; });
-    return { list: due.concat(fresh).slice(0, CAP), backlog: Math.max(0, due.length - CAP) };
+    var list = due.concat(fresh).slice(0, CAP);
+    return { list: list, backlog: Math.max(0, due.length - CAP), base: list.length, cram: false };
+  }
+
+  /* Cram ignores the scheduler in both directions: it picks by weakness rather
+     than by due date, and it writes nothing back. Rehearsing 20 items the night
+     before an exam must not reset the intervals that took months to earn. */
+  function buildCram() {
+    var seen = [], unseen = [];
+    order.filter(queued).forEach(function (id) {
+      var c = state.cards[id];
+      if (c && c.introduced) seen.push(id); else unseen.push(id);
+    });
+    seen.sort(function (a, b) {
+      var x = state.cards[a], y = state.cards[b];
+      return (x.ease - y.ease) || (x.due - y.due);
+    });
+    var list = seen.concat(unseen).slice(0, CAP);
+    return { list: list, backlog: 0, base: list.length, cram: true };
   }
 
   /* ---- session state ---------------------------------------------------- */
-  var q = { list: [], backlog: 0 }, pos = 0, phase = "ask", answered = 0, correct = 0;
+  var q = { list: [], backlog: 0, base: 0, cram: false };
+  var pos = 0, phase = "ask", answered = 0, correct = 0;
+  /* A missed item is asked again before the session ends, once. Anything past
+     `q.base` is one of those repeats and is scored separately, so the headline
+     figure stays first-attempt accuracy. */
+  var retried = {}, relearned = 0, relearnedOK = 0;
 
+  /* Two denominators, not one. Every queued item can be recognised, but only an
+     item with a second rung can be recalled — counting the rest in the recall
+     total prints a figure that can never be reached. */
   function counts() {
     var recog = 0, prod = 0, cards = state.cards;
     for (var id in cards) {
-      if (!inLang(id)) continue;
+      if (!queued(id)) continue;
       if (cards[id].reps > 0) recog++;
       if (cards[id].rung >= 1 && cards[id].reps > 0) prod++;
     }
-    var total = D.items.filter(function (i) { return !state.lang || i.lang === state.lang; }).length;
-    return { recog: recog, prod: prod, total: total };
+    var pool = D.items.concat(D.absences, D.errors).filter(function (i) { return queued(i.id); });
+    return { recog: recog, prod: prod, total: pool.length,
+             prodTotal: pool.filter(function (i) { return !!i.blank; }).length };
   }
 
   function rail() {
@@ -421,7 +494,7 @@ JS = r"""
     }
     h += '<div class="rblock"><h3>Counts</h3>'
        + row("recognised", k.recog + " / " + k.total)
-       + row("recalled", k.prod + " / " + k.total)
+       + row("recalled", k.prod + " / " + k.prodTotal)
        + '<p class="rnote">Two figures, never one. Picking the right line from four is not '
        + 'the same as producing it, so they are never added together.</p></div>';
 
@@ -465,7 +538,7 @@ JS = r"""
       + '<button data-l="c"><b>C</b><span>69 items. Printing, memory and ownership, the '
       + 'preprocessor, your own types.</span></button>'
       + '<button data-l="py"><b>Python</b><span>104 items. Collections, functions, text and '
-      + 'dates, plus a DOM207 tail you can leave alone.</span></button>'
+      + 'dates. The DOM207 tail is out of the queue unless you switch it on in Your data.</span></button>'
       + '</div>';
     [].slice.call(document.querySelectorAll(".choose button")).forEach(function (b) {
       b.onclick = function () { setLang(b.getAttribute("data-l")); };
@@ -478,7 +551,15 @@ JS = r"""
     [].slice.call(document.querySelectorAll("#langbar button")).forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-l") === l));
     });
-    q = buildQueue(); pos = 0; answered = 0; correct = 0; paint();
+    /* The tail note counts the items in the language you are drilling, so it is
+       wrong the moment the language changes under it. */
+    paintTail();
+    session(buildQueue());
+  }
+  function session(next) {
+    q = next; pos = 0; phase = "ask";
+    answered = 0; correct = 0; relearned = 0; relearnedOK = 0; retried = {};
+    paint();
   }
 
   /* ---- character breakdown ---------------------------------------------- */
@@ -527,20 +608,40 @@ JS = r"""
     var el = document.getElementById("vDrill");
     if (!state.lang) { chooser(); return; }
     if (pos >= q.list.length) {
-      if (answered) { bumpStreak(); save(); }
-      el.innerHTML = answered
+      if (answered && !q.cram) { bumpStreak(); save(); }
+      var lapse = relearned
+        ? " " + relearnedOK + " of " + relearned + " missed items came back and were right the "
+          + "second time; a second pass does not count towards the figure above."
+        : "";
+      el.innerHTML = q.cram
+        ? "<p class='en'>Cram over.</p><p class='note'>" + correct + " of " + answered
+          + " right." + lapse + " Nothing was written: no interval moved, no streak, no counts. "
+          + "Today's real queue is exactly where you left it.</p>"
+        : answered
         ? "<p class='en'>Done for today.</p><p class='note'>" + correct + " of " + answered
-          + " right. Streak " + state.streak.count + "."
+          + " right first time. Streak " + state.streak.count + "." + lapse
           + (q.backlog ? " " + q.backlog + " still in the backlog — it is not hidden, it is deferred." : "")
           + "</p>"
         : "<p class='en'>Nothing due.</p><p class='note'>Every unit has been opened and nothing is "
           + "scheduled for today. Reviews are not pulled forward: bringing them closer would destroy "
           + "the spacing that makes them work.</p>";
+      el.innerHTML += '<div class="opts one" style="margin-top:14px">'
+        + '<button class="iconbtn" id="cramBtn">' + (q.cram ? "Cram again" : "Cram anyway")
+        + '</button></div>'
+        + '<p class="note">Cram picks the ' + CAP + ' items you hold least well, ignores what is '
+        + 'due, and writes nothing back — it cannot move an interval, break a streak or change a '
+        + 'count. Use it the night before something; it is rehearsal, not review.</p>';
+      document.getElementById("cramBtn").onclick = function () { session(buildCram()); };
       rail(); return;
     }
     var it = BY[q.list[pos]], c = state.cards[it.id] || card();
     var pct = Math.round((pos / q.list.length) * 100);
     var h = '<div class="bar"><i style="width:' + pct + '%"></i></div>';
+    if (q.cram) {
+      h += '<div class="banner cram">Cram — this ignores the scheduler and writes nothing. '
+         + 'No interval moves, no streak, no counts. '
+         + '<button class="iconbtn" id="cramOut">Back to today\'s queue</button></div>';
+    }
 
     if (it.hash && c.hash && c.hash !== it.hash) {
       h += '<div class="banner">This item changed since you learned it. Its history is kept — '
@@ -548,6 +649,7 @@ JS = r"""
     }
     h += '<p class="en">' + esc(it.en) + '</p>';
     h += '<p class="meta">' + esc(it.sec_title) + ' &middot; ' + (it.lang === "c" ? "C" : "PYTHON")
+       + (it.stage ? ' &middot; ' + esc(it.stage) : '')
        + ' &middot; ' + esc(it.id) + '</p>';
 
     if (it.absent) {
@@ -556,6 +658,25 @@ JS = r"""
          + optBtn(1, "There is a one-line form for this")
          + '</div><p class="note" id="expl"></p>';
       el.innerHTML = h; wireAbsence(it, c); rail(); return;
+    }
+
+    /* An error item is the message, verbatim, and four lines of code. The
+       message is authored HTML — it carries the entities gcc's own output
+       needs — so it is set as markup, not escaped text. */
+    if (it.kind === "err") {
+      h += '<pre class="errmsg">' + it.msg + '</pre>';
+      if (!c.introduced && phase === "ask") {
+        h += '<div class="teach"><p>New. The line that produces it, once:</p><pre>'
+           + esc(it.options[it.correct]) + '</pre>'
+           + '<p style="margin-top:8px">' + it.note + '</p></div>'
+           + '<div class="opts one" style="margin-top:14px">'
+           + '<button class="go" id="gotit">Got it — ask me <kbd>&#9166;</kbd></button></div>';
+        el.innerHTML = h; wireGotIt(it, c); rail(); return;
+      }
+      h += '<div class="opts">';
+      it.options.forEach(function (o, i) { h += optBtn(i, o, true); });
+      h += '</div><p class="msg" id="msg"></p><p class="note" id="expl"></p>';
+      el.innerHTML = h; wireMcq(it, c); rail(); return;
     }
 
     /* Teach before test, but only the first time this item is ever seen. On a
@@ -567,12 +688,10 @@ JS = r"""
          + (it.note ? '<p style="margin-top:8px">' + it.note + '</p>' : '') + '</div>'
          + breakdown(it, false)
          + '<div class="opts one" style="margin-top:14px">'
-         + '<button class="go" id="gotit">Got it — ask me</button></div>';
+         + '<button class="go" id="gotit">Got it — ask me <kbd>&#9166;</kbd></button></div>';
       el.innerHTML = h;
       wireBreakdown(it);
-      document.getElementById("gotit").onclick = function () {
-        c.introduced = true; state.cards[it.id] = c; save(); paint();
-      };
+      wireGotIt(it, c);
       rail(); return;
     }
 
@@ -590,23 +709,50 @@ JS = r"""
     el.innerHTML = h; wireMcq(it, c); rail();
   }
 
-  function optBtn(i, text) {
-    return '<button class="opt" data-i="' + i + '">' + esc(text) + '</button>';
+  /* The digit is printed on the chip rather than documented anywhere: a
+     keyboard shortcut nobody can see is a shortcut nobody uses. */
+  function optBtn(i, text, code) {
+    return '<button class="opt' + (code ? " code" : "") + '" data-i="' + i + '">'
+         + '<kbd>' + (i + 1) + '</kbd><span>' + esc(text) + '</span></button>';
+  }
+
+  /* Cram must not write, and the teach card is the one screen that would: it
+     sets `introduced` on first exposure. In cram the phase carries it instead,
+     so the card advances without touching storage. */
+  function wireGotIt(it, c) {
+    document.getElementById("gotit").onclick = function () {
+      if (q.cram) { phase = "test"; }
+      else { c.introduced = true; state.cards[it.id] = c; save(); }
+      paint();
+    };
   }
 
   function settle(it, c, ok, msgEl) {
-    c.hash = it.hash;
-    /* `done` mirrors `cards` so index.html can count this file with the same
-       rule it uses for the other four. It is derived, never read back here. */
-    if (!state.done) state.done = {};
-    if (ok || c.reps > 0) state.done[it.id] = true;
-    if (ok && c.rung === 0 && it.blank) c.rung = 1;
-    else if (!ok && c.rung > 0) c.rung = 0;
-    state.cards[it.id] = review(c, ok);
-    answered++; if (ok) correct++;
-    state.log.push({ pid: it.id, day: today(), ok: ok });
-    if (state.log.length > 400) state.log = state.log.slice(-400);
-    save();
+    var repeat = pos >= q.base;
+    if (q.cram) {
+      /* Nothing is written: no card, no log, no streak. The banner on screen
+         says so, and this is the line that makes it true. */
+      if (repeat) { relearned++; if (ok) relearnedOK++; }
+      else { answered++; if (ok) correct++; }
+    } else {
+      c.hash = it.hash;
+      /* `done` mirrors `cards` so index.html can count this file with the same
+         rule it uses for the other four. It is derived, never read back here. */
+      if (!state.done) state.done = {};
+      if (ok || c.reps > 0) state.done[it.id] = true;
+      if (ok && c.rung === 0 && it.blank) c.rung = 1;
+      else if (!ok && c.rung > 0) c.rung = 0;
+      state.cards[it.id] = review(c, ok);
+      if (repeat) { relearned++; if (ok) relearnedOK++; }
+      else { answered++; if (ok) correct++; }
+      state.log.push({ pid: it.id, day: today(), ok: ok });
+      if (state.log.length > 400) state.log = state.log.slice(-400);
+      save();
+    }
+    /* The one moment you are certainly attending to an item is just after
+       getting it wrong, so it comes back before the session ends. Once only —
+       an item you cannot get would otherwise never let the session finish. */
+    if (!ok && !retried[it.id]) { retried[it.id] = true; q.list.push(it.id); }
     var e = document.getElementById("expl");
     if (e) {
       e.innerHTML = (it.note || it.text || "") + breakdown(it, false);
@@ -618,7 +764,7 @@ JS = r"""
     bar.className = "opts";
     bar.style.marginTop = "14px";
     bar.className = "opts one";
-    bar.innerHTML = '<button class="go" id="nextBtn">Next</button>';
+    bar.innerHTML = '<button class="go" id="nextBtn">Next <kbd>&#9166;</kbd></button>';
     if (e) e.parentNode.appendChild(bar);
     document.getElementById("nextBtn").onclick = function () {
       pos++; phase = "ask"; paint();
@@ -689,11 +835,15 @@ JS = r"""
          + '</span><span class="ct">' + done + " / " + mine.length + '</span></div>';
     });
     h += '</div>';
+    var tailNote = state.tail
+      ? 'in the queue, after everything else'
+      : 'out of the queue \u2014 switch it on in Your data';
     h += compact
-      ? '<p class="rnote">Dashed units are the tail &mdash; DOM207 material, not syntax. '
-        + 'They come last.</p></div>'
+      ? '<p class="rnote">Dashed units are the tail &mdash; DOM207 material, not syntax, '
+        + tailNote + '.</p></div>'
       : '<p class="note">Dashed units are the tail: three phrasebook sections carry no C at '
-        + 'all and are DOM207 data-science material rather than Python syntax. They come last.</p>';
+        + 'all and are DOM207 data-science material rather than Python syntax. They are '
+        + tailNote + '.</p>';
     document.getElementById(target).innerHTML = h;
   }
 
@@ -723,6 +873,31 @@ JS = r"""
     download("cuolingo-cards-" + stamp() + ".csv", rows.join("\n"), "text/csv");
     say(Object.keys(state.cards).length + " card(s) exported.");
   };
+  /* The tail is a setting, not a silent default: the count it adds or removes
+     is printed beside the box, and the cards it has already earned are kept
+     either way. Switching it off defers items; it never deletes history. */
+  function paintTail() {
+    var n = 0, mine = 0;
+    for (var id in TAILID) {
+      n++;
+      if (inLang(id)) mine++;
+    }
+    document.getElementById("tailOn").checked = !!state.tail;
+    document.getElementById("tailNote").innerHTML =
+      "Three phrasebook sections — cleaning a table, making a chart, the modelling "
+      + "workflow — are DOM207 material rather than language syntax: " + n + " items, "
+      + mine + " of them in the language you are drilling. "
+      + (state.tail
+         ? "They are in the queue now."
+         : "They are out of the queue. Any card already earned on one is kept, not reset — "
+           + "switching this on finds every interval where it was left.");
+  }
+  document.getElementById("tailOn").onchange = function () {
+    state.tail = document.getElementById("tailOn").checked;
+    save(); paintTail();
+    if (state.lang) session(buildQueue());
+    paintTree("navrail", true);
+  };
   document.getElementById("btnRestore").onclick = function () { document.getElementById("fileRestore").click(); };
   document.getElementById("fileRestore").onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
@@ -736,6 +911,33 @@ JS = r"""
     };
     r.readAsText(f);
   };
+
+  /* ---- keyboard ---------------------------------------------------------- */
+  /* Without this a 20-item session is roughly 45 mouse clicks, every day. The
+     blank rung already listened for Enter; this extends the same idea to the
+     rest of the drill rather than inventing a second convention. */
+  document.addEventListener("keydown", function (e) {
+    var t = e.target || {};
+    if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.getElementById("vDrill").classList.contains("hide")) return;
+    if (e.key >= "1" && e.key <= "9") {
+      var opt = document.querySelectorAll(".opt")[+e.key - 1];
+      if (opt && !opt.disabled) { e.preventDefault(); opt.click(); }
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      var go = document.getElementById("nextBtn") || document.getElementById("gotit")
+            || document.getElementById("blankGo") || document.getElementById("cramBtn");
+      if (go) { e.preventDefault(); go.click(); }
+    }
+  });
+
+  /* One delegated handler: the cram banner is rebuilt by every branch of
+     paint(), and wiring it in each of them is four copies of one line. */
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "cramOut") session(buildQueue());
+  });
 
   /* ---- theme + tabs ------------------------------------------------------ */
   function applyTheme() {
@@ -768,7 +970,7 @@ JS = r"""
     [].slice.call(document.querySelectorAll("#langbar button")).forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-l") === state.lang));
     });
-    q = buildQueue(); pos = 0; answered = 0; correct = 0; applyTheme(); paint();
+    applyTheme(); paintTail(); session(buildQueue());
   }
   window.__cuolingo = { state: function () { return state; }, queue: function () { return q; },
                         paint: paint, start: start, data: D };

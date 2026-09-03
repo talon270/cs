@@ -84,14 +84,37 @@ def main() -> int:
     only_mut = sum(1 for i in items if set(i["sources"]) - {"answer"} == {"mutate"})
     check("no item rests on mutation alone", only_mut == 0, f"{only_mut}")
 
+    # Error items. The stem is a transcript of a message this machine actually
+    # produced, so the thing to prove is that the options are honest: exactly
+    # one snippet causes it, and none of the wrong ones causes it too.
+    errors = C.build_errors()
+    check("error items built", len(errors) == 22, f"{len(errors)} items")
+    check("error ids are authored",
+          all(re.fullmatch(r"err/[a-z0-9-]+", e["id"]) for e in errors))
+    check("every error item is hashed", all(e.get("hash") for e in errors))
+    e_dupe = [e["id"] for e in errors
+              if len({o.strip() for o in e["options"]}) != len(e["options"])]
+    check("no duplicate error options", not e_dupe, str(e_dupe[:3]))
+    e_four = [e["id"] for e in errors if len(e["options"]) != 4]
+    check("four options on every error item", not e_four, str(e_four[:3]))
+    # c-segv and c-asan-segv are the same three lines under two toolchains. A
+    # snippet identical to the answer's would be a second correct option.
+    by_snip = {e["id"]: e["options"][e["correct"]].strip() for e in errors}
+    e_same = [e["id"] for e in errors
+              if sum(1 for o in e["options"] if o.strip() == by_snip[e["id"]]) != 1]
+    check("exactly one correct snippet", not e_same, str(e_same[:3]))
+    e_stem = [e["id"] for e in errors if not e.get("msg") or not e.get("note")]
+    check("every error item carries its message and its fix", not e_stem, str(e_stem[:3]))
+
     if not PAGE.exists():
         check("page built", False, "run build/build_cuolingo.py first")
         return 1
     html = PAGE.read_text(encoding="utf-8")
     data = json.loads(re.search(r'<script id="data"[^>]*>(.*?)</script>', html, re.S).group(1))
     in_unit = {i for u in data["units"] for i in u["items"]}
-    check("every item reachable from a unit", set(ids) <= in_unit,
-          str(sorted(set(ids) - in_unit)[:3]))
+    all_ids = set(ids) | {e["id"] for e in errors}
+    check("every item reachable from a unit", all_ids <= in_unit,
+          str(sorted(all_ids - in_unit)[:3]))
 
     foreign = FOREIGN.findall(html)
     check("never writes another study file's key", not foreign, str(foreign[:3]))
@@ -224,7 +247,149 @@ def browser(html: str, items: list[dict]) -> None:
         wrote = pg.evaluate("localStorage.getItem('studyTools.c.v1')")
         check("did not write the C study file", wrote is None)
         saved = pg.evaluate("JSON.parse(localStorage.getItem('studyTools.cuolingo.v1')).v")
-        check("saved under its own key at schema 1", saved == 1)
+        check("saved under its own key at schema 2", saved == 2)
+
+        # --- the keyboard answers, so a session is not 45 mouse clicks --------
+        pg.evaluate("window.__cuolingo.start()")
+        pg.wait_for_timeout(200)
+        if pg.locator("#gotit").count():
+            pg.keyboard.press("Enter")
+            pg.wait_for_timeout(200)
+        check("Enter works the teach card", pg.locator("#vDrill .opt").count() >= 3,
+              f"{pg.locator('#vDrill .opt').count()} options")
+        check("every option prints its digit",
+              pg.locator("#vDrill .opt kbd").count() == pg.locator("#vDrill .opt").count())
+        pg.keyboard.press("2")
+        pg.wait_for_timeout(200)
+        check("a digit answers the item", pg.locator("#vDrill .opt[disabled]").count() >= 3,
+              f"{pg.locator('#vDrill .opt[disabled]').count()} locked")
+        stem = pg.inner_text("#vDrill .en")
+        pg.keyboard.press("Enter")
+        pg.wait_for_timeout(250)
+        check("Enter advances from Next", pg.inner_text("#vDrill .en") != stem)
+
+        # --- a missed item comes back before the session ends ----------------
+        pg.evaluate("localStorage.removeItem('studyTools.cuolingo.v1')")
+        pg.reload()
+        pg.wait_for_timeout(300)
+        pg.locator('.choose button[data-l="c"]').click()
+        pg.wait_for_timeout(250)
+        base = pg.evaluate("window.__cuolingo.queue().base")
+        miss = pg.evaluate("""() => {
+          const q = window.__cuolingo.queue();
+          const D = window.__cuolingo.data;
+          const it = D.items.concat(D.absences, D.errors).filter(x => x.id === q.list[0])[0];
+          return it.correct;
+        }""")
+        if pg.locator("#gotit").count():
+            pg.locator("#gotit").click()
+            pg.wait_for_timeout(200)
+        wrong_i = 0 if miss != 0 else 1
+        pg.locator(f'#vDrill .opt[data-i="{wrong_i}"]').click()
+        pg.wait_for_timeout(250)
+        grew = pg.evaluate("window.__cuolingo.queue().list.length")
+        first_id = pg.evaluate("window.__cuolingo.queue().list[0]")
+        last_id = pg.evaluate("window.__cuolingo.queue().list.slice(-1)[0]")
+        check("a missed item is re-queued in the same session",
+              grew == base + 1 and last_id == first_id, f"{base} -> {grew}, {last_id}")
+
+        # --- cram writes nothing ---------------------------------------------
+        pg.evaluate("""() => {
+          window.__cuolingo.queue().list.length = 0;
+          window.__cuolingo.paint();
+        }""")
+        pg.wait_for_timeout(250)
+        cram_offered = pg.locator("#cramBtn").count() == 1
+        check("cram is offered when the queue is empty", cram_offered)
+        if cram_offered:
+            snapshot = pg.evaluate("JSON.stringify(window.__cuolingo.state().cards)")
+            pg.locator("#cramBtn").click()
+            pg.wait_for_timeout(250)
+            check("cram says on screen that it overrides the scheduler",
+                  "writes nothing" in pg.inner_text("#vDrill .banner.cram"))
+            if pg.locator("#gotit").count():
+                pg.locator("#gotit").click()
+                pg.wait_for_timeout(200)
+            pg.locator("#vDrill .opt").first.click()
+            pg.wait_for_timeout(250)
+            after_cram = pg.evaluate("JSON.stringify(window.__cuolingo.state().cards)")
+            check("cram moved no interval", after_cram == snapshot)
+            logged = pg.evaluate("window.__cuolingo.state().log.length")
+            pg.locator("#cramOut").click()
+            pg.wait_for_timeout(200)
+            check("cram wrote nothing to the log", logged == pg.evaluate(
+                "window.__cuolingo.state().log.length"), f"{logged} entries")
+
+        # --- the tail is a setting, and it starts off -------------------------
+        pg.evaluate("localStorage.removeItem('studyTools.cuolingo.v1')")
+        pg.reload()
+        pg.wait_for_timeout(300)
+        pg.locator('.choose button[data-l="py"]').click()
+        pg.wait_for_timeout(250)
+        tail_ids = pg.evaluate("""() => {
+          const D = window.__cuolingo.data;
+          const t = {};
+          D.units.forEach(u => { if (u.tail) u.items.forEach(i => { t[i] = 1; }); });
+          return window.__cuolingo.queue().list.filter(i => t[i]).length;
+        }""")
+        check("the tail starts out of the queue", tail_ids == 0, f"{tail_ids} tail items queued")
+        check("the tail is a real control", pg.locator("#tailOn").count() == 1)
+        pg.locator("#tabData").click()
+        pg.wait_for_timeout(150)
+        # 46 tail entries, 23 of them Python. A note that counts both languages
+        # while you drill one is a number that argues with the queue beside it.
+        check("the tail note counts the language you are drilling",
+              "46 items, 23 of them" in pg.inner_text("#tailNote"),
+              pg.inner_text("#tailNote")[95:135])
+        pg.locator("#tailOn").check()
+        pg.wait_for_timeout(250)
+        on = pg.evaluate("window.__cuolingo.state().tail")
+        check("switching the tail on is remembered", on is True)
+        check("the setting says what it changes",
+              "out of the queue" not in pg.inner_text("#tailNote"))
+
+        # --- an old profile survives the schema bump --------------------------
+        pg.evaluate("""() => {
+          localStorage.setItem('studyTools.cuolingo.v1', JSON.stringify({
+            v: 1, lang: 'c', cards: {'print-1/c': {reps: 4, ease: 2.6, interval: 21,
+            due: 1, rung: 1, introduced: true, hash: 'x'}}, done: {}, log: [],
+            streak: {count: 9, last: null, grace: 2}, seeded: true, seedFound: 0, theme: null }));
+        }""")
+        pg.reload()
+        pg.wait_for_timeout(300)
+        kept = pg.evaluate("window.__cuolingo.state().cards['print-1/c']")
+        check("a v1 profile keeps every card through the bump",
+              kept and kept["reps"] == 4 and kept["interval"] == 21, json.dumps(kept))
+        check("the v1 profile is migrated to v2, tail off",
+              pg.evaluate("window.__cuolingo.state().v") == 2
+              and pg.evaluate("window.__cuolingo.state().tail") is False)
+        check("the streak survives the bump",
+              pg.evaluate("window.__cuolingo.state().streak.count") == 9)
+
+        # --- an error item renders its message and its code options -----------
+        pg.evaluate("""() => {
+          const s = window.__cuolingo.state();
+          s.lang = 'c';
+          window.__cuolingo.queue().list.length = 0;
+          window.__cuolingo.queue().list.push('err/c-implicit');
+          window.__cuolingo.queue().base = 1;
+          window.__cuolingo.paint();
+        }""")
+        pg.wait_for_timeout(250)
+        check("an error item shows the message verbatim",
+              "implicit declaration of function" in pg.inner_text("#vDrill .errmsg"))
+        check("the message keeps the characters gcc printed",
+              "<stdio.h>" in pg.inner_text("#vDrill .errmsg"))
+        if pg.locator("#gotit").count():
+            pg.locator("#gotit").click()
+            pg.wait_for_timeout(200)
+        check("its options are lines of code", pg.locator("#vDrill .opt.code").count() == 4,
+              f"{pg.locator('#vDrill .opt.code').count()} options")
+        pg.locator("#vDrill .opt").first.click()
+        pg.wait_for_timeout(200)
+        check("answering an error item explains the cause",
+              len(pg.inner_text("#expl")) > 40)
+        pg.set_viewport_size({"width": 1500, "height": 950})
 
         for theme in ("light", "dark"):
             pg.evaluate(f"document.documentElement.setAttribute('data-theme','{theme}')")

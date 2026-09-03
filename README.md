@@ -36,9 +36,24 @@ roadmap.sh R roadmap, and the R file says so rather than pretending otherwise.
 you go to them with a question. The two drills go the other way: they ask you.
 
 **`cuolingo.html` drills recognition.** 173 items derived from the 115 phrasebook
-entries, four options each, a unit tree over the 17 sections and SM-2 spacing on
-top. It teaches an item once before it ever asks, then never shows the answer
-first again. Open it and it runs; it works on a phone.
+entries, 57 "this language has no equivalent" items and 22 error-message items,
+four options each, a unit tree over the 17 sections and SM-2 spacing on top. It
+teaches an item once before it ever asks, then never shows the answer first
+again. Answer with the digits `1`-`4` and advance with Enter; a session never
+needs the mouse. Open it and it runs; it works on a phone.
+
+**A missed item comes back before the session ends, once.** SM-2 alone defers a
+lapse to tomorrow, which drops the item at the one moment you are certainly
+attending to it. The repeat is scored separately, so the headline figure stays
+first-attempt accuracy: *5 of 20 right first time* and *3 of 15 missed items were
+right the second time* are two different claims and the end screen makes both.
+
+**The error items are transcripts.** 13 C and 9 Python messages that
+`content_errors.py` reproduced on this machine — the message is the question and
+four real snippets are the options. `py-cow` is excluded because its "message" is
+that there isn't one, and the two segfault items share a snippet, so neither is
+ever offered against the other: a distractor that also produces the error is not
+a wrong answer.
 
 **One language at a time.** It asks which on the first run rather than choosing
 for you, and the bar in the header switches whenever you want. Each language
@@ -68,7 +83,7 @@ Building and verifying them:
 
 ```sh
 python3 build/build_cuolingo.py   # -> cuolingo.html
-python3 build/verify_cuolingo.py  # 24 checks, including a real browser
+python3 build/verify_cuolingo.py  # 72 checks, including a real browser
 ```
 
 ### The things most drill apps get wrong
@@ -98,6 +113,19 @@ missing. Those problems say a package is not installed rather than passing you.
 **Editing a phrasebook line does not delete your history.** An item's id is its
 authored key — `print-1/c` — never a hash of its text. A content hash sits beside
 it, and a mismatch raises a banner saying the item changed; it resets nothing.
+
+**Cram writes nothing at all.** The night before an exam you want to run the
+whole set, and doing that through the scheduler would reset every interval it
+took months to earn. Cram picks the 20 items you hold least well, ignores what is
+due, and writes no card, no log entry and no streak — a banner on every item says
+so. It is rehearsal, not review.
+
+**The DOM207 tail is a setting that starts off.** Three phrasebook sections —
+cleaning a table, making a chart, the modelling workflow — are data-science
+material rather than language syntax: 46 entries, 23 in each language. The
+language chooser always said you could leave them alone; now a checkbox in Your
+data actually does. Switching it off defers those items and keeps every card
+already earned on them.
 
 **`cuolingo` reads the study files and never writes them.** All `file://` pages
 in one Chromium profile share a single `localStorage` partition, so a stray
