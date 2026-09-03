@@ -42,6 +42,15 @@ CARDS = [
               "returns the steps, or says the problem is outside what these files cover.",
          tags=["115 entries", "28 patterns", "English in, steps out",
                "counts toward the other three"]),
+    dict(slug="cuolingo", key="studyTools.cuolingo.v1", name="cuolingo", sub="drill",
+         accent="#0F6B63",
+         line="The other four answer questions; this one asks them. 173 recognition items "
+              "built from the phrasebook &mdash; four lines, one of them the one that runs "
+              "&mdash; plus 57 questions about what a language deliberately has no word for. "
+              "Spaced repetition decides what you see today; it teaches an item once before "
+              "it ever asks, and never shows the answer first again.",
+         tags=["173 items", "spaced repetition", "recognition, not recall",
+               "reads the other four, writes none of them"]),
 ]
 
 
@@ -374,6 +383,13 @@ def main() -> None:
         if c["slug"] == "bridge":
             totals["bridge"] = sum(BR.values())
             continue
+        if c["slug"] == "cuolingo":
+            # cuolingo's denominator is its own item count, not a topic census:
+            # its unit of work is an item answered, not a section read.
+            import content_cuolingo
+            items, _ = content_cuolingo.build_items()
+            totals["cuolingo"] = len(items) + len(content_cuolingo.build_absences())
+            continue
         src = (shell.CS / f"{c['slug']}.html").read_text(encoding="utf-8")
         totals[c["slug"]] = (len(re.findall(r'class="topic"', src))
                              + len(re.findall(r'class="chal-head"', src))
@@ -399,7 +415,7 @@ def main() -> None:
              "r": "studyTools.r.v1"}
     files_js = "[" + ",".join(
         f'{{slug:"{c["slug"]}",key:"{c["key"]}",total:{totals[c["slug"]]},'
-        f'study:{json.dumps(list(STUDY.values()) if c["slug"] == "bridge" else [STUDY[c["slug"]]])}}}'
+        f'study:{json.dumps(list(STUDY.values()) if c["slug"] == "bridge" else [STUDY.get(c["slug"], c["key"])])}}}'
         for c in CARDS
     ) + "]"
 

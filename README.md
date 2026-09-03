@@ -30,6 +30,69 @@ dialect of C. The Python and R roadmaps come from the DOM207 outline; the Python
 one is extended with roadmap.sh's *Python for Data Analysis* path. There is no
 roadmap.sh R roadmap, and the R file says so rather than pretending otherwise.
 
+## The two drills
+
+`cheet.html`, `c.html`, `python.html`, `r.html` and `bridge.html` are references —
+you go to them with a question. The two drills go the other way: they ask you.
+
+**`cuolingo.html` drills recognition.** 173 items derived from the 115 phrasebook
+entries, four options each, a unit tree over the 17 sections and SM-2 spacing on
+top. It teaches an item once before it ever asks, then never shows the answer
+first again. Open it and it runs; it works on a phone.
+
+**`duolingcc.py` drills production.** The 60 C problems and 39 Python problems,
+with their tiers and their three-rung hints. You write the code, `gcc` or
+`python3` runs it, and the output is compared against a transcript recorded from
+the verified solution. It never says "correct" — it says `ok compiled  ok ran
+ok output matched`, because a passing diff is three facts and not a verdict.
+
+```sh
+xdg-open cuolingo.html            # recognition, browser
+python3 duolingcc.py              # production, terminal, needs $EDITOR
+python3 duolingcc.py --selftest   # 10 checks including a real compile
+python3 duolingcc.py --stats
+```
+
+Building and verifying them:
+
+```sh
+python3 build/build_cuolingo.py   # -> cuolingo.html
+python3 build/verify_cuolingo.py  # 24 checks, including a real browser
+```
+
+### The things most drill apps get wrong
+
+**A wrong answer has to be a mistake you would actually make.** Generated
+distractors are usually character noise, which teaches you to spot the odd one
+out rather than to know the answer. Here the first source is the same English
+sentence in another language — `len(x)` as a wrong answer to a C question,
+because you are learning both languages this term and that is the error you will
+make. Of 519 distractors, 275 come from that source, 155 from a different line in
+the same topic, and 88 from a mechanical mutation. **No item rests on mutation
+alone.**
+
+**Two numbers, never one.** Picking the right line from four is not producing it,
+so recognition and recall are counted separately and never added. `cuolingo`
+prints both in the rail on every screen.
+
+**A truncated transcript is a weaker claim, and says so.** `gen_expected.py` caps
+a recorded run at 14 lines. Three of the 60 C problems overflow it, so for those
+`duolingcc` compares the first 14 lines only — and prints that it did, instead of
+implying a full match.
+
+**Nothing pretends to be graded when it is not.** 35 of the 39 Python problems
+need the packages in `requirements.txt`, and the `.venv` interpreter is currently
+missing. Those problems say a package is not installed rather than passing you.
+
+**Editing a phrasebook line does not delete your history.** An item's id is its
+authored key — `print-1/c` — never a hash of its text. A content hash sits beside
+it, and a mismatch raises a banner saying the item changed; it resets nothing.
+
+**`cuolingo` reads the study files and never writes them.** All `file://` pages
+in one Chromium profile share a single `localStorage` partition, so a stray
+`setItem` would corrupt months of ticks in `c.html`. The browser does not prevent
+that. `verify_cuolingo.py` greps the built page for it and fails the build.
+
 ## Running it
 
 Nothing to install, nothing to build.
