@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pandas field manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0b0b0c; --acid:#f08ac8; --accf:#cc74a4; --acid2:#c58fae; --paper:#e9e9ea; --onfill:#0b0b0c;
+  --ash:#8f9092; --rule:#37383a; --str:#cfd0d2;
+  --s:1; --pscale:.663;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body.paper{--void:#fff;--paper:#1c1c1e;--acid:#93326e;--accf:#f7dcec;--onfill:#141416;
+  --acid2:#82406a;--ash:#5a5c5e;--rule:#c9c9cc;--str:#3a3c3e}
+html,body{margin:0;padding:0;background:var(--void);color:var(--paper);
+  font-family:"JetBrains Mono",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace}
+body{min-height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ---------- chrome ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;display:flex;gap:10px;align-items:center;
+  flex-wrap:wrap;padding:8px 12px;background:var(--void);border-bottom:3px solid var(--accf)}
+.mark{font-family:"Archivo Black",Impact,sans-serif;font-size:15px;letter-spacing:-.04em;color:var(--acid)}
+.mark b{color:var(--paper);font-weight:400}
+.btn{font:700 11px/1 "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--void);color:var(--paper);border:2px solid var(--rule);padding:7px 9px;cursor:pointer}
+.btn:hover{border-color:var(--acid);color:var(--acid)}
+.btn.on{background:var(--accf);color:var(--onfill);border-color:var(--accf)}
+.btn:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+.spacer{flex:1}
+.count{font:700 12px/1 "JetBrains Mono",monospace;color:var(--onfill);background:var(--accf);padding:7px 9px}
+.hint{font-size:10px;color:var(--ash);letter-spacing:.04em}
+
+/* ---------- deck ---------- */
+.deck{display:flex;flex-direction:column;align-items:stretch;gap:22px;padding:18px 10px 60px}
+.page{display:none;position:relative;margin:0 auto;width:calc(1600px * var(--s));height:calc(900px * var(--s));flex:none}
+.page.on{display:block}
+.stage{position:absolute;top:0;left:0;width:1600px;height:900px;transform:scale(var(--s));transform-origin:0 0;
+  background:var(--void);border:3px solid var(--accf);overflow:hidden;display:flex;flex-direction:column}
+body.dense .stage{border-width:3px}
+
+/* spine: the one loud element */
+.spine{position:absolute;left:0;top:0;bottom:0;width:26px;z-index:3;
+  background:repeating-linear-gradient(135deg,var(--accf) 0 12px,var(--void) 12px 24px);
+  border-right:3px solid var(--accf)}
+.spine span{position:absolute;bottom:14px;left:50%;transform:translateX(-50%) rotate(180deg);writing-mode:vertical-rl;
+  font-family:"Archivo Black",Impact,sans-serif;font-size:12px;letter-spacing:.24em;color:var(--onfill);
+  background:var(--accf);padding:10px 4px;border:2px solid var(--void)}
+
+/* head */
+.head{margin-left:26px;display:flex;align-items:flex-end;gap:16px;padding:16px 18px 10px 18px;
+  border-bottom:3px solid var(--accf)}
+.head h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:34px;line-height:.9;letter-spacing:-.03em;
+  text-transform:uppercase;color:var(--paper)}
+.head .sub{font-size:12px;color:var(--ash);max-width:720px;line-height:1.35;padding-bottom:3px}
+.head .pn{margin-left:auto;font-family:"Archivo Black",Impact,sans-serif;font-size:22px;color:var(--onfill);
+  background:var(--accf);padding:4px 10px;align-self:flex-start}
+
+/* body grid */
+.body{flex:1;margin-left:26px;padding:12px 16px 16px;overflow:hidden}
+.grid{display:flex;gap:14px;align-items:flex-start;transform:scale(var(--k,1));transform-origin:0 0;width:calc(100% / var(--k,1))}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px}
+
+/* section block */
+.sec{border:2px solid var(--rule)}
+.sec>h3{margin:0;display:flex;align-items:baseline;gap:8px;background:var(--accf);color:var(--onfill);
+  font-family:"Archivo Black",Impact,sans-serif;font-size:13px;letter-spacing:.01em;text-transform:uppercase;
+  padding:4px 8px}
+.sec>h3 .tag{margin-left:auto;font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.1em;opacity:.75}
+.secbody{padding:7px 8px 8px;display:flex;flex-direction:column;gap:6px}
+.sec.hot{border-color:var(--acid)}
+
+p{margin:0;font-size:11.5px;line-height:1.42;color:var(--paper)}
+p.note{color:var(--ash);font-size:10.5px;line-height:1.38}
+p.warn{color:var(--onfill);background:var(--accf);padding:4px 6px;font-weight:700;font-size:10.5px}
+b{color:var(--acid);font-weight:700}
+c{color:var(--acid2);white-space:nowrap}
+u2{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--acid);padding-bottom:1px}
+
+pre.code{margin:0;padding:6px 8px 6px 9px;background:var(--void);border-left:4px solid var(--acid);
+  border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  font-size:11px;line-height:1.42;white-space:pre;overflow:hidden;color:var(--paper)}
+.kw{color:var(--acid);font-weight:700}
+.bi{color:var(--acid2)}
+.st{color:var(--str)}
+.nu{color:var(--str)}
+.cm{color:var(--ash);font-style:italic}
+.pp{color:var(--acid);font-weight:700}
+
+table{width:100%;border-collapse:collapse;font-size:10.5px}
+th{text-align:left;background:transparent;color:var(--acid);font-weight:700;padding:1px 5px 3px;
+  letter-spacing:.07em;text-transform:uppercase;font-size:9.5px;border-bottom:2px solid var(--accf)}
+td{padding:2px 5px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.3}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--acid);white-space:nowrap;font-weight:700}
+table.wide td:first-child{white-space:normal}
+table.plain td:first-child{color:var(--paper);font-weight:400}
+ul{margin:0;padding-left:14px}
+li{font-size:11px;line-height:1.38;margin-bottom:2px}
+li::marker{color:var(--acid)}
+
+/* dense sheet overrides */
+body.dense .head h2{font-size:26px}
+body.dense .body{padding:9px 11px 11px}
+body.dense .grid{gap:9px}
+body.dense .col{gap:7px}
+body.dense .sec{border-width:1px}
+body.dense .sec>h3{font-size:10px;padding:2px 5px}
+body.dense .secbody{padding:4px 5px 5px;gap:4px}
+body.dense pre.code{font-size:9px;line-height:1.32;padding:4px 5px 4px 6px;border-left-width:3px}
+body.dense p{font-size:9px;line-height:1.3}
+body.dense table{font-size:8.6px}
+body.dense td,body.dense th{padding:1px 3px}
+body.dense li{font-size:9px;line-height:1.28}
+
+/* cover */
+.cover{margin-left:26px;flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 46px;gap:16px}
+.cover h1{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:92px;line-height:.84;
+  letter-spacing:-.045em;text-transform:uppercase;color:var(--paper)}
+.cover .lede{font-size:15px;line-height:1.5;max-width:900px;color:var(--paper)}
+.cover .lede em{font-style:normal;color:var(--acid)}
+.cover .strip{height:16px;background:repeating-linear-gradient(135deg,var(--accf) 0 14px,var(--void) 14px 28px);
+  border-top:2px solid var(--accf);border-bottom:2px solid var(--accf)}
+.keys{display:flex;flex-wrap:wrap;gap:8px}
+.key{border:2px solid var(--accf);padding:5px 9px;font-size:11px}
+.key b{color:var(--acid)}
+.toc{display:grid;grid-template-columns:repeat(4,1fr);gap:5px 12px;font-size:11.5px}
+.toc a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--rule);padding:2px 0;display:flex;gap:7px;cursor:pointer}
+.toc a:hover{color:var(--acid);border-color:var(--acid)}
+.toc a i{color:var(--acid);font-style:normal;font-weight:700;min-width:20px}
+
+/* index overlay */
+.idx{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.94);display:none;padding:40px;overflow:auto}
+body.paper .idx{background:rgba(255,255,255,.96)}
+.idx.on{display:block}
+.idx h4{font-family:"Archivo Black",Impact,sans-serif;color:var(--acid);margin:0 0 16px;font-size:20px}
+.idx .toc{grid-template-columns:repeat(3,1fr);font-size:14px}
+
+@media (max-width:700px){.hint{display:none}.mark{font-size:12px}}
+
+
+/* ---------- focus, search, copy, block kinds ---------- */
+.toc a{cursor:pointer}
+.toc a:focus-visible,.hit:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+.search{display:flex;align-items:center;gap:6px;border:2px solid var(--rule);padding:5px 8px}
+.search:focus-within{border-color:var(--acid)}
+.search label{font:700 10px/1 "JetBrains Mono",monospace;color:var(--ash);letter-spacing:.06em}
+.search input{background:transparent;border:0;outline:0;color:var(--paper);width:130px;
+  font:400 11px/1.2 "JetBrains Mono",monospace}
+.search input::placeholder{color:var(--ash)}
+.hits{display:flex;flex-direction:column;gap:5px;max-width:900px}
+.hit{display:block;width:100%;text-align:left;cursor:pointer;background:transparent;color:var(--paper);
+  border:0;border-left:3px solid var(--accf);padding:5px 9px;font:400 13px/1.35 "JetBrains Mono",monospace}
+.hit:hover{background:var(--accf);color:var(--onfill)}
+.hit b{color:var(--acid);font-weight:700}
+.hit:hover b{color:var(--onfill)}
+.hit i{font-style:normal;color:var(--ash)}
+.hit:hover i{color:var(--onfill)}
+.idx .none{color:var(--ash);font-size:13px}
+.sec.flash{outline:3px solid var(--acid);outline-offset:3px}
+pre.code{position:relative}
+.cp{position:absolute;bottom:2px;right:2px;opacity:0;cursor:pointer;border:0;user-select:none;
+  background:var(--accf);color:var(--onfill);padding:2px 5px;
+  font:700 8px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+pre.code:hover .cp,.cp:focus-visible{opacity:1}
+pre.sh{border-left-style:double;border-left-color:var(--ash)}
+pre.ref,pre.out{border-left-style:dashed;border-left-color:var(--ash)}
+pre.out{color:var(--ash)}
+pre.sh::after,pre.ref::after,pre.out::after{position:absolute;top:1px;right:5px;color:var(--ash);
+  font:400 8px/1 "JetBrains Mono",monospace;letter-spacing:.12em}
+pre.sh::after{content:"TERMINAL"}
+pre.ref::after{content:"EXCERPT"}
+pre.out::after{content:"OUTPUT"}
+.cover .kin{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;align-items:baseline}
+.cover .kin span{color:var(--ash)}
+.cover .kin a{color:var(--paper);border-bottom:2px solid var(--accf);text-decoration:none;padding-bottom:1px}
+.cover .kin a:hover{color:var(--acid);border-color:var(--acid)}
+.cover .kin a:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+
+@page{size:A4 landscape;margin:10mm}
+@page dense{size:A3 landscape;margin:6mm}
+@media print{
+  .bar,.idx,.noprint{display:none!important}
+  body{background:#fff}
+  .deck{padding:0;gap:0;display:block}
+  .page{display:none!important}
+  body:not(.dense) .page[data-mode="full"]{display:block!important;page-break-after:always;break-after:page}
+  body:not(.dense) .page[data-mode="full"]:last-of-type{page-break-after:auto}
+
+  body:not(.dense) .page{display:block;position:static;width:auto!important;height:auto!important;margin:0 0 5mm}
+  body:not(.dense) .stage{position:static;width:auto;height:auto;transform:none!important;border:0;display:block;overflow:visible}
+  body:not(.dense) .spine{display:none}
+  body:not(.dense) .head{margin-left:0;padding:0 0 3mm;display:block;border-bottom:3px solid var(--accf)}
+  body:not(.dense) .head h2{font-size:17pt}
+  body:not(.dense) .head .sub{font-size:8pt;max-width:none;padding:3px 0 0}
+  body:not(.dense) .head .pn{display:none}
+  body:not(.dense) .body{margin-left:0;padding:3mm 0 0;overflow:visible;flex:none}
+  body:not(.dense) .grid{display:block;transform:none!important;width:auto!important;column-count:2;column-gap:8mm}
+  body:not(.dense) .col{display:block;gap:0}
+  body:not(.dense) .sec{break-inside:avoid;page-break-inside:avoid;margin:0 0 5mm}
+  body:not(.dense) .sec>h3{font-size:9.5pt}
+  body:not(.dense) .secbody{gap:2mm}
+  body:not(.dense) p,body:not(.dense) li{font-size:9pt;line-height:1.45}
+  body:not(.dense) p.note,body:not(.dense) p.warn{font-size:8.5pt}
+  body:not(.dense) table{font-size:8.5pt} body:not(.dense) th{font-size:8.5pt}
+  body:not(.dense) td,body:not(.dense) th{padding:2px 5px}
+  body:not(.dense) pre.code{font-size:8.5pt;line-height:1.45;white-space:pre-wrap;padding:6px 8px}
+  body:not(.dense) .cover{margin-left:0;padding:0;display:block;justify-content:flex-start}
+  body:not(.dense) .cover h1{font-size:34pt;line-height:.9}
+  body:not(.dense) .cover .lede{font-size:10pt}
+  body:not(.dense) .cp{display:none}
+
+  body.dense .page[data-mode="dense"]{display:block!important;width:1600px;height:900px;
+    zoom:.96;page:dense;transform:none;margin:0 auto;overflow:hidden}
+  body.dense .stage{transform:none;position:relative}
+}
+@media (max-width:760px){
+  .deck{padding:10px 12px 40px}
+
+  body .page{display:block;position:static;width:auto!important;height:auto!important;margin:0 0 18px}
+  body .stage{position:static;width:auto;height:auto;transform:none!important;border:0;display:block;overflow:visible}
+  body .spine{display:none}
+  body .head{margin-left:0;padding:0 0 10px;display:block;border-bottom:3px solid var(--accf)}
+  body .head h2{font-size:22px}
+  body .head .sub{font-size:12px;max-width:none;padding:3px 0 0}
+  body .head .pn{display:none}
+  body .body{margin-left:0;padding:10px 0 0;overflow:visible;flex:none}
+  body .grid{display:block;transform:none!important;width:auto!important;column-count:1;column-gap:0}
+  body .col{display:block;gap:0}
+  body .sec{break-inside:avoid;page-break-inside:avoid;margin:0 0 18px}
+  body .sec>h3{font-size:14px}
+  body .secbody{gap:8px}
+  body p,body li{font-size:14px;line-height:1.45}
+  body p.note,body p.warn{font-size:13px}
+  body table{font-size:13px} body th{font-size:13px}
+  body td,body th{padding:2px 5px}
+  body pre.code{font-size:12.5px;line-height:1.45;white-space:pre-wrap;padding:6px 8px}
+  body .cover{margin-left:0;padding:0;display:block;justify-content:flex-start}
+  body .cover h1{font-size:42px;line-height:.9}
+  body .cover .lede{font-size:15px}
+  body .cp{display:none}
+
+  body.dense .page[data-mode="dense"] .grid{column-count:1}
+}
+</style>
+</head><body>
+<div class="bar noprint">
+  <div class="mark">PANDAS <b>// field manual</b></div>
+  <button class="btn" id="mFull">Full</button>
+  <button class="btn" id="mDense">One sheet</button>
+  <button class="btn" id="bPrev">&#8592;</button>
+  <span class="count" id="count">1 / 1</span>
+  <button class="btn" id="bNext">&#8594;</button>
+  <button class="btn" id="bIdx">Contents</button>
+  <div class="search"><label for="q">Find</label>
+    <input id="q" type="search" placeholder="press /" autocomplete="off" spellcheck="false"></div>
+  <div class="spacer"></div>
+  <span class="hint">/ search &middot; arrows page &middot; D one sheet &middot; F full &middot; +/- zoom</span>
+  <button class="btn" id="bInk">Light</button>
+  <button class="btn" id="bPrint">Print</button>
+</div>
+<div class="idx" id="idx"><h4>Contents</h4><div id="idxbody"><div class="toc"><a data-go="0" tabindex="0" role="link"><i>00</i>Start here</a><a data-go="1" tabindex="0" role="link"><i>01</i>Set up</a><a data-go="2" tabindex="0" role="link"><i>02</i>NumPy essentials</a><a data-go="3" tabindex="0" role="link"><i>03</i>Series &amp; DataFrame</a><a data-go="4" tabindex="0" role="link"><i>04</i>Loading &amp; saving</a><a data-go="5" tabindex="0" role="link"><i>05</i>First look</a><a data-go="6" tabindex="0" role="link"><i>06</i>Selecting</a><a data-go="7" tabindex="0" role="link"><i>07</i>Filtering &amp; sorting</a><a data-go="8" tabindex="0" role="link"><i>08</i>Cleaning</a><a data-go="9" tabindex="0" role="link"><i>09</i>Text &amp; categories</a><a data-go="10" tabindex="0" role="link"><i>10</i>Dates &amp; times</a><a data-go="11" tabindex="0" role="link"><i>11</i>New columns</a><a data-go="12" tabindex="0" role="link"><i>12</i>GroupBy</a><a data-go="13" tabindex="0" role="link"><i>13</i>Reshaping</a><a data-go="14" tabindex="0" role="link"><i>14</i>Joining</a><a data-go="15" tabindex="0" role="link"><i>15</i>Statistics &amp; windows</a><a data-go="16" tabindex="0" role="link"><i>16</i>Plotting</a><a data-go="17" tabindex="0" role="link"><i>17</i>A whole analysis</a><a data-go="18" tabindex="0" role="link"><i>18</i>Performance</a><a data-go="19" tabindex="0" role="link"><i>19</i>Method index</a><a data-go="20" tabindex="0" role="link"><i>20</i>Gotchas &amp; habits</a></div></div></div>
+<div class="deck"><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="cover"><h1>Pandas<br>field<br>manual</h1><div class="strip"></div><div class="lede">Data analysis in Python, from zero. Pandas is a spreadsheet you drive with code: rows, columns, and about two hundred methods for reshaping them. This covers the loading, cleaning, grouping and plotting you will do every day, the <em>NumPy</em> underneath it, and the traps that quietly give you the wrong number.</div><div class="keys"><div class="key"><b>&#8592; &#8594;</b> page</div><div class="key"><b>F</b> full manual</div><div class="key"><b>D</b> one-sheet version</div><div class="key"><b>M</b> contents</div><div class="key"><b>+ / -</b> zoom</div><div class="key"><b>Print</b> for paper &#8212; try light mode first</div></div><div class="kin"><span>Companion sheets:</span><a href="https://claude.ai/artifact/NQG681U9BBs8eE1nNnxYrE" target="_blank" rel="noopener">Python field manual</a> <a href="https://claude.ai/artifact/PDQ8HfUH72htTcWJpzjfhy" target="_blank" rel="noopener">C field manual</a><span>&#183; dashed blocks are excerpts or output, double-ruled ones are terminal commands</span></div><div class="toc"><a data-go="0" tabindex="0" role="link"><i>00</i>Start here</a><a data-go="1" tabindex="0" role="link"><i>01</i>Set up</a><a data-go="2" tabindex="0" role="link"><i>02</i>NumPy essentials</a><a data-go="3" tabindex="0" role="link"><i>03</i>Series &amp; DataFrame</a><a data-go="4" tabindex="0" role="link"><i>04</i>Loading &amp; saving</a><a data-go="5" tabindex="0" role="link"><i>05</i>First look</a><a data-go="6" tabindex="0" role="link"><i>06</i>Selecting</a><a data-go="7" tabindex="0" role="link"><i>07</i>Filtering &amp; sorting</a><a data-go="8" tabindex="0" role="link"><i>08</i>Cleaning</a><a data-go="9" tabindex="0" role="link"><i>09</i>Text &amp; categories</a><a data-go="10" tabindex="0" role="link"><i>10</i>Dates &amp; times</a><a data-go="11" tabindex="0" role="link"><i>11</i>New columns</a><a data-go="12" tabindex="0" role="link"><i>12</i>GroupBy</a><a data-go="13" tabindex="0" role="link"><i>13</i>Reshaping</a><a data-go="14" tabindex="0" role="link"><i>14</i>Joining</a><a data-go="15" tabindex="0" role="link"><i>15</i>Statistics &amp; windows</a><a data-go="16" tabindex="0" role="link"><i>16</i>Plotting</a><a data-go="17" tabindex="0" role="link"><i>17</i>A whole analysis</a><a data-go="18" tabindex="0" role="link"><i>18</i>Performance</a><a data-go="19" tabindex="0" role="link"><i>19</i>Method index</a><a data-go="20" tabindex="0" role="link"><i>20</i>Gotchas &amp; habits</a></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Set up</h2><div class="sub">Installing the stack, running a notebook, and the import lines every analysis starts with.</div><div class="pn">01</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Install<span class="tag">terminal</span></h3><div class="secbody"><pre class="code sh">python3 -m venv .venv
+source .venv/bin/activate      # windows: .venv\Scripts\activate
+
+pip install pandas numpy matplotlib seaborn jupyterlab
+pip install pyarrow openpyxl   # parquet and excel files</pre><p class="note">One virtual environment per project. <c>uv pip install</c> does the same thing far faster.</p></div></section><section class="sec"><h3>Where to work<span class="tag">notebook vs script</span></h3><div class="secbody"><pre class="code sh">jupyter lab           # opens in your browser
+
+# in a cell:
+#   Shift+Enter  run and move on
+#   Ctrl+Enter   run and stay
+#   Esc then A / B / DD   add above / below / delete</pre><p>Use a <b>notebook</b> while exploring &#8212; you can see each table as you build it. Move to a <c>.py</c> script once the steps are settled, so the analysis runs the same way twice.</p></div></section><section class="sec"><h3>The stack<span class="tag">who does what</span></h3><div class="secbody"><table class="wide"><tr><td>numpy</td><td>fast numeric arrays; the engine underneath</td></tr><tr><td>pandas</td><td>labelled tables: rows, columns, index</td></tr><tr><td>matplotlib</td><td>plots; pandas calls it for you</td></tr><tr><td>seaborn</td><td>nicer statistical plots in one line</td></tr><tr><td>scikit-learn</td><td>machine learning</td></tr><tr><td>polars / duckdb</td><td>faster alternatives for large data</td></tr></table></div></section></div><div class="col"><section class="sec hot"><h3>The import block<span class="tag">copy this</span></h3><div class="secbody"><pre class="code">import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.width', 120)
+pd.set_option('display.float_format', '{:.2f}'.format)</pre><p><c>pd</c> and <c>np</c> are universal. Anyone reading your code expects them, so do not invent your own.</p></div></section><section class="sec"><h3>Two objects, that is all<span class="tag">mental model</span></h3><div class="secbody"><p>A <b>Series</b> is one column: values plus an index. A <b>DataFrame</b> is a dict of Series sharing one index. Every method you learn belongs to one of them.</p><pre class="code">s = pd.Series([1, 2, 3])
+df = pd.DataFrame({'a': [1, 2], 'b': ['x', 'y']})
+
+df['a']          # a Series
+df[['a', 'b']]   # a DataFrame</pre></div></section><section class="sec hot"><h3>Which pandas?<span class="tag">3.0 changed three things</span></h3><div class="secbody"><pre class="code">pd.__version__      # '3.0.2'</pre><table class="wide"><tr><td>Text is <c>str</c></td><td>text columns are no longer <c>object</c> dtype</td></tr><tr><td>Copy-on-Write</td><td>a slice is always a copy; <c>SettingWithCopyWarning</c> is gone</td></tr><tr><td><c>datetime64[us]</c></td><td>microseconds, not nanoseconds, by default</td></tr><tr><td><c>pd.col</c></td><td>a shorthand for <c>lambda d: d['x']</c> inside <c>assign</c></td></tr></table><p class="note">Everything here works on pandas 2.x too; where behaviour differs, the difference is called out.</p></div></section><section class="sec"><h3>Getting help<span class="tag">in the notebook</span></h3><div class="secbody"><pre class="code ref">df.merge?          # docstring in a popup
+help(pd.read_csv)
+dir(df)            # every method
+pd.__version__</pre></div></section></div><div class="col"><section class="sec"><h3>The first five lines<span class="tag">every time</span></h3><div class="secbody"><pre class="code">df = pd.read_csv('sales.csv')
+df.shape        # (rows, columns)
+df.head()       # look at it
+df.info()       # dtypes and missing counts
+df.describe()   # numeric summary</pre><p>Never start transforming before these five. Most analysis bugs are really &#8220;the data was not what I assumed&#8221;.</p></div></section><section class="sec"><h3>Chaining<span class="tag">the house style</span></h3><div class="secbody"><pre class="code">result = (
+    df
+    .query('country == "IN"')
+    .assign(margin=lambda d: d.profit / d.revenue)
+    .groupby('city', as_index=False)
+    .agg(total=('revenue', 'sum'))
+    .sort_values('total', ascending=False)
+    .head(10)
+)</pre><p>Wrap the chain in brackets and put one method per line. It reads top to bottom as a recipe, and you can comment out a single step to see what it did.</p></div></section><section class="sec"><h3>Sample data to practise on<span class="tag">no download</span></h3><div class="secbody"><pre class="code">df = pd.DataFrame({
+    'city': ['Delhi','Mumbai','Delhi','Pune'],
+    'sales': [100, 250, 90, 40],
+    'date': pd.date_range('2026-01-01', periods=4),
+})
+
+import seaborn as sns
+tips = sns.load_dataset('tips')   # needs internet</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>NumPy essentials</h2><div class="sub">The array type pandas is built on. Learn these and half of pandas stops looking magic.</div><div class="pn">02</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Making arrays<span class="tag">np.array</span></h3><div class="secbody"><pre class="code ref">a = np.array([1, 2, 3])
+b = np.array([[1, 2], [3, 4]])     # 2-D
+
+np.zeros(5)        np.ones((2, 3))
+np.full(3, 7)      np.eye(3)
+np.arange(0, 10, 2)        # 0 2 4 6 8
+np.linspace(0, 1, 5)       # 5 points, ends included
+np.random.default_rng(42).normal(0, 1, 100)</pre><table class="plain"><tr><td>a.shape</td><td>(rows, cols)</td></tr><tr><td>a.ndim</td><td>number of dimensions</td></tr><tr><td>a.size</td><td>total elements</td></tr><tr><td>a.dtype</td><td>int64, float64, bool, &#8230;</td></tr><tr><td>a.T</td><td>transpose</td></tr></table></div></section><section class="sec"><h3>One dtype per array<span class="tag">why it is fast</span></h3><div class="secbody"><p>Every element has the same type and sits in one contiguous block of memory, so the maths runs in compiled code instead of a Python loop. That is the whole performance story.</p><pre class="code">np.array([1, 2, 3]).dtype        # int64
+np.array([1, 2.5]).dtype         # float64 - promoted
+a.astype('float32')              # convert</pre></div></section><section class="sec hot"><h3>Vectorised maths<span class="tag">no loops</span></h3><div class="secbody"><pre class="code ref">a * 2            # every element
+a + b            # element by element
+a ** 2   np.sqrt(a)   np.log(a)
+a &gt; 2            # array of True/False
+
+# the slow way you should never write:
+[x * 2 for x in a]</pre><p>An operation on a whole array replaces the loop. This is the single habit that separates fast pandas code from slow pandas code.</p></div></section></div><div class="col"><section class="sec"><h3>Broadcasting<span class="tag">shapes that differ</span></h3><div class="secbody"><pre class="code">a = np.array([[1, 2, 3],
+              [4, 5, 6]])     # shape (2, 3)
+a + 10              # scalar stretched over everything
+a + np.array([1, 0, 1])   # (3,) stretched down the rows
+a / a.sum(axis=1, keepdims=True)   # row shares</pre><p>Dimensions are matched from the right; a dimension of 1 is stretched. Mismatched shapes raise instead of guessing.</p></div></section><section class="sec"><h3>Aggregating<span class="tag">axis</span></h3><div class="secbody"><pre class="code ref">a.sum()            # everything -&gt; one number
+a.sum(axis=0)      # down the columns
+a.sum(axis=1)      # across the rows
+a.mean() a.std() a.min() a.max()
+a.argmax()         # position of the largest
+a.cumsum()</pre><p class="note"><c>axis=0</c> means &#8220;collapse the rows&#8221;, giving one value per column. It is the same in pandas.</p></div></section><section class="sec"><h3>Indexing<span class="tag">slices and masks</span></h3><div class="secbody"><pre class="code ref">a[0]        a[-1]       a[1:3]
+b[0, 1]     # row 0, column 1
+b[:, 0]     # every row, first column
+b[1, :]     # second row
+
+mask = a &gt; 2
+a[mask]            # only the matching values
+a[(a &gt; 2) &amp; (a &lt; 8)]     # brackets are required
+a[a &gt; 2] = 0             # assign through a mask</pre><p class="warn">Use <c>&amp;</c> <c>|</c> <c>~</c> with arrays, never <c>and</c> <c>or</c> <c>not</c>. Python's keywords need a single True/False and will raise.</p></div></section></div><div class="col"><section class="sec"><h3>Conditional values<span class="tag">where / select</span></h3><div class="secbody"><pre class="code">np.where(a &gt; 0, 'pos', 'neg')      # if / else, elementwise
+
+np.select(
+    [a &lt; 0, a == 0, a &gt; 0],           # conditions
+    ['neg', 'zero', 'pos'],           # results
+    default='?')</pre></div></section><section class="sec"><h3>Missing numbers<span class="tag">nan</span></h3><div class="secbody"><pre class="code">np.nan             # a float, not None
+np.nan == np.nan   # False - never compare it
+np.isnan(x)        # test it this way
+np.nanmean(a)      # mean, ignoring nan</pre></div></section><section class="sec"><h3>Reshaping<span class="tag">same data, new shape</span></h3><div class="secbody"><pre class="code ref">a.reshape(2, 3)    a.reshape(-1, 1)   # -1 = infer
+a.ravel()          # flatten
+np.concatenate([a, b])
+np.vstack([a, b])  np.hstack([a, b])</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Series &amp; DataFrame</h2><div class="sub">The two containers, their index, and the dtypes that decide what works.</div><div class="pn">03</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Series<span class="tag">one labelled column</span></h3><div class="secbody"><pre class="code ref">s = pd.Series([10, 20, 30])
+s = pd.Series([10, 20], index=['a', 'b'], name='sales')
+s = pd.Series({'a': 10, 'b': 20})    # from a dict
+
+s['a']        s.iloc[0]
+s.values      # the numpy array underneath
+s.index       s.name       s.dtype
+s.to_list()   s.to_dict()</pre><p>A Series carries its labels everywhere. That index is why arithmetic between two Series lines up by label rather than by position.</p></div></section><section class="sec"><h3>DataFrame<span class="tag">a dict of Series</span></h3><div class="secbody"><pre class="code">df = pd.DataFrame({          # columns -&gt; lists
+    'city': ['Delhi', 'Pune'],
+    'sales': [100, 40],
+})
+
+pd.DataFrame([{'a': 1}, {'a': 2}])   # list of row dicts
+pd.DataFrame(arr, columns=['x', 'y'])
+pd.DataFrame(s)                      # from a Series</pre></div></section></div><div class="col"><section class="sec"><h3>Anatomy<span class="tag">what you can ask it</span></h3><div class="secbody"><table class="wide"><tr><td>df.shape</td><td>(rows, columns)</td></tr><tr><td>df.columns</td><td>the column labels</td></tr><tr><td>df.index</td><td>the row labels</td></tr><tr><td>df.dtypes</td><td>type of each column</td></tr><tr><td>df.values</td><td>as a numpy array, types merged</td></tr><tr><td>df.size len(df)</td><td>cells / rows</td></tr><tr><td>df.empty</td><td>any rows at all?</td></tr><tr><td>df.axes</td><td>index and columns together</td></tr></table><pre class="code">df.columns = ['city', 'sales']       # rename all at once
+df.columns = df.columns.str.lower().str.strip()</pre></div></section><section class="sec"><h3>The index<span class="tag">row labels</span></h3><div class="secbody"><pre class="code">df.set_index('city')          # a column becomes the labels
+df.reset_index()              # labels become a column again
+df.reset_index(drop=True)     # ... or are thrown away
+df.rename_axis('city')
+df.index = range(len(df))
+df.sort_index()</pre><p>The index is not just a row number: it is what pandas aligns on when you combine objects. After filtering, the original numbers stay &#8212; <c>reset_index(drop=True)</c> if that bothers you.</p></div></section></div><div class="col"><section class="sec"><h3>dtypes<span class="tag">the ones you will meet</span></h3><div class="secbody"><table class="wide"><tr><td>int64</td><td>whole numbers, cannot hold NaN</td></tr><tr><td>float64</td><td>decimals; missing values live here as NaN</td></tr><tr><td>str</td><td>text &#8212; the default since pandas 3.0 (was <c>object</c>)</td></tr><tr><td>object</td><td>anything else: mixed types, lists, Python objects</td></tr><tr><td>bool</td><td>True / False</td></tr><tr><td>category</td><td>repeated labels, stored once &#8212; big memory win</td></tr><tr><td>datetime64[us]</td><td>timestamps; 3.0 defaults to microseconds, not <c>[ns]</c></td></tr><tr><td>timedelta64[us]</td><td>durations</td></tr><tr><td>Int64</td><td>nullable integer &#8212; capital I keeps NaN</td></tr></table><pre class="code">df.dtypes
+df['n'] = df['n'].astype('float')
+df = df.convert_dtypes()     # sensible modern types</pre><p class="warn">A numeric column arriving as <c>str</c> (or <c>object</c> on pandas 2) means something non-numeric is hiding in it. Find it with <c>pd.to_numeric(col, errors='coerce').isna()</c>.</p></div></section><section class="sec"><h3>MultiIndex<span class="tag">more than one label</span></h3><div class="secbody"><pre class="code">df.set_index(['country', 'city'])
+df.loc['IN']                 # everything in India
+df.loc[('IN', 'Pune')]
+df.xs('Pune', level='city')
+df.reset_index()             # flatten it back</pre><pre class="code">df.loc[('IN', 'Pune'):('IN', 'Surat')]   # sort it first
+df.sort_index()
+df.index.get_level_values('city')
+df.swaplevel().sort_index()
+df.groupby(level='country').sum()
+df.unstack('city')            # a level becomes columns</pre><p class="note">GroupBy produces one of these. Flatten as soon as you are done aggregating; slicing a MultiIndex that is not sorted raises.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Loading &amp; saving</h2><div class="sub">Getting data in, and writing results out so they survive the round trip.</div><div class="pn">04</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>read_csv<span class="tag">the one you use daily</span></h3><div class="secbody"><pre class="code">df = pd.read_csv('data.csv')
+
+pd.read_csv(path,
+    sep=',',              # '\t' or ';' or r'\s+'
+    header=0,             # None if there is no header row
+    names=['a', 'b'],     # supply your own
+    index_col='id',
+    usecols=['a', 'b'],   # read fewer columns
+    dtype={'zip': str},   # stop 01234 becoming 1234
+    parse_dates=['date'],
+    na_values=['', 'NA', '-', 'null'],
+    thousands=',',
+    encoding='utf-8',     # try 'latin-1' if it fails
+    nrows=1000,           # peek at a huge file
+    skiprows=3)</pre></div></section><section class="sec"><h3>When it will not read<span class="tag">fixes</span></h3><div class="secbody"><table class="wide"><tr><td>UnicodeDecodeError</td><td><c>encoding='latin-1'</c> or <c>'utf-8-sig'</c></td></tr><tr><td>Everything in one column</td><td>wrong <c>sep</c></td></tr><tr><td>Mixed types warning</td><td>set <c>dtype=</c> or <c>low_memory=False</c></td></tr><tr><td>Leading zeros gone</td><td><c>dtype={'col': str}</c></td></tr><tr><td>Dates as text</td><td><c>parse_dates=[...]</c></td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Other readers<span class="tag">same idea</span></h3><div class="secbody"><table class="wide"><tr><td>read_excel(p, sheet_name=0)</td><td><c>.xlsx</c>; needs openpyxl</td></tr><tr><td>read_json(p)</td><td>records or nested</td></tr><tr><td>read_parquet(p)</td><td>fast, keeps dtypes; needs pyarrow</td></tr><tr><td>read_sql(query, conn)</td><td>straight from a database</td></tr><tr><td>read_html(url)[0]</td><td>every table on a web page</td></tr><tr><td>read_fwf(p)</td><td>fixed-width columns</td></tr><tr><td>read_clipboard()</td><td>whatever you just copied</td></tr><tr><td>read_pickle(p)</td><td>any pandas object, unsafe from strangers</td></tr></table><pre class="code">import sqlite3
+conn = sqlite3.connect('shop.db')
+pd.read_sql('SELECT * FROM sales LIMIT 5', conn)
+
+pd.json_normalize(records, sep='_')   # flatten nested json</pre></div></section><section class="sec"><h3>Many files at once<span class="tag">pattern</span></h3><div class="secbody"><pre class="code">from pathlib import Path
+files = sorted(Path('data').glob('*.csv'))
+df = pd.concat(
+    (pd.read_csv(f).assign(source=f.stem) for f in files),
+    ignore_index=True)</pre></div></section></div><div class="col"><section class="sec"><h3>Writing out<span class="tag">to_*</span></h3><div class="secbody"><pre class="code">df.to_csv('out.csv', index=False)    # index=False almost always
+df.to_excel('out.xlsx', sheet_name='data', index=False)
+df.to_parquet('out.parquet')
+df.to_json('out.json', orient='records', indent=2)
+df.to_sql('sales', conn, if_exists='replace', index=False)
+df.to_markdown()      # paste into a README
+df.to_clipboard()     # paste into a spreadsheet</pre><p class="warn">Forgetting <c>index=False</c> adds a nameless first column that comes back as <c>Unnamed: 0</c> next time you read the file.</p></div></section><section class="sec"><h3>CSV loses your types<span class="tag">round trip</span></h3><div class="secbody"><p>A CSV is text. Dates come back as strings, categories as objects, and <c>Int64</c> as float. Parquet keeps every dtype, is smaller, and loads far faster &#8212; use it for anything you will read again.</p><pre class="code">df.to_parquet('clean.parquet')
+df = pd.read_parquet('clean.parquet')   # identical dtypes</pre></div></section><section class="sec"><h3>Big files<span class="tag">do not load it all</span></h3><div class="secbody"><pre class="code">for chunk in pd.read_csv(p, chunksize=100_000):
+    process(chunk)
+
+pd.read_csv(p, usecols=['a','b'], dtype={'a':'int32'})</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>First look</h2><div class="sub">Ten minutes of inspection saves a day of wrong conclusions.</div><div class="pn">05</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Look at it<span class="tag">shape and sample</span></h3><div class="secbody"><pre class="code ref">df.shape            # (1000, 12)
+df.head(10)   df.tail()   df.sample(5)
+df.columns.tolist()
+df.info()           # dtypes + non-null counts + memory
+df.describe()       # count mean std min quartiles max
+df.describe(include='all')     # text columns too
+df.describe(include='object')</pre><p><b>info</b> answers &#8220;what types, how much missing&#8221;. <b>describe</b> answers &#8220;are the numbers plausible&#8221;. Read both before anything else.</p></div></section><section class="sec hot"><h3>Counting values<span class="tag">value_counts</span></h3><div class="secbody"><pre class="code ref">df['city'].value_counts()
+df['city'].value_counts(normalize=True)   # shares
+df['city'].value_counts(dropna=False)     # show NaN too
+df['city'].nunique()      df['city'].unique()
+df[['city','month']].value_counts()       # combinations</pre><p class="note"><c>value_counts</c> on a text column exposes typos, stray whitespace and duplicate spellings in one glance.</p></div></section></div><div class="col"><section class="sec"><h3>Missing and duplicated<span class="tag">the two usual faults</span></h3><div class="secbody"><pre class="code">df.isna().sum()                  # missing per column
+df.isna().mean().round(3)        # as a share
+df.isna().sum().sum()            # total
+df[df['price'].isna()]           # look at the bad rows
+
+df.duplicated().sum()
+df[df.duplicated(keep=False)].sort_values('id')
+df['id'].duplicated().any()      # is the key unique?</pre></div></section><section class="sec"><h3>Sanity checks<span class="tag">ranges and outliers</span></h3><div class="secbody"><pre class="code">df['age'].between(0, 120).all()
+df['price'].min(), df['price'].max()
+df['qty'].lt(0).sum()            # negatives that should not exist
+df.select_dtypes('number').describe().T
+df.nlargest(5, 'price')[['id', 'price']]</pre></div></section><section class="sec"><h3>Memory<span class="tag">how heavy is it</span></h3><div class="secbody"><pre class="code">df.memory_usage(deep=True).sum() / 1e6   # MB
+df.select_dtypes('str').nunique()       # category candidates</pre></div></section></div><div class="col"><section class="sec"><h3>A checklist for new data<span class="tag">work through it</span></h3><div class="secbody"><ul><li>How many rows and columns, and is that the number you expected?</li><li>Is every dtype right, especially dates and ids?</li><li>Which columns have missing values, and why are they missing?</li><li>Is the key column unique?</li><li>Do the minimums and maximums make physical sense?</li><li>Are category labels spelled consistently (<c>value_counts</c>)?</li><li>Does the row count survive your joins later?</li></ul></div></section><section class="sec"><h3>Display options<span class="tag">stop the truncation</span></h3><div class="secbody"><pre class="code">pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', 200)
+pd.set_option('display.width', 160)
+pd.set_option('display.float_format', '{:,.2f}'.format)
+pd.reset_option('all')
+
+with pd.option_context('display.max_rows', None):
+    print(df)          # just for this block</pre></div></section><section class="sec"><h3>Quick visual check<span class="tag">one line</span></h3><div class="secbody"><pre class="code">df.hist(figsize=(12, 8));
+df['price'].plot(kind='box');
+df.plot(x='date', y='sales');</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Selecting</h2><div class="sub">Reaching a column, a row, or one cell &#8212; and knowing which bracket does what.</div><div class="pn">06</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Columns<span class="tag">square brackets</span></h3><div class="secbody"><pre class="code">df['sales']              # one column -&gt; Series
+df[['sales', 'city']]    # several -&gt; DataFrame
+df.sales                 # works, but not if the name has
+                         # a space or clashes with a method</pre><p class="warn">A single name gives a Series, a list of names gives a DataFrame. <c>df[['sales']]</c> and <c>df['sales']</c> are different objects.</p></div></section><section class="sec hot"><h3>loc and iloc<span class="tag">the two accessors</span></h3><div class="secbody"><table class="wide"><tr><td><c>df.loc[rows, cols]</c></td><td>by <b>label</b>; the end of a slice is <b>included</b></td></tr><tr><td><c>df.iloc[rows, cols]</c></td><td>by <b>position</b>; the end is excluded, like a list</td></tr><tr><td><c>df.at[r, c]</c></td><td>one cell by label, fastest</td></tr><tr><td><c>df.iat[r, c]</c></td><td>one cell by position</td></tr></table><pre class="code">df.loc[0]                    # row with label 0
+df.loc[0, 'sales']
+df.loc[0:2]                  # labels 0,1,2 - THREE rows
+df.loc[:, 'city':'sales']    # a span of columns
+df.loc[df.sales &gt; 100, ['city', 'sales']]
+
+df.iloc[0]                   # first row
+df.iloc[0:2]                 # rows 0,1 - TWO rows
+df.iloc[-1]                  # last row
+df.iloc[:, 0]                # first column
+df.iloc[[0, 2], [1, 3]]</pre></div></section></div><div class="col"><section class="sec"><h3>Rows<span class="tag">common moves</span></h3><div class="secbody"><pre class="code ref">df.head(20)    df.tail(5)    df.sample(10)
+df[3:7]                # plain slicing works on rows
+df.loc[df['id'] == 42]
+df.iloc[df['sales'].argmax()]      # the row with the max
+df.loc[df['sales'].idxmax()]       # same, by label
+df.nlargest(5, 'sales')</pre></div></section><section class="sec"><h3>Picking columns by type or name<span class="tag">bulk</span></h3><div class="secbody"><pre class="code">df.select_dtypes('number')
+df.select_dtypes(include=['str', 'category'])
+df.select_dtypes(exclude='number')
+
+df.filter(like='date')        # name contains
+df.filter(regex='^q[1-4]$')
+df.filter(items=['a', 'b'])
+
+df.columns[df.columns.str.startswith('total_')]</pre></div></section><section class="sec"><h3>Setting values<span class="tag">assignment</span></h3><div class="secbody"><pre class="code">df.loc[df.sales &lt; 0, 'sales'] = 0      # correct way
+df.loc[0, 'city'] = 'Delhi'
+df['flag'] = df['sales'] &gt; 100
+
+df[df.sales &lt; 0]['sales'] = 0          # ChainedAssignmentError
+                                       # nothing is written</pre><p class="warn">Assign through a single <c>.loc</c>, never through two chained brackets &#8212; the second bracket is always a copy.</p></div></section></div><div class="col"><section class="sec hot"><h3>Copies and views<span class="tag">copy-on-write</span></h3><div class="secbody"><pre class="code">small = df[df.city == 'Pune']   # behaves as its own copy
+small['bonus'] = 1              # changes small, never df
+
+df[df.city == 'Pune']['sales'] = 0   # writes to a temporary
+                                     # and is thrown away
+df.loc[df.city == 'Pune', 'sales'] = 0    # the correct form</pre><p>Since pandas 3.0 <b>Copy-on-Write</b> is the rule: every result behaves like its own copy, so editing a slice can never reach back into the original. The old <c>SettingWithCopyWarning</c> went with it, and so did the defensive <c>.copy()</c> people added to silence it.</p><p class="note">On pandas 2.x the same chained write warns instead, and may or may not go through. Assigning through a single <c>.loc</c> is correct on both.</p></div></section><section class="sec"><h3>Series in, Series out<span class="tag">alignment</span></h3><div class="secbody"><pre class="code">a = pd.Series([1, 2], index=['x', 'y'])
+b = pd.Series([10, 20], index=['y', 'z'])
+a + b        # x NaN, y 12, z NaN</pre><p>Arithmetic lines up on the index, not the order. Mismatched labels produce NaN rather than a silent shift &#8212; that is a feature.</p></div></section><section class="sec"><h3>Renaming<span class="tag">rename</span></h3><div class="secbody"><pre class="code ref">df.rename(columns={'old': 'new'})
+df.rename(columns=str.lower)
+df.rename(index={0: 'first'})
+df.add_prefix('q1_')   df.add_suffix('_2026')</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Filtering &amp; sorting</h2><div class="sub">Keeping the rows you want, in the order you want them.</div><div class="pn">07</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>Boolean masks<span class="tag">the core move</span></h3><div class="secbody"><pre class="code">df[df['sales'] &gt; 100]
+df[df['city'] == 'Pune']
+df[df['city'] != 'Pune']
+
+# several conditions: BRACKETS around each one
+df[(df.sales &gt; 100) &amp; (df.city == 'Pune')]
+df[(df.sales &gt; 100) | (df.qty &lt; 5)]
+df[~(df.sales &gt; 100)]          # not</pre><p class="warn"><c>and</c> <c>or</c> <c>not</c> raise here. Use <c>&amp;</c> <c>|</c> <c>~</c>, and bracket every comparison &#8212; <c>&amp;</c> binds tighter than <c>&gt;</c>.</p></div></section><section class="sec"><h3>Handy conditions<span class="tag">beyond ==</span></h3><div class="secbody"><pre class="code ref">df[df.city.isin(['Pune', 'Delhi'])]
+df[~df.city.isin(bad_list)]
+df[df.price.between(10, 50)]           # inclusive
+df[df.city.str.contains('pur', case=False, na=False)]
+df[df.city.str.startswith('D')]
+df[df.date.dt.year == 2026]
+df[df.price.isna()]      df[df.price.notna()]
+df[df.duplicated('id', keep=False)]</pre></div></section></div><div class="col"><section class="sec"><h3>query<span class="tag">the readable form</span></h3><div class="secbody"><pre class="code">df.query('sales &gt; 100')
+df.query('sales &gt; 100 and city == "Pune"')
+df.query('city in ["Pune", "Delhi"]')
+df.query('sales &gt; @threshold')       # @ = a python variable
+df.query('`total sales` &gt; 100')      # backticks for spaces</pre><p>Same result as a mask, less punctuation, and faster on large frames. It cannot do everything, so keep masks for the awkward cases.</p></div></section><section class="sec"><h3>Keeping and dropping<span class="tag">subsetting</span></h3><div class="secbody"><pre class="code ref">df.drop(columns=['notes', 'tmp'])
+df.drop(columns=[c for c in df if c.startswith('_')])
+df.drop(index=[0, 1])
+df.drop_duplicates(subset=['id'], keep='last')
+df.dropna(subset=['price'])
+df.head(100)            df.sample(frac=0.1, random_state=42)</pre></div></section><section class="sec"><h3>Where and mask<span class="tag">keep the shape</span></h3><div class="secbody"><pre class="code">df['sales'].where(df.sales &gt; 0, 0)     # else 0
+df['sales'].mask(df.sales &lt; 0, 0)      # the inverse
+df.clip(lower=0, upper=1000)</pre></div></section></div><div class="col"><section class="sec"><h3>Sorting<span class="tag">sort_values</span></h3><div class="secbody"><pre class="code">df.sort_values('sales')
+df.sort_values('sales', ascending=False)
+df.sort_values(['city', 'sales'], ascending=[True, False])
+df.sort_values('sales', na_position='first')
+df.sort_values('city', key=lambda s: s.str.lower())
+
+df.sort_index()            # by row label
+df.sort_index(axis=1)      # columns alphabetically</pre><p class="note">Sorting returns a new frame. Add <c>.reset_index(drop=True)</c> if the old row numbers get in the way.</p></div></section><section class="sec"><h3>Top and bottom<span class="tag">nlargest</span></h3><div class="secbody"><pre class="code">df.nlargest(10, 'sales')
+df.nsmallest(3, 'price')
+df.nlargest(5, ['sales', 'qty'])     # ties broken by qty
+
+df['sales'].idxmax()      # label of the biggest
+df['sales'].max()
+df.groupby('city')['sales'].idxmax()   # per group</pre></div></section><section class="sec"><h3>Ranking<span class="tag">rank</span></h3><div class="secbody"><pre class="code">df['rank'] = df['sales'].rank(ascending=False)
+df['rank'] = df['sales'].rank(method='dense')
+# method: average min max first dense
+df['pct'] = df['sales'].rank(pct=True)</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Cleaning</h2><div class="sub">Missing values, duplicates, wrong types and messy labels. This is most of the job.</div><div class="pn">08</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Missing values<span class="tag">find them first</span></h3><div class="secbody"><pre class="code">df.isna().sum()
+df['price'].isna().mean()        # share missing
+df[df['price'].isna()].head()    # what do those rows look like?</pre><p>Decide <i>why</i> a value is missing before you fill it. Missing because it was never measured is not the same as missing because it was zero, and the fix differs.</p><table class="plain"><tr><td>NaN</td><td>missing number (a float)</td></tr><tr><td>None</td><td>missing object</td></tr><tr><td>NaT</td><td>missing timestamp</td></tr><tr><td>pd.NA</td><td>the modern, dtype-neutral one</td></tr></table></div></section><section class="sec"><h3>Filling and dropping<span class="tag">fillna / dropna</span></h3><div class="secbody"><pre class="code">df['price'].fillna(0)
+df['price'].fillna(df['price'].median())
+df['city'].fillna('unknown')
+df['price'].ffill()        # carry the last value forward
+df['price'].bfill()        # take the next one backwards
+df['price'].interpolate()  # between neighbours
+
+df.dropna()                       # any NaN anywhere
+df.dropna(subset=['price'])       # only this column matters
+df.dropna(axis=1)                 # drop bad COLUMNS
+df.dropna(thresh=3)               # keep rows with 3+ values</pre><p class="warn">Filling numbers with 0 changes every mean and sum you compute afterwards. Median or a group median is usually safer.</p></div></section></div><div class="col"><section class="sec"><h3>Duplicates<span class="tag">drop_duplicates</span></h3><div class="secbody"><pre class="code">df.duplicated().sum()
+df.drop_duplicates()
+df.drop_duplicates(subset=['id'])          # keeps the first
+df.drop_duplicates(subset=['id'], keep='last')
+df.drop_duplicates(subset=['id'], keep=False)   # drop all copies
+
+# keep the newest row per id
+df.sort_values('date').drop_duplicates('id', keep='last')</pre></div></section><section class="sec"><h3>Fixing types<span class="tag">astype</span></h3><div class="secbody"><pre class="code">df['n'] = df['n'].astype(int)
+df['n'] = pd.to_numeric(df['n'], errors='coerce')   # junk -&gt; NaN
+df['d'] = pd.to_datetime(df['d'], errors='coerce')
+df['flag'] = df['flag'].astype(bool)
+df['city'] = df['city'].astype('category')
+df['n'] = df['n'].astype('Int64')     # int that allows NaN
+df = df.convert_dtypes()</pre><pre class="code"># which values refuse to convert?
+bad = pd.to_numeric(df['n'], errors='coerce').isna() &amp; df['n'].notna()
+df.loc[bad, 'n'].unique()</pre></div></section></div><div class="col"><section class="sec"><h3>Tidying labels<span class="tag">columns and text</span></h3><div class="secbody"><pre class="code">df.columns = (df.columns.str.strip()
+                        .str.lower()
+                        .str.replace(' ', '_'))
+
+for c in df.select_dtypes('str'):    # 'object' on pandas 2
+    df[c] = df[c].str.strip()
+
+df['city'] = df['city'].str.title()
+df['city'] = df['city'].replace({'Bombay': 'Mumbai'})
+df['grade'] = df['grade'].replace('-', pd.NA)</pre></div></section><section class="sec"><h3>Outliers<span class="tag">decide, do not delete by reflex</span></h3><div class="secbody"><pre class="code">q1, q3 = df.price.quantile([.25, .75])
+iqr = q3 - q1
+mask = df.price.between(q1 - 1.5*iqr, q3 + 1.5*iqr)
+df[~mask]                 # look at them first
+
+df['price'] = df['price'].clip(0, df.price.quantile(.99))</pre></div></section><section class="sec"><h3>A cleaning pipeline<span class="tag">keep it in one place</span></h3><div class="secbody"><pre class="code">def clean(df):
+    return (df
+        .rename(columns=str.lower)
+        .drop_duplicates('id')
+        .assign(date=lambda d: pd.to_datetime(d.date, errors='coerce'),
+                price=lambda d: pd.to_numeric(d.price, errors='coerce'))
+        .dropna(subset=['id', 'date'])
+        .reset_index(drop=True))
+
+raw = pd.read_csv('raw.csv')
+df = clean(raw)          # raw stays untouched</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Text &amp; categories</h2><div class="sub">The .str accessor, and the dtype that makes repeated labels cheap.</div><div class="pn">09</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>.str<span class="tag">string methods, column-wide</span></h3><div class="secbody"><pre class="code ref">s = df['city']
+s.str.lower()      s.str.upper()    s.str.title()
+s.str.strip()      s.str.len()
+s.str.contains('pur', case=False, na=False)
+s.str.startswith('D')      s.str.endswith('i')
+s.str.replace('-', ' ', regex=False)
+s.str.split(',')           s.str.split(',', expand=True)
+s.str.get(0)               s.str[0:3]
+s.str.cat(sep=', ')        s.str.zfill(5)
+s.str.pad(10, side='left')
+s.str.count('a')           s.str.find('a')
+s.str.match(r'^[A-Z]')     s.str.fullmatch(r'\d+')</pre><p class="warn"><c>.str</c> only exists on text columns. On an <c>object</c> column holding numbers it raises &#8212; convert first.</p></div></section><section class="sec"><h3>Extracting with regex<span class="tag">str.extract</span></h3><div class="secbody"><pre class="code">df['code'].str.extract(r'([A-Z]{2})-(\d+)')     # two columns
+df['code'].str.extract(r'(?P&lt;region&gt;[A-Z]{2})')  # named
+df['text'].str.extractall(r'(\d+)')             # every match
+df['text'].str.findall(r'#\w+')                 # list per row</pre></div></section></div><div class="col"><section class="sec"><h3>Splitting into columns<span class="tag">expand</span></h3><div class="secbody"><pre class="code">df[['first', 'last']] = df['name'].str.split(' ', n=1, expand=True)
+
+df['tags'].str.split(',').explode()      # one row per tag
+
+(df.assign(tag=df.tags.str.split(','))
+   .explode('tag')
+   .assign(tag=lambda d: d.tag.str.strip()))</pre></div></section><section class="sec"><h3>Mapping values<span class="tag">map / replace</span></h3><div class="secbody"><pre class="code">df['country'] = df['code'].map({'IN': 'India', 'US': 'USA'})
+df['country'] = df['code'].map(lookup).fillna('other')
+df['city'] = df['city'].replace({'Bombay': 'Mumbai'})
+df['city'] = df['city'].replace(r'^\s*$', pd.NA, regex=True)</pre><p class="note"><c>map</c> on a Series takes a dict or a function; anything not in the dict becomes NaN, which makes missing keys easy to spot.</p></div></section><section class="sec"><h3>Dummies<span class="tag">text to columns</span></h3><div class="secbody"><pre class="code">pd.get_dummies(df['city'], prefix='city')
+pd.get_dummies(df, columns=['city', 'size'], drop_first=True)
+
+df['tags'].str.get_dummies(sep=',')   # multi-label</pre></div></section></div><div class="col"><section class="sec"><h3>category dtype<span class="tag">cheap repeated labels</span></h3><div class="secbody"><pre class="code">df['city'] = df['city'].astype('category')
+df['city'].cat.categories
+df['city'].cat.codes             # the integer behind each label
+df['city'].cat.add_categories(['Goa'])
+df['city'].cat.remove_unused_categories()
+df['city'].cat.rename_categories(str.title)</pre><p>Stores each distinct label once and keeps small integer codes per row. On a million-row text column this often cuts memory by 90% and speeds up <c>groupby</c>.</p></div></section><section class="sec"><h3>Ordered categories<span class="tag">sorting that makes sense</span></h3><div class="secbody"><pre class="code">sizes = pd.CategoricalDtype(['S', 'M', 'L', 'XL'], ordered=True)
+df['size'] = df['size'].astype(sizes)
+
+df.sort_values('size')        # S, M, L, XL - not alphabetical
+df[df['size'] &gt; 'M']          # comparisons work
+df.groupby('size', observed=True).size()</pre></div></section><section class="sec"><h3>Binning numbers into labels<span class="tag">cut / qcut</span></h3><div class="secbody"><pre class="code">pd.cut(df.age, bins=[0, 18, 65, 120],
+       labels=['child', 'adult', 'senior'])
+pd.cut(df.price, bins=4)            # 4 equal-width bins
+pd.qcut(df.price, q=4,              # 4 equal-SIZED bins
+        labels=['Q1','Q2','Q3','Q4'])</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Dates &amp; times</h2><div class="sub">Parsing timestamps, pulling parts out of them, and summarising by period.</div><div class="pn">10</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>Parsing<span class="tag">to_datetime</span></h3><div class="secbody"><pre class="code">df['date'] = pd.to_datetime(df['date'])
+pd.to_datetime(df['date'], format='%d/%m/%Y')   # fastest, strictest
+pd.to_datetime(df['date'], dayfirst=True)
+pd.to_datetime(df['date'], errors='coerce')     # bad ones -&gt; NaT
+pd.to_datetime(df['epoch'], unit='s')
+pd.to_datetime(df[['year', 'month', 'day']])
+
+pd.read_csv(p, parse_dates=['date'])   # at load time</pre><p class="warn">Without <c>format=</c>, a column of <c>03/04/2026</c> is ambiguous and pandas may read it as March or April. State the format when you know it.</p></div></section><section class="sec"><h3>Building dates<span class="tag">range and literals</span></h3><div class="secbody"><pre class="code ref">pd.Timestamp('2026-01-31 09:30')
+pd.Timestamp.now()      pd.Timestamp.today().normalize()
+pd.date_range('2026-01-01', periods=12, freq='MS')
+pd.date_range('2026-01-01', '2026-12-31', freq='D')
+pd.Timedelta(days=7, hours=2)
+pd.to_timedelta(df['mins'], unit='m')</pre><table class="plain"><tr><td>D W</td><td>day, week</td></tr><tr><td>MS ME</td><td>month start / end</td></tr><tr><td>QS YE</td><td>quarter start / year end</td></tr><tr><td>h min s</td><td>hour, minute, second</td></tr><tr><td>B</td><td>business day</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>.dt<span class="tag">parts of a timestamp</span></h3><div class="secbody"><pre class="code ref">d = df['date'].dt
+d.year   d.month   d.day   d.hour  d.minute
+d.dayofweek        # Monday = 0
+d.day_name()       d.month_name()
+d.quarter          d.dayofyear     d.days_in_month
+d.is_month_end     d.is_year_start d.is_leap_year
+d.date             d.time          d.normalize()
+d.to_period('M')   # 2026-01 as a period
+d.strftime('%Y-%m')            # to text
+d.floor('h')  d.ceil('D')  d.round('15min')
+d.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')</pre><pre class="code">df['month'] = df['date'].dt.to_period('M')
+df['weekday'] = df['date'].dt.day_name()
+df['is_weekend'] = df['date'].dt.dayofweek &gt;= 5</pre></div></section><section class="sec"><h3>Arithmetic<span class="tag">differences</span></h3><div class="secbody"><pre class="code">df['date'] + pd.Timedelta(days=30)
+df['end'] - df['start']                  # a timedelta
+(df['end'] - df['start']).dt.days
+(df['end'] - df['start']).dt.total_seconds() / 3600
+
+df['days_ago'] = (pd.Timestamp.today() - df['date']).dt.days
+df[df['date'] &gt; '2026-01-01']            # string comparison works</pre></div></section></div><div class="col"><section class="sec hot"><h3>Resampling<span class="tag">group by time</span></h3><div class="secbody"><pre class="code">ts = df.set_index('date')            # a datetime index first
+
+ts['sales'].resample('D').sum()      # daily total
+ts['sales'].resample('ME').mean()    # monthly average
+ts.resample('W').agg({'sales': 'sum', 'id': 'count'})
+ts.resample('ME').sum().plot()
+
+ts.loc['2026']                       # a whole year
+ts.loc['2026-01':'2026-03']          # a span
+ts.between_time('09:00', '17:00')
+ts.asfreq('D')                       # fill the calendar gaps</pre></div></section><section class="sec"><h3>Shifting and change<span class="tag">time series</span></h3><div class="secbody"><pre class="code">ts['sales'].shift(1)              # yesterday's value
+ts['sales'].diff()                # change since yesterday
+ts['sales'].pct_change()          # as a fraction
+ts['sales'].rolling(7).mean()     # 7-day moving average
+ts['sales'].expanding().sum()     # running total</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>New columns</h2><div class="sub">Deriving values from the columns you already have &#8212; fast, and slowly.</div><div class="pn">11</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Straight assignment<span class="tag">the simple way</span></h3><div class="secbody"><pre class="code">df['total'] = df['price'] * df['qty']
+df['margin'] = (df['price'] - df['cost']) / df['price']
+df['upper'] = df['city'].str.upper()
+df['big'] = df['sales'] &gt; 1000            # a boolean column
+df['const'] = 1</pre><p>Column arithmetic is vectorised: it runs over the whole column in compiled code, in one step.</p></div></section><section class="sec hot"><h3>assign<span class="tag">for chains</span></h3><div class="secbody"><pre class="code">(df
+ .assign(total=df.price * df.qty)
+ .assign(share=lambda d: d.total / d.total.sum())
+ .assign(flag=lambda d: d.share &gt; 0.1))</pre><p><c>assign</c> returns a new frame, so it fits inside a chain. Use <c>lambda d:</c> whenever the new column depends on one you just made in the same chain.</p><pre class="code"># pandas 3.0 shorthand for the same lambda
+df.assign(total=pd.col('price') * pd.col('qty'))
+df.loc[pd.col('price') &gt; 100]</pre></div></section><section class="sec"><h3>Conditional columns<span class="tag">if / else</span></h3><div class="secbody"><pre class="code">df['band'] = np.where(df.sales &gt; 100, 'high', 'low')
+
+df['band'] = np.select(
+    [df.sales &gt; 500, df.sales &gt; 100],     # first match wins
+    ['high', 'medium'],
+    default='low')
+
+df['clean'] = df['sales'].where(df.sales &gt; 0, 0)
+df['grade'] = df['score'].map(lambda x: 'A' if x &gt; 90 else 'B')</pre></div></section></div><div class="col"><section class="sec"><h3>apply<span class="tag">the escape hatch</span></h3><div class="secbody"><pre class="code">df['len'] = df['city'].apply(len)           # per value
+df['x'] = df.apply(lambda r: r.a + r.b, axis=1)   # per ROW
+df[['a','b']].apply(np.mean)               # per column
+
+df['city'].map(str.upper)                  # Series only
+df.map(str)                                # every cell</pre><p class="warn"><c>apply(axis=1)</c> is a Python loop wearing a costume &#8212; often 100&#215; slower than the vectorised version. Reach for it only when there is no column-wise expression.</p></div></section><section class="sec"><h3>Vectorise instead<span class="tag">before and after</span></h3><div class="secbody"><pre class="code"># slow
+df['r'] = df.apply(lambda r: r.a / r.b if r.b else 0, axis=1)
+
+# fast
+df['r'] = (df.a / df.b.replace(0, np.nan)).fillna(0)
+
+# slow
+df['f'] = df['name'].apply(lambda s: s.strip().lower())
+# fast
+df['f'] = df['name'].str.strip().str.lower()</pre></div></section><section class="sec"><h3>pipe<span class="tag">your own steps in a chain</span></h3><div class="secbody"><pre class="code">def add_margin(d, floor=0):
+    return d.assign(margin=(d.price - d.cost).clip(floor))
+
+(df.pipe(add_margin, floor=0)
+   .pipe(lambda d: d[d.margin &gt; 0]))</pre></div></section></div><div class="col"><section class="sec"><h3>Row-wise maths across columns<span class="tag">axis=1</span></h3><div class="secbody"><pre class="code">df[['q1','q2','q3','q4']].sum(axis=1)
+df[['q1','q2']].mean(axis=1)
+df.filter(like='q').max(axis=1)
+df[['a','b']].idxmax(axis=1)      # WHICH column was biggest</pre></div></section><section class="sec"><h3>Binning and ranking<span class="tag">derived labels</span></h3><div class="secbody"><pre class="code">df['band'] = pd.cut(df.age, [0, 18, 40, 65, 120],
+                    labels=['child','young','mid','senior'])
+df['quartile'] = pd.qcut(df.sales, 4, labels=False)
+df['rank'] = df.sales.rank(ascending=False, method='dense')
+df['pct'] = df.sales / df.sales.sum()
+df['cum'] = df.sort_values('sales', ascending=False).sales.cumsum()</pre></div></section><section class="sec"><h3>Column housekeeping<span class="tag">order and names</span></h3><div class="secbody"><pre class="code">df.insert(1, 'flag', values)          # at a position
+df = df[['id', 'city', 'sales']]      # reorder by listing
+df = df.drop(columns=['tmp'])
+df = df.rename(columns={'sales': 'revenue'})
+
+cols = ['id'] + [c for c in df.columns if c != 'id']
+df = df[cols]                         # move one to the front</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>GroupBy</h2><div class="sub">Split the rows into groups, apply a calculation to each, combine the answers.</div><div class="pn">12</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>The basic move<span class="tag">split-apply-combine</span></h3><div class="secbody"><pre class="code">df.groupby('city')['sales'].sum()
+df.groupby('city')['sales'].mean()
+df.groupby('city').size()            # rows per group
+df.groupby('city')['id'].nunique()
+df.groupby(['country', 'city'])['sales'].sum()
+
+df.groupby('city', as_index=False)['sales'].sum()   # flat frame
+df.groupby('city')['sales'].sum().reset_index()     # same</pre><p>By default the grouping keys become the index. <c>as_index=False</c> keeps them as ordinary columns, which is usually what you want next.</p></div></section><section class="sec"><h3>Several statistics at once<span class="tag">agg</span></h3><div class="secbody"><pre class="code">df.groupby('city')['sales'].agg(['sum', 'mean', 'count'])
+
+df.groupby('city').agg({
+    'sales': ['sum', 'mean'],
+    'qty':   'sum',
+    'id':    'nunique'})
+
+# named output columns - the clearest form
+df.groupby('city', as_index=False).agg(
+    total=('sales', 'sum'),
+    avg=('sales', 'mean'),
+    orders=('id', 'nunique'),
+    best=('sales', 'max'))</pre></div></section></div><div class="col"><section class="sec"><h3>What you can aggregate with<span class="tag">built in</span></h3><div class="secbody"><table class="wide"><tr><td>sum mean median</td><td>the usual</td></tr><tr><td>count</td><td>non-null values</td></tr><tr><td>size</td><td>rows, including NaN</td></tr><tr><td>min max first last</td><td>extremes and edges</td></tr><tr><td>nunique</td><td>distinct values</td></tr><tr><td>std var</td><td>spread</td></tr><tr><td>quantile(.9)</td><td>any percentile</td></tr><tr><td>idxmax idxmin</td><td>label of the extreme row</td></tr><tr><td>any all</td><td>boolean columns</td></tr><tr><td><c>lambda s: ...</c></td><td>anything else</td></tr></table><pre class="code">df.groupby('city')['sales'].agg(
+    lambda s: s.nlargest(3).sum())        # top-3 per city</pre></div></section><section class="sec hot"><h3>transform<span class="tag">group value, row shape</span></h3><div class="secbody"><pre class="code">df['city_total'] = df.groupby('city')['sales'].transform('sum')
+df['share'] = df.sales / df.groupby('city').sales.transform('sum')
+df['z'] = df.groupby('city')['sales'].transform(
+    lambda s: (s - s.mean()) / s.std())
+
+# fill missing with the group's own median
+df['price'] = df.groupby('city')['price'].transform(
+    lambda s: s.fillna(s.median()))</pre><p><b>agg</b> gives one row per group. <b>transform</b> gives one row per original row, so the result drops straight back into the frame.</p></div></section><section class="sec"><h3>filter<span class="tag">keep whole groups</span></h3><div class="secbody"><pre class="code">df.groupby('city').filter(lambda g: len(g) &gt;= 10)
+df.groupby('city').filter(lambda g: g.sales.sum() &gt; 1000)</pre></div></section></div><div class="col"><section class="sec"><h3>Per-group rows<span class="tag">head, nth, apply</span></h3><div class="secbody"><pre class="code">df.sort_values('sales', ascending=False) \
+  .groupby('city').head(3)          # top 3 rows per city
+
+df.groupby('city').nth(0)           # first row of each
+df.loc[df.groupby('city')['sales'].idxmax()]   # best row per city
+
+for name, g in df.groupby('city'):  # loop if you must
+    print(name, len(g))</pre></div></section><section class="sec"><h3>apply<span class="tag">a whole frame per group</span></h3><div class="secbody"><pre class="code">df.groupby('city').apply(
+    lambda g: g.nlargest(2, 'sales'),
+    include_groups=False)
+
+df.groupby('city').apply(
+    lambda g: (g.sales * g.qty).sum() / g.qty.sum(),
+    include_groups=False)      # weighted average</pre><p><c>apply</c> hands you each group as a DataFrame, so it can do what <c>agg</c> and <c>transform</c> cannot &#8212; but it is a Python loop, so reach for it last. Pass <c>include_groups=False</c>: since pandas 3.0 the grouping columns are no longer handed back to your function.</p></div></section><section class="sec"><h3>Grouping by something else<span class="tag">keys</span></h3><div class="secbody"><pre class="code">df.groupby(df['date'].dt.year)['sales'].sum()
+df.groupby(pd.cut(df.age, [0,18,65,120]), observed=True).size()
+df.groupby([df.city, df.date.dt.month])['sales'].sum()
+df.groupby('city', dropna=False)     # keep the NaN group
+df.groupby('city', observed=True)    # categories: skip empties</pre></div></section><section class="sec"><h3>Sorting the result<span class="tag">afterwards</span></h3><div class="secbody"><pre class="code">(df.groupby('city', as_index=False)['sales'].sum()
+   .sort_values('sales', ascending=False)
+   .head(10))</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Reshaping</h2><div class="sub">Wide to long and back. Most plotting and grouping wants long; most humans want wide.</div><div class="pn">13</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>The two shapes<span class="tag">vocabulary</span></h3><div class="secbody"><pre class="code ref"># LONG (tidy): one row per observation
+  city    month   sales
+  Pune    Jan     100
+  Pune    Feb     120
+  Delhi   Jan      90
+
+# WIDE: one row per subject, months as columns
+  city    Jan   Feb
+  Pune    100   120
+  Delhi    90   NaN</pre><p>Long is easier to compute with: every value has its labels beside it. Wide is easier to read. Switch freely with <c>pivot</c> and <c>melt</c>.</p></div></section><section class="sec"><h3>Long to wide<span class="tag">pivot</span></h3><div class="secbody"><pre class="code">df.pivot(index='city', columns='month', values='sales')
+
+# with duplicates, you must say how to combine them:
+df.pivot_table(index='city', columns='month',
+               values='sales', aggfunc='sum')</pre><p class="warn"><c>pivot</c> raises if an index/column pair appears twice. <c>pivot_table</c> aggregates instead &#8212; that is the only real difference.</p></div></section></div><div class="col"><section class="sec hot"><h3>pivot_table<span class="tag">the spreadsheet one</span></h3><div class="secbody"><pre class="code">pd.pivot_table(df,
+    index='city',
+    columns='month',
+    values='sales',
+    aggfunc='sum',
+    margins=True,          # adds an 'All' row and column
+    fill_value=0,
+    observed=True)
+
+pd.pivot_table(df, index=['country','city'],
+               values=['sales','qty'],
+               aggfunc={'sales':'sum', 'qty':'mean'})</pre><p class="note">This is an Excel pivot table with the same options, and it accepts several index levels and several value columns at once.</p></div></section><section class="sec"><h3>Wide to long<span class="tag">melt</span></h3><div class="secbody"><pre class="code">df.melt(id_vars=['city'],
+        value_vars=['jan', 'feb', 'mar'],
+        var_name='month',
+        value_name='sales')
+
+df.melt(id_vars='city')        # melt everything else</pre><pre class="code"># quarterly columns q1..q4 -&gt; one tidy column
+(df.melt(id_vars='id', value_vars=['q1','q2','q3','q4'],
+         var_name='quarter', value_name='revenue')
+   .sort_values(['id','quarter']))</pre></div></section></div><div class="col"><section class="sec"><h3>stack and unstack<span class="tag">index &#8596; columns</span></h3><div class="secbody"><pre class="code">df.stack()       # columns become an index level (long)
+df.unstack()     # an index level becomes columns (wide)
+df.unstack(level=0)
+
+g = df.groupby(['city','month'])['sales'].sum()
+g.unstack('month').fillna(0)     # tidy grid from a groupby</pre></div></section><section class="sec"><h3>crosstab<span class="tag">counts of combinations</span></h3><div class="secbody"><pre class="code">pd.crosstab(df.city, df.size)
+pd.crosstab(df.city, df.size, normalize='index')   # row shares
+pd.crosstab(df.city, df.size, values=df.sales, aggfunc='sum')
+pd.crosstab(df.city, df.size, margins=True)</pre></div></section><section class="sec"><h3>explode<span class="tag">lists into rows</span></h3><div class="secbody"><pre class="code">df = pd.DataFrame({'id': [1, 2], 'tags': [['a','b'], ['c']]})
+df.explode('tags')
+#  1 a / 1 b / 2 c
+
+df.assign(tag=df.tags.str.split(',')).explode('tag')</pre></div></section><section class="sec"><h3>Flattening after aggregation<span class="tag">tidy up</span></h3><div class="secbody"><pre class="code">out = df.groupby('city').agg({'sales':['sum','mean']})
+out.columns = ['_'.join(c) for c in out.columns]
+out = out.reset_index()
+# city, sales_sum, sales_mean</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Joining</h2><div class="sub">Putting two tables together: side by side on a key, or end to end.</div><div class="pn">14</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>merge<span class="tag">a SQL join</span></h3><div class="secbody"><pre class="code">pd.merge(orders, customers, on='customer_id')
+
+orders.merge(customers, on='customer_id', how='left')
+orders.merge(customers,
+             left_on='cust', right_on='id', how='left')
+orders.merge(prices, left_index=True, right_index=True)
+orders.merge(customers, on=['country','city'])   # several keys</pre><table class="wide"><tr><td>how='inner'</td><td>only keys in both &#8212; the default</td></tr><tr><td>how='left'</td><td>every row of the left, matched or not</td></tr><tr><td>how='right'</td><td>the mirror image</td></tr><tr><td>how='outer'</td><td>everything from both sides</td></tr><tr><td>how='cross'</td><td>every combination</td></tr></table></div></section><section class="sec"><h3>Check your joins<span class="tag">two arguments that save you</span></h3><div class="secbody"><pre class="code">a.merge(b, on='id', how='left',
+        validate='1:1',        # or '1:m', 'm:1'
+        indicator=True)        # adds _merge: both / left_only
+
+out['_merge'].value_counts()   # how many failed to match?</pre><p class="warn">If the right table has duplicate keys, a merge silently multiplies your rows. Compare <c>len(df)</c> before and after, every time.</p></div></section></div><div class="col"><section class="sec"><h3>After the merge<span class="tag">check and tidy</span></h3><div class="secbody"><pre class="code">before = len(orders)
+out = orders.merge(customers, on='cid', how='left')
+assert len(out) == before          # no accidental fan-out
+
+out['name'].isna().sum()           # unmatched rows
+
+# clashing column names get suffixes
+a.merge(b, on='id', suffixes=('_left', '_right'))</pre><pre class="code"># keys that do not match are usually a cleaning problem
+set(orders.cid) - set(customers.id)
+orders['cid'] = orders.cid.astype(str).str.strip()</pre></div></section><section class="sec"><h3>join<span class="tag">merge on the index</span></h3><div class="secbody"><pre class="code">left.join(right)                       # on the index
+left.join(right, on='key')             # left column to right index
+left.join([r1, r2])                    # several at once
+left.join(right, how='left', rsuffix='_r')</pre><p class="note"><c>join</c> is a thin convenience wrapper around <c>merge</c>. When in doubt, write the merge.</p></div></section></div><div class="col"><section class="sec"><h3>concat<span class="tag">stacking</span></h3><div class="secbody"><pre class="code">pd.concat([jan, feb, mar], ignore_index=True)     # rows
+pd.concat([a, b], axis=1)                        # columns
+pd.concat([jan, feb], keys=['jan','feb'])        # labelled source
+pd.concat([a, b], join='inner')                  # shared columns only
+
+dfs = [pd.read_csv(f) for f in files]
+all_data = pd.concat(dfs, ignore_index=True)</pre><p><c>concat</c> aligns on the other axis by label: stacking frames with different columns produces NaN rather than an error. Check <c>.columns</c> if you see unexpected gaps.</p></div></section><section class="sec"><h3>Filling from another table<span class="tag">combine</span></h3><div class="secbody"><pre class="code">a.combine_first(b)       # a's values, b's where a is NaN
+a.update(b)              # in place, b overwrites a
+
+df['region'] = df['city'].map(city_to_region)   # tiny lookups</pre></div></section><section class="sec"><h3>Nearby, not exact<span class="tag">merge_asof</span></h3><div class="secbody"><pre class="code">pd.merge_asof(trades.sort_values('time'),
+              quotes.sort_values('time'),
+              on='time', by='symbol',
+              direction='backward',
+              tolerance=pd.Timedelta('2min'))</pre><p class="note">Matches each row to the most recent earlier row in the other table &#8212; the standard tool for prices, sensors and logs.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Statistics &amp; windows</h2><div class="sub">Summary numbers, relationships between columns, and calculations over a moving window.</div><div class="pn">15</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Summaries<span class="tag">on a Series or frame</span></h3><div class="secbody"><pre class="code ref">s.sum()   s.mean()   s.median()   s.mode()
+s.min()   s.max()   s.std()   s.var()
+s.count()          # non-null
+s.quantile([.25, .5, .75])
+s.describe()
+s.abs()  s.round(2)  s.clip(0, 100)
+
+df.mean(numeric_only=True)
+df.sum(axis=1)                # across the row
+df.agg(['min', 'mean', 'max'])</pre><p class="note">Every one of these skips NaN by default. Pass <c>skipna=False</c> if a missing value should poison the result.</p></div></section><section class="sec"><h3>Counting<span class="tag">how many</span></h3><div class="secbody"><pre class="code ref">len(df)             df.shape[0]
+df['city'].nunique()
+df['city'].value_counts()
+df['flag'].sum()            # True counts as 1
+df['flag'].mean()           # the share that are True
+df['price'].gt(100).sum()   # how many above 100</pre></div></section></div><div class="col"><section class="sec"><h3>Relationships<span class="tag">correlation</span></h3><div class="secbody"><pre class="code">df['a'].corr(df['b'])                # -1 .. 1
+df.corr(numeric_only=True)           # every pair
+df.corr(method='spearman')           # ranks, not values
+df.cov()
+
+df.corr(numeric_only=True)['sales'].sort_values(ascending=False)</pre><p class="warn">Correlation measures a straight-line relationship only, and it is not causation. Plot the pair before you believe the number.</p></div></section><section class="sec"><h3>Running and cumulative<span class="tag">down the column</span></h3><div class="secbody"><pre class="code ref">s.cumsum()   s.cumprod()   s.cummax()   s.cummin()
+s.diff()                # change from the previous row
+s.pct_change()          # as a fraction
+s.shift(1)              # previous value
+s.shift(-1)             # next value
+
+df['growth'] = df.sales.pct_change().mul(100).round(1)</pre><p class="note">These respect row order, so sort by date first. Inside groups, use <c>df.groupby('city')['sales'].diff()</c>.</p></div></section></div><div class="col"><section class="sec hot"><h3>Rolling windows<span class="tag">moving averages</span></h3><div class="secbody"><pre class="code">s.rolling(7).mean()                 # 7-row moving average
+s.rolling(7, min_periods=1).mean()  # start immediately
+s.rolling(7).sum()   .std()   .max()
+s.rolling('30D').mean()             # needs a datetime index
+s.expanding().mean()                # everything so far
+s.ewm(span=10).mean()               # exponentially weighted
+
+df['ma7'] = df.groupby('city')['sales'] \
+              .transform(lambda s: s.rolling(7).mean())</pre></div></section><section class="sec"><h3>Normalising<span class="tag">comparable scales</span></h3><div class="secbody"><pre class="code">(s - s.mean()) / s.std()          # z-score
+(s - s.min()) / (s.max() - s.min())   # 0..1
+s / s.sum()                       # share of total
+s.rank(pct=True)                  # percentile</pre></div></section><section class="sec"><h3>Frequency tables<span class="tag">distribution</span></h3><div class="secbody"><pre class="code">df['price'].value_counts(bins=5)       # histogram as numbers
+pd.qcut(df.price, 4).value_counts().sort_index()
+df.groupby('city')['sales'].describe()</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Plotting</h2><div class="sub">One-line charts from a DataFrame, and enough matplotlib to make them presentable.</div><div class="pn">16</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>df.plot<span class="tag">built in</span></h3><div class="secbody"><pre class="code">import matplotlib.pyplot as plt
+
+df.plot(x='date', y='sales')                # line
+df.plot(kind='bar', x='city', y='sales')
+df['price'].plot(kind='hist', bins=30)
+df.plot(kind='scatter', x='price', y='qty')
+df['size'].value_counts().plot(kind='pie')
+df.plot(kind='box')
+plt.show()          # needed in a script, not in a notebook</pre><table class="plain"><tr><td>line</td><td>change over time</td></tr><tr><td>bar barh</td><td>compare categories</td></tr><tr><td>hist</td><td>one column's distribution</td></tr><tr><td>box</td><td>spread and outliers</td></tr><tr><td>scatter</td><td>two numeric columns</td></tr><tr><td>area</td><td>stacked totals</td></tr><tr><td>kde</td><td>smoothed distribution</td></tr><tr><td>pie</td><td>shares; use sparingly</td></tr></table></div></section><section class="sec"><h3>Straight from a groupby<span class="tag">the usual flow</span></h3><div class="secbody"><pre class="code">(df.groupby('city')['sales'].sum()
+   .sort_values(ascending=False)
+   .head(10)
+   .plot(kind='barh', title='Top cities'))
+
+df.set_index('date')['sales'].resample('ME').sum().plot()</pre></div></section></div><div class="col"><section class="sec"><h3>Making it readable<span class="tag">matplotlib bits</span></h3><div class="secbody"><pre class="code">ax = df.plot(x='date', y='sales', figsize=(10, 4),
+             title='Monthly sales', legend=False)
+ax.set_xlabel('')
+ax.set_ylabel('Revenue (INR)')
+ax.grid(axis='y', alpha=.3)
+ax.spines[['top','right']].set_visible(False)
+plt.tight_layout()
+plt.savefig('sales.png', dpi=150, bbox_inches='tight')</pre><p>Every pandas plot returns a matplotlib <b>Axes</b>. Anything you can do in matplotlib, you can do to that object afterwards.</p></div></section><section class="sec"><h3>Several panels<span class="tag">subplots</span></h3><div class="secbody"><pre class="code">fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+df.plot(ax=axes[0], x='date', y='sales')
+df['price'].plot(kind='hist', ax=axes[1], bins=20)
+axes[0].set_title('Trend'); axes[1].set_title('Prices')
+fig.tight_layout()
+
+df.hist(figsize=(12, 8))          # every numeric column
+df.plot(subplots=True, figsize=(10, 8))</pre></div></section></div><div class="col"><section class="sec"><h3>seaborn<span class="tag">statistics in one line</span></h3><div class="secbody"><pre class="code">import seaborn as sns
+sns.set_theme(style='whitegrid')
+
+sns.barplot(data=df, x='city', y='sales', estimator='sum')
+sns.lineplot(data=df, x='date', y='sales', hue='city')
+sns.histplot(data=df, x='price', bins=30, kde=True)
+sns.boxplot(data=df, x='city', y='price')
+sns.scatterplot(data=df, x='price', y='qty', hue='city')
+sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='vlag')
+sns.pairplot(df[['price','qty','sales']])</pre><p class="note">Seaborn wants <b>long</b> data: one row per observation, with the grouping variable in a column you pass to <c>hue</c>.</p></div></section><section class="sec"><h3>Choosing a chart<span class="tag">what to reach for</span></h3><div class="secbody"><table class="wide"><tr><td>One number over time</td><td>line</td></tr><tr><td>Compare a few categories</td><td>horizontal bar, sorted</td></tr><tr><td>Compare many categories</td><td>bar, sorted, top 10 only</td></tr><tr><td>Distribution of one column</td><td>histogram, then box</td></tr><tr><td>Two numeric columns</td><td>scatter</td></tr><tr><td>Parts of a whole</td><td>stacked bar, rarely a pie</td></tr><tr><td>Many pairs at once</td><td>correlation heatmap</td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>A whole analysis</h2><div class="sub">One question, start to finish. Every step here appears on an earlier page.</div><div class="pn">17</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>1  The question<span class="tag">write it down first</span></h3><div class="secbody"><p>&#8220;Which five cities grew fastest in the last quarter, and did discounting explain it?&#8221; A vague question produces a vague notebook. Name the number you want before you touch the data.</p></div></section><section class="sec"><h3>2  Load and keep the raw copy<span class="tag">never overwrite</span></h3><div class="secbody"><pre class="code">import pandas as pd, numpy as np
+import matplotlib.pyplot as plt
+
+raw = pd.read_csv('sales_2026.csv', parse_dates=['date'])
+print(raw.shape)
+raw.head()
+raw.info()</pre></div></section><section class="sec"><h3>3  Clean, in a function<span class="tag">repeatable</span></h3><div class="secbody"><pre class="code">def clean(d):
+    return (d
+        .rename(columns=str.lower)
+        .drop_duplicates('order_id')
+        .assign(
+            city=lambda x: x.city.str.strip().str.title(),
+            revenue=lambda x: pd.to_numeric(x.revenue,
+                                            errors='coerce'))
+        .dropna(subset=['city', 'date', 'revenue'])
+        .query('revenue &gt; 0')
+        .reset_index(drop=True))
+
+df = clean(raw)
+print(len(raw), '-&gt;', len(df))     # how much did I drop?</pre></div></section></div><div class="col"><section class="sec"><h3>4  Derive what the question needs<span class="tag">columns</span></h3><div class="secbody"><pre class="code">df['quarter'] = df.date.dt.to_period('Q')
+df['discount'] = 1 - df.revenue / df.list_price
+df['is_new'] = df.customer_age_days &lt; 30</pre></div></section><section class="sec"><h3>5  Aggregate<span class="tag">groupby</span></h3><div class="secbody"><pre class="code">q = (df.groupby(['city', 'quarter'], as_index=False)
+       .agg(revenue=('revenue', 'sum'),
+            orders=('order_id', 'nunique'),
+            disc=('discount', 'mean')))
+
+wide = q.pivot(index='city', columns='quarter',
+               values='revenue').fillna(0)
+
+last, prev = wide.columns[-1], wide.columns[-2]
+wide['growth'] = (wide[last] / wide[prev] - 1)
+
+top = wide.sort_values('growth', ascending=False).head(5)
+top[['growth']].style.format('{:.1%}')</pre></div></section><section class="sec"><h3>6  Check it before believing it<span class="tag">sanity</span></h3><div class="secbody"><pre class="code">df.revenue.sum(), q.revenue.sum()      # totals must match
+q.groupby('quarter').revenue.sum()     # any empty quarter?
+df[df.city.isin(top.index)].groupby('city').size()</pre></div></section></div><div class="col"><section class="sec"><h3>7  Answer the second half<span class="tag">the 'why'</span></h3><div class="secbody"><pre class="code">g = q[q.city.isin(top.index)]
+g.pivot(index='quarter', columns='city', values='disc')
+
+df.groupby('city')[['discount','revenue']].corr().iloc[0::2, 1]</pre></div></section><section class="sec"><h3>8  One chart<span class="tag">show, do not tell</span></h3><div class="secbody"><pre class="code">ax = (wide.loc[top.index, [prev, last]]
+          .plot(kind='barh', figsize=(8, 4),
+                title='Revenue, previous vs latest quarter'))
+ax.set_xlabel('Revenue'); ax.set_ylabel('')
+plt.tight_layout(); plt.savefig('growth.png', dpi=150)</pre></div></section><section class="sec"><h3>9  Export<span class="tag">hand it over</span></h3><div class="secbody"><pre class="code">top.to_csv('top_cities.csv')
+df.to_parquet('clean_sales.parquet')   # keeps dtypes
+
+with pd.ExcelWriter('report.xlsx') as xl:
+    top.to_excel(xl, sheet_name='growth')
+    q.to_excel(xl, sheet_name='detail', index=False)</pre></div></section><section class="sec"><h3>10  Write the finding<span class="tag">one paragraph</span></h3><div class="secbody"><p>Name the number, the size of the effect, and what would change your mind. &#8220;Revenue in these five cities rose 22&#8211;31% quarter on quarter, while average discount fell, so discounting does not explain the growth. Order counts rose too, which points at new customers.&#8221;</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Performance</h2><div class="sub">When a cell takes minutes instead of seconds, it is almost always one of these five things.</div><div class="pn">18</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Measure first<span class="tag">do not guess</span></h3><div class="secbody"><pre class="code sh">%time  df.groupby('city').sales.sum()      # one run
+%timeit df.groupby('city').sales.sum()      # best of many
+%%time                                      # the whole cell
+
+import time
+t = time.perf_counter(); work(); print(time.perf_counter() - t)
+
+df.memory_usage(deep=True).sum() / 1e6      # MB</pre></div></section><section class="sec hot"><h3>1  Stop looping<span class="tag">the big one</span></h3><div class="secbody"><pre class="code"># ~1000x slower
+for i, row in df.iterrows():
+    df.loc[i, 'total'] = row.price * row.qty
+
+# instant
+df['total'] = df.price * df.qty</pre><p><c>iterrows</c> builds a Series for every row. <c>apply(axis=1)</c> is only slightly better. If you can express it as column arithmetic, <c>np.where</c>, <c>map</c> or a <c>groupby</c>, do that instead.</p></div></section><section class="sec"><h3>2  Right dtypes<span class="tag">memory and speed</span></h3><div class="secbody"><pre class="code">df['city'] = df['city'].astype('category')   # repeated text
+df['n'] = pd.to_numeric(df.n, downcast='integer')
+df['x'] = df['x'].astype('float32')
+
+# read only what you need
+pd.read_csv(p, usecols=cols, dtype={'id':'int32'})</pre></div></section></div><div class="col"><section class="sec"><h3>3  Do not grow a frame<span class="tag">concat once</span></h3><div class="secbody"><pre class="code"># slow: copies everything each time
+for f in files:
+    df = pd.concat([df, pd.read_csv(f)])
+
+# fast: build a list, concat once
+parts = [pd.read_csv(f) for f in files]
+df = pd.concat(parts, ignore_index=True)</pre></div></section><section class="sec"><h3>4  Filter early<span class="tag">less data, fewer problems</span></h3><div class="secbody"><pre class="code"># read 1% of columns and 10% of rows before the heavy work
+(pd.read_csv(p, usecols=['date','city','sales'],
+             parse_dates=['date'])
+   .query('date &gt;= "2026-01-01"')
+   .groupby('city')['sales'].sum())</pre></div></section><section class="sec"><h3>5  Better storage<span class="tag">parquet</span></h3><div class="secbody"><pre class="code">df.to_parquet('data.parquet')     # 5-10x smaller than csv
+pd.read_parquet('data.parquet', columns=['a','b'])</pre><p class="note">Parquet stores columns separately, so reading two columns out of two hundred costs almost nothing.</p></div></section><section class="sec"><h3>The arrow backend<span class="tag">optional, faster</span></h3><div class="secbody"><pre class="code sh">pip install pyarrow
+
+pd.read_csv(p, dtype_backend='pyarrow')
+df.convert_dtypes(dtype_backend='pyarrow')</pre><p class="note">Arrow-backed columns use less memory, handle missing values in every dtype, and read parquet natively. Text already uses Arrow when it is installed.</p></div></section></div><div class="col"><section class="sec"><h3>Chunking<span class="tag">bigger than memory</span></h3><div class="secbody"><pre class="code">total = 0
+for chunk in pd.read_csv(p, chunksize=500_000):
+    total += chunk.query('ok').sales.sum()</pre></div></section><section class="sec"><h3>Faster expressions<span class="tag">eval and query</span></h3><div class="secbody"><pre class="code">df.eval('total = price * qty', inplace=True)
+df.query('price &gt; 100 and qty &lt; 5')</pre><p class="note">Both avoid building intermediate columns. The win shows up above roughly a million rows; below that, clarity matters more.</p></div></section><section class="sec"><h3>When pandas is the wrong tool<span class="tag">next steps</span></h3><div class="secbody"><table class="wide"><tr><td>polars</td><td>same ideas, multi-core, much faster; lazy mode</td></tr><tr><td>duckdb</td><td>SQL straight over your parquet or DataFrames</td></tr><tr><td>dask</td><td>pandas API across many cores or machines</td></tr><tr><td>numpy</td><td>drop to arrays for heavy pure maths</td></tr><tr><td>a database</td><td>if the data lives there, aggregate there</td></tr></table><pre class="code">import duckdb
+duckdb.sql('SELECT city, sum(sales) FROM df GROUP BY 1').df()</pre></div></section><section class="sec"><h3>Rules of thumb<span class="tag">rough numbers</span></h3><div class="secbody"><ul><li>Under 1M rows: almost anything is fast enough. Write it clearly.</li><li>1M&#8211;50M rows: dtypes, parquet and vectorisation matter.</li><li>Over 50M rows or bigger than RAM: chunking, duckdb, polars.</li><li>Always: read fewer columns, filter before you join.</li></ul></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Method index</h2><div class="sub">The methods worth knowing by name, grouped by what you are trying to do.</div><div class="pn">19</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Inspect<span class="tag">look</span></h3><div class="secbody"><table class="wide"><tr><td>head tail sample</td><td>peek at rows</td></tr><tr><td>shape size len</td><td>how big</td></tr><tr><td>info describe</td><td>types and summary</td></tr><tr><td>dtypes columns index</td><td>structure</td></tr><tr><td>value_counts unique nunique</td><td>categories</td></tr><tr><td>isna notna</td><td>missing</td></tr><tr><td>duplicated</td><td>repeats</td></tr><tr><td>memory_usage</td><td>bytes</td></tr><tr><td>select_dtypes filter</td><td>pick columns</td></tr></table></div></section><section class="sec"><h3>Select<span class="tag">subset</span></h3><div class="secbody"><table class="wide"><tr><td>loc iloc at iat</td><td>labels / positions / one cell</td></tr><tr><td>query where mask</td><td>conditions</td></tr><tr><td>isin between</td><td>membership, range</td></tr><tr><td>nlargest nsmallest</td><td>top and bottom</td></tr><tr><td>drop drop_duplicates</td><td>remove</td></tr><tr><td>sample</td><td>random rows</td></tr></table></div></section><section class="sec"><h3>Clean<span class="tag">fix</span></h3><div class="secbody"><table class="wide"><tr><td>fillna dropna interpolate</td><td>missing values</td></tr><tr><td>astype convert_dtypes</td><td>types</td></tr><tr><td>to_numeric to_datetime</td><td>parse</td></tr><tr><td>rename add_prefix</td><td>names</td></tr><tr><td>replace clip round abs</td><td>values</td></tr><tr><td>reset_index set_index</td><td>the index</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Transform<span class="tag">derive</span></h3><div class="secbody"><table class="wide"><tr><td>assign eval insert</td><td>new columns</td></tr><tr><td>apply map pipe</td><td>custom functions</td></tr><tr><td>cut qcut</td><td>bins</td></tr><tr><td>rank</td><td>ordering</td></tr><tr><td>shift diff pct_change</td><td>row-to-row change</td></tr><tr><td>cumsum cumprod cummax</td><td>running totals</td></tr><tr><td>rolling expanding ewm</td><td>windows</td></tr><tr><td>get_dummies</td><td>one-hot columns</td></tr><tr><td>explode</td><td>lists to rows</td></tr></table></div></section><section class="sec"><h3>Aggregate<span class="tag">summarise</span></h3><div class="secbody"><table class="wide"><tr><td>sum mean median mode</td><td>central</td></tr><tr><td>min max idxmin idxmax</td><td>extremes</td></tr><tr><td>std var quantile</td><td>spread</td></tr><tr><td>count size nunique</td><td>counts</td></tr><tr><td>corr cov</td><td>relationships</td></tr><tr><td>groupby agg transform filter</td><td>per group</td></tr><tr><td>resample asfreq</td><td>per time period</td></tr><tr><td>any all</td><td>booleans</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Reshape and combine<span class="tag">structure</span></h3><div class="secbody"><table class="wide"><tr><td>pivot pivot_table</td><td>long to wide</td></tr><tr><td>melt</td><td>wide to long</td></tr><tr><td>stack unstack</td><td>index &#8596; columns</td></tr><tr><td>crosstab</td><td>count combinations</td></tr><tr><td>merge join</td><td>side by side on a key</td></tr><tr><td>concat</td><td>end to end</td></tr><tr><td>combine_first update</td><td>fill from another frame</td></tr><tr><td>merge_asof</td><td>nearest-time match</td></tr><tr><td>transpose (.T)</td><td>flip the frame</td></tr></table></div></section><section class="sec"><h3>Sort and order<span class="tag">arrange</span></h3><div class="secbody"><table class="wide"><tr><td>sort_values sort_index</td><td>by value / label</td></tr><tr><td>rank</td><td>position within the column</td></tr><tr><td>reindex</td><td>force a set of labels</td></tr><tr><td>reorder columns</td><td><c>df[['b','a']]</c></td></tr></table></div></section><section class="sec"><h3>In and out<span class="tag">i/o</span></h3><div class="secbody"><table class="wide"><tr><td>read_csv to_csv</td><td>text</td></tr><tr><td>read_excel to_excel</td><td>spreadsheets</td></tr><tr><td>read_parquet to_parquet</td><td>fast, typed</td></tr><tr><td>read_json to_json</td><td>json</td></tr><tr><td>read_sql to_sql</td><td>databases</td></tr><tr><td>read_clipboard to_clipboard</td><td>quick paste</td></tr><tr><td>to_markdown</td><td>for a README</td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Gotchas &amp; habits</h2><div class="sub">The mistakes that give you a plausible wrong answer, and the habits that prevent them.</div><div class="pn">20</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>The traps<span class="tag">learn these once</span></h3><div class="secbody"><table class="wide"><tr><td>Chained assignment</td><td><c>df[m]['c'] = 1</c> writes to a temporary and is lost. Use <c>df.loc[m, 'c'] = 1</c></td></tr><tr><td>Text is <c>str</c>, not <c>object</c></td><td>since 3.0 <c>select_dtypes('object')</c> no longer finds text columns</td></tr><tr><td><c>and</c> / <c>or</c> in a mask</td><td>use <c>&amp;</c> <c>|</c> <c>~</c> and bracket each condition</td></tr><tr><td>Merge fan-out</td><td>duplicate keys multiply rows &#8212; check <c>len</c> before and after</td></tr><tr><td>Index alignment</td><td>arithmetic matches labels, not order; <c>reset_index(drop=True)</c> first</td></tr><tr><td><c>NaN == NaN</c></td><td>is False; use <c>.isna()</c></td></tr><tr><td>NaN in groupby keys</td><td>rows are dropped unless <c>dropna=False</c></td></tr><tr><td>int becomes float</td><td>any NaN converts the column; use <c>Int64</c></td></tr><tr><td><c>inplace=True</c></td><td>no faster and it breaks chaining &#8212; reassign instead</td></tr><tr><td><c>apply</c> on rows</td><td>usually a slow loop in disguise</td></tr><tr><td>Forgetting <c>index=False</c></td><td>gives an <c>Unnamed: 0</c> column next time</td></tr><tr><td>Mutating the raw frame</td><td>keep <c>raw</c> untouched and work on a copy</td></tr><tr><td>Float equality</td><td><c>0.1+0.2 != 0.3</c>; use <c>np.isclose</c></td></tr></table></div></section><section class="sec"><h3>Reading an error<span class="tag">common messages</span></h3><div class="secbody"><table class="wide"><tr><td>KeyError: 'sales'</td><td>no such column &#8212; check <c>df.columns</c> for spaces or case</td></tr><tr><td>ValueError: truth value ambiguous</td><td>you used <c>and</c>/<c>or</c> on a Series</td></tr><tr><td>cannot reindex on duplicate axis</td><td>duplicate index labels; <c>reset_index</c></td></tr><tr><td>MergeError</td><td><c>validate=</c> caught unexpected duplicate keys</td></tr><tr><td>could not convert string to float</td><td>junk in a numeric column; <c>errors='coerce'</c></td></tr><tr><td>AttributeError: 'Series' has no 'str'</td><td>the column is not text yet</td></tr><tr><td>ChainedAssignmentError</td><td>you wrote through two brackets; use one <c>.loc</c></td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Debugging a chain<span class="tag">find the bad step</span></h3><div class="secbody"><pre class="code">(df
+ .query('sales &gt; 0')
+ .pipe(lambda d: (print(d.shape), d)[1])   # peek mid-chain
+ .groupby('city').sales.sum())
+
+# or break it up while you investigate
+step1 = df.query('sales &gt; 0')
+step2 = step1.groupby('city').sales.sum()</pre></div></section><section class="sec"><h3>Habits worth forming<span class="tag">from day one</span></h3><div class="secbody"><ul><li>Keep <c>raw</c> untouched; clean into a new name.</li><li>Put cleaning in a function so it runs the same way twice.</li><li>Check <c>len(df)</c> before and after every merge and filter.</li><li>Prefer chains with <c>assign</c>/<c>query</c> over ten intermediate names.</li><li>State the question in a comment above the cell.</li><li>Sanity-check totals against a number you already trust.</li><li>Save the cleaned frame as parquet so you do not re-clean it.</li><li>Move settled analysis out of the notebook into a <c>.py</c> file.</li></ul></div></section></div><div class="col"><section class="sec"><h3>Assertions as guard rails<span class="tag">cheap insurance</span></h3><div class="secbody"><pre class="code">assert df['id'].is_unique
+assert df['price'].ge(0).all()
+assert df['date'].between('2020-01-01', '2030-01-01').all()
+assert len(out) == len(orders), 'merge changed the row count'
+assert set(df.columns) &gt;= {'id', 'date', 'revenue'}</pre><pre class="code">from pandas.testing import assert_frame_equal
+assert_frame_equal(cleaned, expected)   # in your tests</pre></div></section><section class="sec"><h3>Where to look things up<span class="tag">sources</span></h3><div class="secbody"><table class="wide"><tr><td>pandas.pydata.org</td><td>the user guide is genuinely good</td></tr><tr><td>df.method?</td><td>the docstring, without leaving the notebook</td></tr><tr><td>&#8220;pandas cookbook&#8221;</td><td>recipes for awkward reshapes</td></tr><tr><td>Release notes</td><td>the API moves; check what changed in 2.x</td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="dense"><div class="stage"><div class="spine"><span>PANDAS</span></div><div class="head"><h2>Pandas &#8212; one sheet</h2><div class="sub">Everything on a single screen. Press F for the full manual with explanations.</div><div class="pn">1 / 1</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Setup<span class="tag">imports</span></h3><div class="secbody"><pre class="code sh">pip install pandas numpy \
+    matplotlib seaborn pyarrow
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+pd.set_option(
+  'display.max_columns', None)</pre></div></section><section class="sec"><h3>Build</h3><div class="secbody"><pre class="code">s = pd.Series([1,2,3])
+df = pd.DataFrame({
+  'city': ['Pune','Delhi'],
+  'sales': [100, 90]})
+pd.DataFrame(rows)  # list of dicts</pre></div></section><section class="sec"><h3>Inspect</h3><div class="secbody"><pre class="code ref">df.shape   len(df)
+df.head()  df.tail()  df.sample(5)
+df.info()  df.describe()
+df.dtypes  df.columns  df.index
+df['c'].value_counts()
+df['c'].nunique()  .unique()
+df.isna().sum()
+df.duplicated().sum()
+df.memory_usage(deep=True)</pre></div></section><section class="sec"><h3>Load / save</h3><div class="secbody"><pre class="code">pd.read_csv(p, sep=',',
+  usecols=['a'], dtype={'z':str},
+  parse_dates=['d'], nrows=1000,
+  na_values=['NA','-'],
+  encoding='utf-8')
+pd.read_excel/json/parquet/sql
+pd.read_html(url)[0]
+
+df.to_csv(p, index=False)
+df.to_parquet(p)   # keeps dtypes
+df.to_excel(p, index=False)</pre></div></section></div><div class="col"><section class="sec"><h3>Select<span class="tag">loc / iloc</span></h3><div class="secbody"><pre class="code ref">df['a']       # Series
+df[['a','b']] # DataFrame
+df.loc[0, 'a']      # by LABEL
+df.loc[0:2]   # 0,1,2 inclusive
+df.loc[mask, ['a','b']]
+df.iloc[0]    # by POSITION
+df.iloc[0:2]  # 0,1 exclusive
+df.iloc[-1]   df.iloc[:, 0]
+df.at[0,'a']  df.iat[0,0]
+df.select_dtypes('number')
+df.filter(like='date')</pre></div></section><section class="sec"><h3>Filter</h3><div class="secbody"><pre class="code ref">df[df.sales &gt; 100]
+df[(df.a&gt;1) &amp; (df.b=='x')]
+df[(df.a&gt;1) | ~(df.b=='x')]
+# &amp;  |  ~   never and/or/not
+df[df.c.isin(['a','b'])]
+df[df.p.between(1, 9)]
+df[df.c.str.contains('x',
+     case=False, na=False)]
+df[df.p.isna()]  df[df.p.notna()]
+df.query('a &gt; 1 and b == "x"')
+df.query('a &gt; @limit')</pre></div></section><section class="sec"><h3>Sort / top</h3><div class="secbody"><pre class="code ref">df.sort_values('a')
+df.sort_values(['a','b'],
+  ascending=[True, False])
+df.sort_index()
+df.nlargest(5, 'sales')
+df.nsmallest(3, 'p')
+df.a.idxmax()  df.a.rank()
+df.drop(columns=['x'])
+df.reset_index(drop=True)</pre></div></section><section class="sec"><h3>Missing</h3><div class="secbody"><pre class="code">df.isna().sum()
+df.p.fillna(0)
+df.p.fillna(df.p.median())
+df.p.ffill()  .bfill()
+df.p.interpolate()
+df.dropna(subset=['p'])
+df.dropna(axis=1, thresh=3)
+# NaN NaT None pd.NA</pre></div></section></div><div class="col"><section class="sec"><h3>Duplicates / types</h3><div class="secbody"><pre class="code">df.drop_duplicates('id',
+  keep='last')
+df.astype({'n':'float'})
+pd.to_numeric(s, errors='coerce')
+pd.to_datetime(s, errors='coerce')
+df.convert_dtypes()
+df['c'] = df.c.astype('category')
+df['n'] = df.n.astype('Int64')</pre></div></section><section class="sec"><h3>Tidy names</h3><div class="secbody"><pre class="code">df.columns = (df.columns
+  .str.strip().str.lower()
+  .str.replace(' ','_'))
+df.rename(columns={'a':'b'})</pre></div></section><section class="sec"><h3>New columns</h3><div class="secbody"><pre class="code">df['t'] = df.price * df.qty
+df = df.assign(
+  t=lambda d: d.price*d.qty,
+  s=lambda d: d.t/d.t.sum())
+df['b'] = np.where(df.t&gt;10,'hi','lo')
+df['b'] = np.select(
+  [df.t&gt;50, df.t&gt;10],
+  ['hi','mid'], default='lo')
+df['x'] = df.c.map({'a':1})
+df['q'] = pd.cut(df.age,
+  [0,18,65,120], labels=[...])
+df['q'] = pd.qcut(df.p, 4)
+# apply(axis=1) = slow loop</pre></div></section><section class="sec"><h3>Strings<span class="tag">.str</span></h3><div class="secbody"><pre class="code ref">s = df['city'].str
+s.lower() .upper() .title()
+s.strip()  .len()  .zfill(5)
+s.contains('x', na=False)
+s.startswith('D')  .endswith('i')
+s.replace('-',' ', regex=False)
+s.split(',', expand=True)
+s.extract(r'([A-Z]{2})-(\d+)')
+s.get(0)   s[0:3]   s.cat(sep=',')
+df.tags.str.split(',').explode()</pre></div></section><section class="sec"><h3>Categories</h3><div class="secbody"><pre class="code">df.c = df.c.astype('category')
+df.c.cat.categories  .cat.codes
+pd.CategoricalDtype(
+  ['S','M','L'], ordered=True)
+pd.get_dummies(df, columns=['c'])</pre></div></section></div><div class="col"><section class="sec"><h3>Dates<span class="tag">.dt</span></h3><div class="secbody"><pre class="code ref">df.d = pd.to_datetime(df.d,
+  format='%d/%m/%Y',
+  errors='coerce')
+pd.date_range('2026-01-01',
+  periods=12, freq='MS')
+d = df.d.dt
+d.year .month .day .hour
+d.dayofweek  d.day_name()
+d.quarter  d.to_period('M')
+d.strftime('%Y-%m')
+d.floor('h')  d.normalize()
+df.d + pd.Timedelta(days=7)
+(df.b - df.a).dt.days</pre></div></section><section class="sec"><h3>Resample</h3><div class="secbody"><pre class="code">ts = df.set_index('date')
+ts.sales.resample('D').sum()
+ts.sales.resample('ME').mean()
+ts.loc['2026-01':'2026-03']
+ts.sales.rolling(7).mean()
+ts.sales.shift(1) .diff()
+ts.sales.pct_change()
+ts.sales.cumsum()</pre></div></section><section class="sec"><h3>GroupBy<span class="tag">split-apply-combine</span></h3><div class="secbody"><pre class="code">df.groupby('c').sales.sum()
+df.groupby('c').size()
+df.groupby(['a','b']).sales.mean()
+df.groupby('c', as_index=False)\
+  .agg(total=('sales','sum'),
+       n=('id','nunique'),
+       avg=('sales','mean'))
+
+# one value per ORIGINAL row
+df['tot'] = df.groupby('c')\
+  .sales.transform('sum')
+df['share'] = df.sales/df['tot']
+
+df.groupby('c').filter(
+  lambda g: len(g) &gt;= 10)
+df.sort_values('sales',
+  ascending=False)\
+  .groupby('c').head(3)
+# sum mean median count size
+# min max nunique std quantile
+# first last idxmax any all</pre></div></section></div><div class="col"><section class="sec"><h3>Reshape</h3><div class="secbody"><pre class="code ref">df.pivot(index='c',
+  columns='m', values='v')
+pd.pivot_table(df, index='c',
+  columns='m', values='v',
+  aggfunc='sum', margins=True,
+  fill_value=0)
+df.melt(id_vars='c',
+  value_vars=['q1','q2'],
+  var_name='q', value_name='v')
+df.stack()  df.unstack()
+pd.crosstab(df.a, df.b)
+df.explode('tags')</pre></div></section><section class="sec"><h3>Join</h3><div class="secbody"><pre class="code">a.merge(b, on='id', how='left')
+# inner left right outer cross
+a.merge(b, left_on='x',
+  right_on='y', how='left',
+  validate='m:1', indicator=True)
+a.merge(b, suffixes=('_l','_r'))
+pd.concat([a,b],
+  ignore_index=True)   # rows
+pd.concat([a,b], axis=1) # cols
+a.combine_first(b)
+pd.merge_asof(t, q, on='time')</pre><p class="warn">Check <c>len(df)</c> before and after every merge.</p></div></section><section class="sec"><h3>Stats</h3><div class="secbody"><pre class="code ref">s.sum() .mean() .median()
+s.std() .var() .min() .max()
+s.quantile([.25,.5,.75])
+s.count()  s.describe()
+df.corr(numeric_only=True)
+df.a.corr(df.b)
+df.sum(axis=1)  # across a row
+s.clip(0,100)  s.round(2)</pre></div></section><section class="sec"><h3>Plot</h3><div class="secbody"><pre class="code">df.plot(x='date', y='sales')
+df.plot(kind='bar', x='c', y='v')
+df.p.plot(kind='hist', bins=30)
+df.plot(kind='scatter',
+  x='p', y='q')
+ax = df.plot(figsize=(10,4),
+  title='Sales')
+ax.set_ylabel('INR')
+plt.tight_layout()
+plt.savefig('a.png', dpi=150)
+sns.barplot(data=df,x='c',y='v')
+sns.heatmap(df.corr(), annot=True)</pre></div></section></div><div class="col"><section class="sec"><h3>Speed</h3><div class="secbody"><pre class="code sh">%timeit expr
+df.memory_usage(deep=True).sum()
+# never: for i,r in df.iterrows()
+# always: column arithmetic
+df.c = df.c.astype('category')
+pd.read_csv(p, usecols=cols,
+  chunksize=500_000)
+df.to_parquet(p)</pre></div></section><section class="sec"><h3>NumPy<span class="tag">underneath</span></h3><div class="secbody"><pre class="code ref">a = np.array([1,2,3])
+np.arange(0,10,2) np.zeros(5)
+np.linspace(0,1,5)
+a.shape .dtype .ndim
+a * 2   a + b   np.sqrt(a)
+a[a &gt; 2]   a.sum(axis=0)
+np.where(c, x, y)
+np.select([c1,c2],[v1,v2],'d')
+np.nan  np.isnan(x)
+a.reshape(-1,1)  a.mean()</pre></div></section><section class="sec"><h3>Chain style<span class="tag">house style</span></h3><div class="secbody"><pre class="code">out = (df
+  .query('sales &gt; 0')
+  .assign(m=lambda d: d.p/d.c)
+  .groupby('city', as_index=False)
+  .agg(total=('sales','sum'))
+  .sort_values('total',
+     ascending=False)
+  .head(10))</pre></div></section><section class="sec"><h3>Workflow<span class="tag">order of work</span></h3><div class="secbody"><p class="note">read &#8594; <c>shape/info/describe</c> &#8594; clean in a function &#8594; derive columns &#8594; group &#8594; check totals &#8594; plot &#8594; export parquet. Keep <c>raw</c> untouched.</p></div></section><section class="sec"><h3>Gotchas</h3><div class="secbody"><p class="note"><c>df.loc[m,'c']=1</c>, never chained brackets &#183; <c>.copy()</c> a slice you will edit &#183; <c>&amp; | ~</c> not and/or/not &#183; merges can multiply rows &#183; maths aligns on the index &#183; NaN turns ints into floats &#183; <c>index=False</c> when writing csv</p></div></section></div></div></div></div></section></div>
+<script>var LANG_DEFAULT="py";
+var PY_KW="False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case self cls";
+var PY_BI="print len range int str float list dict set tuple bool abs all any enumerate zip map filter sorted sum min max open input type isinstance issubclass super round pow divmod repr format reversed next iter id hash dir vars getattr setattr hasattr delattr callable chr ord bin hex oct complex bytes bytearray memoryview frozenset slice staticmethod classmethod property object exec eval globals locals ascii breakpoint compile help aiter anext";
+var C_KW="auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while _Bool bool true false NULL";
+var C_BI="printf scanf puts putchar getchar fgets fputs fopen fclose fread fwrite fprintf fscanf sprintf snprintf sscanf malloc calloc realloc free exit atoi atof strtol rand srand qsort bsearch abs strlen strcpy strncpy strcat strncat strcmp strncmp strchr strstr strtok memcpy memmove memset memcmp size_t FILE int8_t int16_t int32_t int64_t uint8_t uint32_t uint64_t va_list va_start va_arg va_end assert";
+function setOf(s){var o={},a=s.split(" "),i;for(i=0;i<a.length;i++)o[a[i]]=1;return o}
+var S={py:{kw:setOf(PY_KW),bi:setOf(PY_BI)},c:{kw:setOf(C_KW),bi:setOf(C_BI)}};
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function highlight(src,lang){
+  var re=lang==="c"
+    ?/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(^[ \t]*#[a-zA-Z]+)|("(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*')|(\b\d[\w.]*\b)|([A-Za-z_]\w*)/gm
+    :/(#[^\n]*)|(\x22{3}[\s\S]*?\x22{3}|'{3}[\s\S]*?'{3}|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*')|(@[A-Za-z_]\w*)|(\b\d[\w.]*\b)|([A-Za-z_]\w*)/g;
+  var out="",last=0,m,t=S[lang]||S.py;
+  while((m=re.exec(src))!==null){
+    out+=esc(src.slice(last,m.index));last=re.lastIndex;
+    if(m[1])out+='<span class="cm">'+esc(m[1])+"</span>";
+    else if(m[2])out+='<span class="'+(lang==="c"?"pp":"st")+'">'+esc(m[2])+"</span>";
+    else if(m[3])out+='<span class="'+(lang==="c"?"st":"pp")+'">'+esc(m[3])+"</span>";
+    else if(m[4])out+='<span class="nu">'+esc(m[4])+"</span>";
+    else if(m[5]){var w=m[5];
+      if(t.kw[w])out+='<span class="kw">'+w+"</span>";
+      else if(t.bi[w])out+='<span class="bi">'+w+"</span>";
+      else out+=esc(w);}
+  }
+  out+=esc(src.slice(last));
+  return out;
+}
+var pages=[],cur=0,zoom=1,dense=false,LANG="py";
+function vis(){return pages.filter(function(p){return p.dataset.mode===(dense?"dense":"full")})}
+function layout(){
+  var bar=document.querySelector(".bar").offsetHeight;
+  var vw=window.innerWidth-24,vh=window.innerHeight-bar-46;
+  var s=Math.min(vw/1600,vh/900);
+  if(!isFinite(s)||s<=0)s=.5;
+  document.documentElement.style.setProperty("--s",(s*zoom).toFixed(4));
+}
+function autofit(){
+  pages.forEach(function(p){
+    var g=p.querySelector(".grid"),b=p.querySelector(".body");
+    if(!g||!b)return;
+    g.style.setProperty("--k",1);
+    var avail=b.clientHeight-2,need=g.scrollHeight;
+    var k=need>avail?Math.max(.55,avail/need):1;
+    g.style.setProperty("--k",k.toFixed(4));
+  });
+}
+function show(i){
+  var v=vis();if(!v.length)return;
+  cur=Math.max(0,Math.min(i,v.length-1));
+  pages.forEach(function(p){p.classList.remove("on")});
+  v[cur].classList.add("on");
+  document.getElementById("count").textContent=(cur+1)+" / "+v.length;
+  window.scrollTo(0,0);
+}
+function setMode(d){
+  dense=d;document.body.classList.toggle("dense",d);
+  document.getElementById("mDense").classList.toggle("on",d);
+  document.getElementById("mFull").classList.toggle("on",!d);
+  zoom=1;cur=0;layout();show(0);autofit();
+  try{localStorage.setItem("refmode",d?"dense":"full")}catch(e){}
+}
+function setZoom(z){zoom=Math.max(.5,Math.min(4,z));layout()}
+function toggleIdx(){
+  var b=document.getElementById("idx");
+  b.classList.toggle("on");
+  if(b.classList.contains("on"))document.getElementById("q").focus();
+  else{var q=document.getElementById("q");q.value="";search("")}
+}
+function goto_(i){document.getElementById("idx").classList.remove("on");if(dense)setMode(false);show(i)}
+var INDEX=[],HITS=[],TOC="";
+function buildIndex(){
+  INDEX=[];
+  pages.forEach(function(p,i){
+    if(p.dataset.mode!=="full")return;
+    var h2=p.querySelector(".head h2"), pt=h2?h2.textContent:"Start here";
+    p.querySelectorAll(".sec").forEach(function(sec){
+      var h3=sec.querySelector("h3");
+      INDEX.push({page:i,pageTitle:pt,
+        title:h3?h3.childNodes[0].textContent.trim():"",
+        text:sec.textContent.toLowerCase(),el:sec});
+    });
+  });
+}
+function esc2(t){return t.replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function search(q){
+  var box=document.getElementById("idx"), out=document.getElementById("idxbody");
+  q=(q||"").trim().toLowerCase();
+  if(!q){out.innerHTML=TOC;box.querySelector("h4").textContent="Contents";HITS=[];return}
+  var term=q,note="";
+  HITS=INDEX.filter(function(r){return r.text.indexOf(term)>-1});
+  while(!HITS.length&&term.length>4){
+    term=term.slice(0,-1);note=" (broadened to \u201c"+term+"\u201d)";
+    HITS=INDEX.filter(function(r){return r.text.indexOf(term)>-1});
+  }
+  HITS=HITS.slice(0,40);
+  box.querySelector("h4").textContent=HITS.length+" match"+(HITS.length===1?"":"es")+
+    " for \u201c"+q+"\u201d"+note;
+  out.innerHTML='<div class="hits">'+(HITS.length?HITS.map(function(r,n){
+    return '<button class="hit" type="button" data-hit="'+n+'"><b>'+esc2(r.title)+
+           '</b> <i>&#183; '+esc2(r.pageTitle)+'</i></button>'}).join("")
+    :'<div class="none">Nothing matches. Try a shorter word.</div>')+'</div>';
+}
+function openHit(n){
+  var r=HITS[n];if(!r)return;
+  document.getElementById("idx").classList.remove("on");
+  if(dense)setMode(false);
+  show(r.page);
+  r.el.classList.add("flash");
+  setTimeout(function(){r.el.classList.remove("flash")},2200);
+}
+function init(){
+  pages=[].slice.call(document.querySelectorAll(".page"));
+  TOC=document.getElementById("idxbody").innerHTML;
+  document.querySelectorAll("pre.code").forEach(function(el){
+    el.innerHTML=highlight(el.textContent,el.dataset.lang||LANG);
+    var raw=el.textContent;
+    var b=document.createElement("button");
+    b.className="cp";b.type="button";b.textContent="copy";
+    b.setAttribute("aria-label","Copy this code");
+    b.onclick=function(ev){
+      ev.stopPropagation();
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(raw).then(function(){
+          b.textContent="copied";setTimeout(function(){b.textContent="copy"},1200);
+        },function(){b.textContent="failed";setTimeout(function(){b.textContent="copy"},1200)});
+      }
+    };
+    el.appendChild(b);
+  });
+  buildIndex();
+  document.getElementById("mDense").onclick=function(){setMode(true)};
+  document.getElementById("mFull").onclick=function(){setMode(false)};
+  document.getElementById("bPrev").onclick=function(){show(cur-1)};
+  document.getElementById("bNext").onclick=function(){show(cur+1)};
+  document.getElementById("bIdx").onclick=function(){toggleIdx()};
+  var qbox=document.getElementById("q");
+  qbox.addEventListener("input",function(){
+    if(this.value)document.getElementById("idx").classList.add("on");
+    search(this.value);
+  });
+  qbox.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){openHit(0);this.blur()}
+    else if(e.key==="Escape"){this.value="";search("");this.blur();
+      document.getElementById("idx").classList.remove("on")}
+    e.stopPropagation();
+  });
+  document.getElementById("bInk").onclick=function(){
+    document.body.classList.toggle("paper");this.classList.toggle("on");
+    try{localStorage.setItem("refink",document.body.classList.contains("paper")?"1":"0")}catch(e){}
+  };
+  document.getElementById("bPrint").onclick=function(){window.print()};
+  document.getElementById("idx").onclick=function(e){if(e.target===this)this.classList.remove("on")};
+  document.addEventListener("click",function(e){
+    if(!e.target.closest)return;
+    var a=e.target.closest("[data-go]");
+    if(a){e.preventDefault();goto_(parseInt(a.getAttribute("data-go"),10));return}
+    var h=e.target.closest("[data-hit]");
+    if(h){e.preventDefault();openHit(parseInt(h.getAttribute("data-hit"),10))}
+  });
+  document.addEventListener("keydown",function(e){
+    if((e.key!=="Enter"&&e.key!==" ")||!e.target.closest)return;
+    var a=e.target.closest("[data-go]");
+    if(a){e.preventDefault();goto_(parseInt(a.getAttribute("data-go"),10))}
+  });
+  document.addEventListener("keydown",function(e){
+    var k=e.key, tag=(e.target.tagName||"").toLowerCase();
+    if(tag==="input"||tag==="textarea")return;
+    if(k==="/"){e.preventDefault();document.getElementById("idx").classList.add("on");
+      document.getElementById("q").focus();return}
+    if(document.getElementById("idx").classList.contains("on")
+       &&k!=="Escape"&&k!=="m"&&k!=="M")return;
+    if(k==="ArrowRight"||k==="PageDown"||k===" "){show(cur+1);e.preventDefault()}
+    else if(k==="ArrowLeft"||k==="PageUp"){show(cur-1);e.preventDefault()}
+    else if(k==="Home")show(0);
+    else if(k==="End")show(999);
+    else if(k==="d"||k==="D")setMode(true);
+    else if(k==="f"||k==="F")setMode(false);
+    else if(k==="m"||k==="M")toggleIdx();
+    else if(k==="Escape"){document.getElementById("idx").classList.remove("on");
+      var qq=document.getElementById("q");qq.value="";search("")}
+    else if(k==="+"||k==="=")setZoom(zoom+.25);
+    else if(k==="-"||k==="_")setZoom(zoom-.25);
+    else if(k==="0")setZoom(1);
+  });
+  window.addEventListener("resize",function(){layout();autofit()});
+  var m="full",ink=null;
+  try{m=localStorage.getItem("refmode")||"full";ink=localStorage.getItem("refink")}catch(e){}
+  if(ink===null)
+    ink=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)?"1":"0";
+  if(ink==="1"){document.body.classList.add("paper");document.getElementById("bInk").classList.add("on")}
+  setMode(m==="dense");
+  layout();show(0);autofit();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){layout();autofit()});
+  setTimeout(function(){layout();autofit()},350);
+}
+document.addEventListener("DOMContentLoaded",init);
+
+LANG="py";
+</script>
+</body></html>

@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>C field manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0b0b0c; --acid:#3fd0e0; --accf:#229fb0; --acid2:#6fb0bb; --paper:#e9e9ea; --onfill:#0b0b0c;
+  --ash:#8f9092; --rule:#37383a; --str:#cfd0d2;
+  --s:1; --pscale:.663;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body.paper{--void:#fff;--paper:#1c1c1e;--acid:#0c6675;--accf:#cbe8ee;--onfill:#141416;
+  --acid2:#155f6b;--ash:#5a5c5e;--rule:#c9c9cc;--str:#3a3c3e}
+html,body{margin:0;padding:0;background:var(--void);color:var(--paper);
+  font-family:"JetBrains Mono",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace}
+body{min-height:100%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ---------- chrome ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;display:flex;gap:10px;align-items:center;
+  flex-wrap:wrap;padding:8px 12px;background:var(--void);border-bottom:3px solid var(--accf)}
+.mark{font-family:"Archivo Black",Impact,sans-serif;font-size:15px;letter-spacing:-.04em;color:var(--acid)}
+.mark b{color:var(--paper);font-weight:400}
+.btn{font:700 11px/1 "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--void);color:var(--paper);border:2px solid var(--rule);padding:7px 9px;cursor:pointer}
+.btn:hover{border-color:var(--acid);color:var(--acid)}
+.btn.on{background:var(--accf);color:var(--onfill);border-color:var(--accf)}
+.btn:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+.spacer{flex:1}
+.count{font:700 12px/1 "JetBrains Mono",monospace;color:var(--onfill);background:var(--accf);padding:7px 9px}
+.hint{font-size:10px;color:var(--ash);letter-spacing:.04em}
+
+/* ---------- deck ---------- */
+.deck{display:flex;flex-direction:column;align-items:stretch;gap:22px;padding:18px 10px 60px}
+.page{display:none;position:relative;margin:0 auto;width:calc(1600px * var(--s));height:calc(900px * var(--s));flex:none}
+.page.on{display:block}
+.stage{position:absolute;top:0;left:0;width:1600px;height:900px;transform:scale(var(--s));transform-origin:0 0;
+  background:var(--void);border:3px solid var(--accf);overflow:hidden;display:flex;flex-direction:column}
+body.dense .stage{border-width:3px}
+
+/* spine: the one loud element */
+.spine{position:absolute;left:0;top:0;bottom:0;width:26px;z-index:3;
+  background:repeating-linear-gradient(135deg,var(--accf) 0 12px,var(--void) 12px 24px);
+  border-right:3px solid var(--accf)}
+.spine span{position:absolute;bottom:14px;left:50%;transform:translateX(-50%) rotate(180deg);writing-mode:vertical-rl;
+  font-family:"Archivo Black",Impact,sans-serif;font-size:12px;letter-spacing:.24em;color:var(--onfill);
+  background:var(--accf);padding:10px 4px;border:2px solid var(--void)}
+
+/* head */
+.head{margin-left:26px;display:flex;align-items:flex-end;gap:16px;padding:16px 18px 10px 18px;
+  border-bottom:3px solid var(--accf)}
+.head h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:34px;line-height:.9;letter-spacing:-.03em;
+  text-transform:uppercase;color:var(--paper)}
+.head .sub{font-size:12px;color:var(--ash);max-width:720px;line-height:1.35;padding-bottom:3px}
+.head .pn{margin-left:auto;font-family:"Archivo Black",Impact,sans-serif;font-size:22px;color:var(--onfill);
+  background:var(--accf);padding:4px 10px;align-self:flex-start}
+
+/* body grid */
+.body{flex:1;margin-left:26px;padding:12px 16px 16px;overflow:hidden}
+.grid{display:flex;gap:14px;align-items:flex-start;transform:scale(var(--k,1));transform-origin:0 0;width:calc(100% / var(--k,1))}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px}
+
+/* section block */
+.sec{border:2px solid var(--rule)}
+.sec>h3{margin:0;display:flex;align-items:baseline;gap:8px;background:var(--accf);color:var(--onfill);
+  font-family:"Archivo Black",Impact,sans-serif;font-size:13px;letter-spacing:.01em;text-transform:uppercase;
+  padding:4px 8px}
+.sec>h3 .tag{margin-left:auto;font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.1em;opacity:.75}
+.secbody{padding:7px 8px 8px;display:flex;flex-direction:column;gap:6px}
+.sec.hot{border-color:var(--acid)}
+
+p{margin:0;font-size:11.5px;line-height:1.42;color:var(--paper)}
+p.note{color:var(--ash);font-size:10.5px;line-height:1.38}
+p.warn{color:var(--onfill);background:var(--accf);padding:4px 6px;font-weight:700;font-size:10.5px}
+b{color:var(--acid);font-weight:700}
+c{color:var(--acid2);white-space:nowrap}
+u2{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--acid);padding-bottom:1px}
+
+pre.code{margin:0;padding:6px 8px 6px 9px;background:var(--void);border-left:4px solid var(--acid);
+  border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  font-size:11px;line-height:1.42;white-space:pre;overflow:hidden;color:var(--paper)}
+.kw{color:var(--acid);font-weight:700}
+.bi{color:var(--acid2)}
+.st{color:var(--str)}
+.nu{color:var(--str)}
+.cm{color:var(--ash);font-style:italic}
+.pp{color:var(--acid);font-weight:700}
+
+table{width:100%;border-collapse:collapse;font-size:10.5px}
+th{text-align:left;background:transparent;color:var(--acid);font-weight:700;padding:1px 5px 3px;
+  letter-spacing:.07em;text-transform:uppercase;font-size:9.5px;border-bottom:2px solid var(--accf)}
+td{padding:2px 5px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.3}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--acid);white-space:nowrap;font-weight:700}
+table.wide td:first-child{white-space:normal}
+table.plain td:first-child{color:var(--paper);font-weight:400}
+ul{margin:0;padding-left:14px}
+li{font-size:11px;line-height:1.38;margin-bottom:2px}
+li::marker{color:var(--acid)}
+
+/* dense sheet overrides */
+body.dense .head h2{font-size:26px}
+body.dense .body{padding:9px 11px 11px}
+body.dense .grid{gap:9px}
+body.dense .col{gap:7px}
+body.dense .sec{border-width:1px}
+body.dense .sec>h3{font-size:10px;padding:2px 5px}
+body.dense .secbody{padding:4px 5px 5px;gap:4px}
+body.dense pre.code{font-size:9px;line-height:1.32;padding:4px 5px 4px 6px;border-left-width:3px}
+body.dense p{font-size:9px;line-height:1.3}
+body.dense table{font-size:8.6px}
+body.dense td,body.dense th{padding:1px 3px}
+body.dense li{font-size:9px;line-height:1.28}
+
+/* cover */
+.cover{margin-left:26px;flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 46px;gap:16px}
+.cover h1{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:92px;line-height:.84;
+  letter-spacing:-.045em;text-transform:uppercase;color:var(--paper)}
+.cover .lede{font-size:15px;line-height:1.5;max-width:900px;color:var(--paper)}
+.cover .lede em{font-style:normal;color:var(--acid)}
+.cover .strip{height:16px;background:repeating-linear-gradient(135deg,var(--accf) 0 14px,var(--void) 14px 28px);
+  border-top:2px solid var(--accf);border-bottom:2px solid var(--accf)}
+.keys{display:flex;flex-wrap:wrap;gap:8px}
+.key{border:2px solid var(--accf);padding:5px 9px;font-size:11px}
+.key b{color:var(--acid)}
+.toc{display:grid;grid-template-columns:repeat(4,1fr);gap:5px 12px;font-size:11.5px}
+.toc a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--rule);padding:2px 0;display:flex;gap:7px;cursor:pointer}
+.toc a:hover{color:var(--acid);border-color:var(--acid)}
+.toc a i{color:var(--acid);font-style:normal;font-weight:700;min-width:20px}
+
+/* index overlay */
+.idx{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.94);display:none;padding:40px;overflow:auto}
+body.paper .idx{background:rgba(255,255,255,.96)}
+.idx.on{display:block}
+.idx h4{font-family:"Archivo Black",Impact,sans-serif;color:var(--acid);margin:0 0 16px;font-size:20px}
+.idx .toc{grid-template-columns:repeat(3,1fr);font-size:14px}
+
+@media (max-width:700px){.hint{display:none}.mark{font-size:12px}}
+
+
+/* ---------- focus, search, copy, block kinds ---------- */
+.toc a{cursor:pointer}
+.toc a:focus-visible,.hit:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+.search{display:flex;align-items:center;gap:6px;border:2px solid var(--rule);padding:5px 8px}
+.search:focus-within{border-color:var(--acid)}
+.search label{font:700 10px/1 "JetBrains Mono",monospace;color:var(--ash);letter-spacing:.06em}
+.search input{background:transparent;border:0;outline:0;color:var(--paper);width:130px;
+  font:400 11px/1.2 "JetBrains Mono",monospace}
+.search input::placeholder{color:var(--ash)}
+.hits{display:flex;flex-direction:column;gap:5px;max-width:900px}
+.hit{display:block;width:100%;text-align:left;cursor:pointer;background:transparent;color:var(--paper);
+  border:0;border-left:3px solid var(--accf);padding:5px 9px;font:400 13px/1.35 "JetBrains Mono",monospace}
+.hit:hover{background:var(--accf);color:var(--onfill)}
+.hit b{color:var(--acid);font-weight:700}
+.hit:hover b{color:var(--onfill)}
+.hit i{font-style:normal;color:var(--ash)}
+.hit:hover i{color:var(--onfill)}
+.idx .none{color:var(--ash);font-size:13px}
+.sec.flash{outline:3px solid var(--acid);outline-offset:3px}
+pre.code{position:relative}
+.cp{position:absolute;bottom:2px;right:2px;opacity:0;cursor:pointer;border:0;user-select:none;
+  background:var(--accf);color:var(--onfill);padding:2px 5px;
+  font:700 8px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+pre.code:hover .cp,.cp:focus-visible{opacity:1}
+pre.sh{border-left-style:double;border-left-color:var(--ash)}
+pre.ref,pre.out{border-left-style:dashed;border-left-color:var(--ash)}
+pre.out{color:var(--ash)}
+pre.sh::after,pre.ref::after,pre.out::after{position:absolute;top:1px;right:5px;color:var(--ash);
+  font:400 8px/1 "JetBrains Mono",monospace;letter-spacing:.12em}
+pre.sh::after{content:"TERMINAL"}
+pre.ref::after{content:"EXCERPT"}
+pre.out::after{content:"OUTPUT"}
+.cover .kin{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;align-items:baseline}
+.cover .kin span{color:var(--ash)}
+.cover .kin a{color:var(--paper);border-bottom:2px solid var(--accf);text-decoration:none;padding-bottom:1px}
+.cover .kin a:hover{color:var(--acid);border-color:var(--acid)}
+.cover .kin a:focus-visible{outline:3px solid var(--acid);outline-offset:2px}
+
+@page{size:A4 landscape;margin:10mm}
+@page dense{size:A3 landscape;margin:6mm}
+@media print{
+  .bar,.idx,.noprint{display:none!important}
+  body{background:#fff}
+  .deck{padding:0;gap:0;display:block}
+  .page{display:none!important}
+  body:not(.dense) .page[data-mode="full"]{display:block!important;page-break-after:always;break-after:page}
+  body:not(.dense) .page[data-mode="full"]:last-of-type{page-break-after:auto}
+
+  body:not(.dense) .page{display:block;position:static;width:auto!important;height:auto!important;margin:0 0 5mm}
+  body:not(.dense) .stage{position:static;width:auto;height:auto;transform:none!important;border:0;display:block;overflow:visible}
+  body:not(.dense) .spine{display:none}
+  body:not(.dense) .head{margin-left:0;padding:0 0 3mm;display:block;border-bottom:3px solid var(--accf)}
+  body:not(.dense) .head h2{font-size:17pt}
+  body:not(.dense) .head .sub{font-size:8pt;max-width:none;padding:3px 0 0}
+  body:not(.dense) .head .pn{display:none}
+  body:not(.dense) .body{margin-left:0;padding:3mm 0 0;overflow:visible;flex:none}
+  body:not(.dense) .grid{display:block;transform:none!important;width:auto!important;column-count:2;column-gap:8mm}
+  body:not(.dense) .col{display:block;gap:0}
+  body:not(.dense) .sec{break-inside:avoid;page-break-inside:avoid;margin:0 0 5mm}
+  body:not(.dense) .sec>h3{font-size:9.5pt}
+  body:not(.dense) .secbody{gap:2mm}
+  body:not(.dense) p,body:not(.dense) li{font-size:9pt;line-height:1.45}
+  body:not(.dense) p.note,body:not(.dense) p.warn{font-size:8.5pt}
+  body:not(.dense) table{font-size:8.5pt} body:not(.dense) th{font-size:8.5pt}
+  body:not(.dense) td,body:not(.dense) th{padding:2px 5px}
+  body:not(.dense) pre.code{font-size:8.5pt;line-height:1.45;white-space:pre-wrap;padding:6px 8px}
+  body:not(.dense) .cover{margin-left:0;padding:0;display:block;justify-content:flex-start}
+  body:not(.dense) .cover h1{font-size:34pt;line-height:.9}
+  body:not(.dense) .cover .lede{font-size:10pt}
+  body:not(.dense) .cp{display:none}
+
+  body.dense .page[data-mode="dense"]{display:block!important;width:1600px;height:900px;
+    zoom:.96;page:dense;transform:none;margin:0 auto;overflow:hidden}
+  body.dense .stage{transform:none;position:relative}
+}
+@media (max-width:760px){
+  .deck{padding:10px 12px 40px}
+
+  body .page{display:block;position:static;width:auto!important;height:auto!important;margin:0 0 18px}
+  body .stage{position:static;width:auto;height:auto;transform:none!important;border:0;display:block;overflow:visible}
+  body .spine{display:none}
+  body .head{margin-left:0;padding:0 0 10px;display:block;border-bottom:3px solid var(--accf)}
+  body .head h2{font-size:22px}
+  body .head .sub{font-size:12px;max-width:none;padding:3px 0 0}
+  body .head .pn{display:none}
+  body .body{margin-left:0;padding:10px 0 0;overflow:visible;flex:none}
+  body .grid{display:block;transform:none!important;width:auto!important;column-count:1;column-gap:0}
+  body .col{display:block;gap:0}
+  body .sec{break-inside:avoid;page-break-inside:avoid;margin:0 0 18px}
+  body .sec>h3{font-size:14px}
+  body .secbody{gap:8px}
+  body p,body li{font-size:14px;line-height:1.45}
+  body p.note,body p.warn{font-size:13px}
+  body table{font-size:13px} body th{font-size:13px}
+  body td,body th{padding:2px 5px}
+  body pre.code{font-size:12.5px;line-height:1.45;white-space:pre-wrap;padding:6px 8px}
+  body .cover{margin-left:0;padding:0;display:block;justify-content:flex-start}
+  body .cover h1{font-size:42px;line-height:.9}
+  body .cover .lede{font-size:15px}
+  body .cp{display:none}
+
+  body.dense .page[data-mode="dense"] .grid{column-count:1}
+}
+</style>
+</head><body>
+<div class="bar noprint">
+  <div class="mark">C <b>// field manual</b></div>
+  <button class="btn" id="mFull">Full</button>
+  <button class="btn" id="mDense">One sheet</button>
+  <button class="btn" id="bPrev">&#8592;</button>
+  <span class="count" id="count">1 / 1</span>
+  <button class="btn" id="bNext">&#8594;</button>
+  <button class="btn" id="bIdx">Contents</button>
+  <div class="search"><label for="q">Find</label>
+    <input id="q" type="search" placeholder="press /" autocomplete="off" spellcheck="false"></div>
+  <div class="spacer"></div>
+  <span class="hint">/ search &middot; arrows page &middot; D one sheet &middot; F full &middot; +/- zoom</span>
+  <button class="btn" id="bInk">Light</button>
+  <button class="btn" id="bPrint">Print</button>
+</div>
+<div class="idx" id="idx"><h4>Contents</h4><div id="idxbody"><div class="toc"><a data-go="0" tabindex="0" role="link"><i>00</i>Start here</a><a data-go="1" tabindex="0" role="link"><i>01</i>Compile &amp; run</a><a data-go="2" tabindex="0" role="link"><i>02</i>Anatomy &amp; types</a><a data-go="3" tabindex="0" role="link"><i>03</i>printf &amp; scanf</a><a data-go="4" tabindex="0" role="link"><i>04</i>Operators</a><a data-go="5" tabindex="0" role="link"><i>05</i>Control flow</a><a data-go="6" tabindex="0" role="link"><i>06</i>Functions</a><a data-go="7" tabindex="0" role="link"><i>07</i>Arrays</a><a data-go="8" tabindex="0" role="link"><i>08</i>Pointers</a><a data-go="9" tabindex="0" role="link"><i>09</i>Strings</a><a data-go="10" tabindex="0" role="link"><i>10</i>Structs, unions, enums</a><a data-go="11" tabindex="0" role="link"><i>11</i>Memory</a><a data-go="12" tabindex="0" role="link"><i>12</i>Files</a><a data-go="13" tabindex="0" role="link"><i>13</i>Preprocessor &amp; macros</a><a data-go="14" tabindex="0" role="link"><i>14</i>stdio &amp; stdlib</a><a data-go="15" tabindex="0" role="link"><i>15</i>string, math, ctype, time</a><a data-go="16" tabindex="0" role="link"><i>16</i>Function pointers &amp; variadics</a><a data-go="17" tabindex="0" role="link"><i>17</i>Bits &amp; undefined behaviour</a><a data-go="18" tabindex="0" role="link"><i>18</i>Multi-file projects</a><a data-go="19" tabindex="0" role="link"><i>19</i>Debugging, gotchas, style</a></div></div></div>
+<div class="deck"><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="cover"><h1>C<br>field<br>manual</h1><div class="strip"></div><div class="lede">A complete reference for someone starting from zero. C is small, sharp and unforgiving: it hands you the machine and checks nothing. Everything is here &#8212; the syntax, every standard library header, and the parts that actually bite (<em>pointers, memory, undefined behaviour</em>).</div><div class="keys"><div class="key"><b>&#8592; &#8594;</b> page</div><div class="key"><b>F</b> full manual</div><div class="key"><b>D</b> one-sheet version</div><div class="key"><b>M</b> contents</div><div class="key"><b>+ / -</b> zoom</div><div class="key"><b>Print</b> for paper &#8212; try light mode first</div></div><div class="kin"><span>Companion sheets:</span><a href="https://claude.ai/artifact/NQG681U9BBs8eE1nNnxYrE" target="_blank" rel="noopener">Python field manual</a> <a href="https://claude.ai/artifact/MsCMRx4NDXCvwCErgLkVNH" target="_blank" rel="noopener">Pandas field manual</a><span>&#183; dashed blocks are excerpts or output, double-ruled ones are terminal commands</span></div><div class="toc"><a data-go="0" tabindex="0" role="link"><i>00</i>Start here</a><a data-go="1" tabindex="0" role="link"><i>01</i>Compile &amp; run</a><a data-go="2" tabindex="0" role="link"><i>02</i>Anatomy &amp; types</a><a data-go="3" tabindex="0" role="link"><i>03</i>printf &amp; scanf</a><a data-go="4" tabindex="0" role="link"><i>04</i>Operators</a><a data-go="5" tabindex="0" role="link"><i>05</i>Control flow</a><a data-go="6" tabindex="0" role="link"><i>06</i>Functions</a><a data-go="7" tabindex="0" role="link"><i>07</i>Arrays</a><a data-go="8" tabindex="0" role="link"><i>08</i>Pointers</a><a data-go="9" tabindex="0" role="link"><i>09</i>Strings</a><a data-go="10" tabindex="0" role="link"><i>10</i>Structs, unions, enums</a><a data-go="11" tabindex="0" role="link"><i>11</i>Memory</a><a data-go="12" tabindex="0" role="link"><i>12</i>Files</a><a data-go="13" tabindex="0" role="link"><i>13</i>Preprocessor &amp; macros</a><a data-go="14" tabindex="0" role="link"><i>14</i>stdio &amp; stdlib</a><a data-go="15" tabindex="0" role="link"><i>15</i>string, math, ctype, time</a><a data-go="16" tabindex="0" role="link"><i>16</i>Function pointers &amp; variadics</a><a data-go="17" tabindex="0" role="link"><i>17</i>Bits &amp; undefined behaviour</a><a data-go="18" tabindex="0" role="link"><i>18</i>Multi-file projects</a><a data-go="19" tabindex="0" role="link"><i>19</i>Debugging, gotchas, style</a></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Compile &amp; run</h2><div class="sub">C is translated to machine code before it runs. That extra step is where most beginners get stuck.</div><div class="pn">01</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>The compiler<span class="tag">gcc / clang</span></h3><div class="secbody"><pre class="code sh">gcc --version      # linux, mingw on windows
+clang --version    # mac (xcode-select --install)</pre><p>Windows: install <b>MinGW-w64</b>, or use WSL. Mac: Xcode command line tools. Linux: <c>apt install build-essential</c>.</p></div></section><section class="sec"><h3>Build and run<span class="tag">two steps</span></h3><div class="secbody"><pre class="code sh">gcc hello.c -o hello     # compile -&gt; a program
+./hello                  # run it (mac/linux)
+hello.exe                # run it (windows)</pre><p>Without <c>-o</c> the output is called <c>a.out</c>. The <c>.c</c> file is source; the output is a standalone executable that no longer needs the compiler.</p></div></section><section class="sec hot"><h3>Flags worth using<span class="tag">always</span></h3><div class="secbody"><pre class="code sh">gcc -Wall -Wextra -g -std=c17 prog.c -o prog</pre><table class="wide"><tr><td>-Wall -Wextra</td><td>turn on warnings &#8212; they are real bugs</td></tr><tr><td>-g</td><td>keep debug info so gdb can help</td></tr><tr><td>-O2</td><td>optimise for release builds</td></tr><tr><td>-std=c17</td><td>pin the language version</td></tr><tr><td>-o name</td><td>name the output</td></tr><tr><td>-lm</td><td>link the maths library (needed for math.h)</td></tr><tr><td>-fsanitize=address</td><td>catch bad memory at runtime</td></tr></table><p class="warn">Treat every warning as an error. C will happily compile code that crashes.</p></div></section></div><div class="col"><section class="sec"><h3>Hello, world<span class="tag">hello.c</span></h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;
+
+int main(void) {
+    printf("Hello, world!\n");
+    return 0;
+}</pre><table class="wide"><tr><td><c>#include</c></td><td>paste in another file's declarations before compiling</td></tr><tr><td><c>&lt;stdio.h&gt;</c></td><td>standard input/output &#8212; where printf is declared</td></tr><tr><td><c>int main(void)</c></td><td>where execution starts; returns an int to the OS</td></tr><tr><td><c>{ }</c></td><td>a block; C ignores your indentation entirely</td></tr><tr><td><c>;</c></td><td>ends every statement &#8212; not optional</td></tr><tr><td><c>\n</c></td><td>newline; printf does not add one</td></tr><tr><td><c>return 0</c></td><td>0 means success, anything else means failure</td></tr></table></div></section><section class="sec"><h3>Comments<span class="tag">ignored text</span></h3><div class="secbody"><pre class="code ref">// to the end of the line
+/* several
+   lines */</pre></div></section></div><div class="col"><section class="sec"><h3>What actually happens<span class="tag">four stages</span></h3><div class="secbody"><table class="wide"><tr><td>1 Preprocess</td><td><c>#include</c> and <c>#define</c> are expanded, comments stripped</td></tr><tr><td>2 Compile</td><td>C &#8594; assembly &#8594; object file <c>.o</c></td></tr><tr><td>3 Assemble</td><td>object code, one per source file</td></tr><tr><td>4 Link</td><td>object files + libraries &#8594; one executable</td></tr></table><pre class="code sh">gcc -E f.c    # stop after preprocessing
+gcc -S f.c    # stop at assembly
+gcc -c f.c    # stop at f.o
+gcc a.o b.o -o prog    # link them</pre></div></section><section class="sec"><h3>The two error families<span class="tag">read the stage</span></h3><div class="secbody"><pre class="code">hello.c:4:5: error: expected ';' before '}'
+   -&gt; compiler error: a syntax problem
+
+undefined reference to `sqrt'
+   -&gt; linker error: add -lm</pre><p>A <b>compiler</b> error names a file and line. A <b>linker</b> error names a missing function &#8212; you declared it but never supplied the code or the library.</p></div></section><section class="sec"><h3>Arguments from the shell<span class="tag">argc / argv</span></h3><div class="secbody"><pre class="code">int main(int argc, char *argv[]) {
+    // argv[0] is the program name
+    for (int i = 1; i &lt; argc; i++)
+        printf("%s\n", argv[i]);
+    return 0;
+}</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Anatomy &amp; types</h2><div class="sub">Every variable is declared with a type before use, and that type is fixed forever.</div><div class="pn">02</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Declaring variables<span class="tag">type name = value;</span></h3><div class="secbody"><pre class="code">int count = 0;
+double price = 9.99;
+char grade = 'A';       // single quotes = one char
+int a, b, c;            // several at once
+int x;                  // UNINITIALISED = garbage
+const int MAX = 100;    // cannot be reassigned</pre><p class="warn">An uninitialised local variable holds whatever was in that memory. Always give a starting value.</p></div></section><section class="sec"><h3>Integer types<span class="tag">whole numbers</span></h3><div class="secbody"><table class=""><tr><th>type</th><th>size</th><th>range</th></tr><tr><td>char</td><td>1 byte, also used for text</td><td>&#8722;128&#8230;127</td></tr><tr><td>short</td><td>2 bytes</td><td>&#177;32k</td></tr><tr><td>int</td><td>4 bytes, the default</td><td>&#177;2.1 billion</td></tr><tr><td>long</td><td>4 or 8 bytes</td><td>platform dependent</td></tr><tr><td>long long</td><td>8 bytes</td><td>&#177;9.2&#215;10&#185;&#8312;</td></tr><tr><td>unsigned X</td><td>no negatives, double the top</td><td>0&#8230;2&#8319;&#8722;1</td></tr></table><pre class="code">#include &lt;stdint.h&gt;   // exact widths, preferred
+int32_t  uint8_t  int64_t  size_t</pre></div></section><section class="sec"><h3>Floating point<span class="tag">decimals</span></h3><div class="secbody"><table class="plain"><tr><td>float</td><td>4 bytes, ~7 digits</td></tr><tr><td>double</td><td>8 bytes, ~15 digits &#8212; use this</td></tr><tr><td>long double</td><td>more, platform dependent</td></tr></table><p class="note"><c>0.1 + 0.2 != 0.3</c> here too. Compare with a tolerance: <c>fabs(a-b) &lt; 1e-9</c>.</p></div></section></div><div class="col"><section class="sec"><h3>Other types<span class="tag">void / bool</span></h3><div class="secbody"><pre class="code">void        // no type: no return value, or
+            // a pointer to anything
+
+#include &lt;stdbool.h&gt;
+bool ready = true;    // really just an int
+// without the header: 0 is false,
+// everything else is true</pre><pre class="code ref">sizeof(int)        // 4  -- bytes, at compile time
+sizeof(x)
+sizeof(arr)/sizeof(arr[0])   // element count</pre></div></section><section class="sec"><h3>Literals<span class="tag">how values are written</span></h3><div class="secbody"><table class="plain"><tr><td><c>42</c></td><td>int</td></tr><tr><td><c>42u 42L 42UL 42LL</c></td><td>unsigned / long suffixes</td></tr><tr><td><c>3.14</c></td><td>double</td></tr><tr><td><c>3.14f</c></td><td>float</td></tr><tr><td><c>0x2A</c></td><td>hex</td></tr><tr><td><c>0b101010</c></td><td>binary (C23 / gcc)</td></tr><tr><td><c>052</c></td><td>octal &#8212; a leading zero is not decoration</td></tr><tr><td><c>'A'</c></td><td>char, value 65</td></tr><tr><td><c>"text"</c></td><td>string, NUL-terminated</td></tr><tr><td><c>1'000'000</c></td><td>not C; C has no digit separator</td></tr></table></div></section><section class="sec"><h3>Casting<span class="tag">forcing a type</span></h3><div class="secbody"><pre class="code">int a = 7, b = 2;
+double r = a / b;          // 3.0  integer division!
+double r = (double)a / b;  // 3.5  correct
+int n = (int)3.9;          // 3, truncated</pre><p class="warn">Integer / integer is integer division, even when assigned to a double. Cast one side first.</p></div></section></div><div class="col"><section class="sec"><h3>Program structure<span class="tag">the usual order</span></h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;        // 1 headers
+#include &lt;stdlib.h&gt;
+
+#define MAX 100           // 2 macros
+
+typedef struct {          // 3 types
+    int x, y;
+} Point;
+
+int total = 0;            // 4 globals (use sparingly)
+
+int add(int a, int b);    // 5 prototypes
+
+int main(void) {          // 6 main
+    printf("%d\n", add(2, 3));
+    return 0;
+}
+
+int add(int a, int b) {   // 7 definitions
+    return a + b;
+}</pre></div></section><section class="sec"><h3>Scope and lifetime<span class="tag">where names live</span></h3><div class="secbody"><pre class="code">int g;              // global: whole program
+
+void f(void) {
+    int local;      // dies when f returns
+    static int n;   // keeps its value between calls,
+                    // starts at 0
+    {
+        int inner;  // only inside these braces
+    }
+}</pre><table class="wide"><tr><td>auto</td><td>the default for locals; never written</td></tr><tr><td>static</td><td>on a local: survives calls. On a global or function: private to this file</td></tr><tr><td>extern</td><td>declared here, defined in another file</td></tr><tr><td>register</td><td>a hint, ignored by modern compilers</td></tr><tr><td>volatile</td><td>may change outside the program &#8212; do not optimise away</td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>printf &amp; scanf</h2><div class="sub">Text in, text out. The format string is a tiny language of its own.</div><div class="pn">03</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>printf<span class="tag">output</span></h3><div class="secbody"><pre class="code">printf("plain text\n");
+printf("%d items\n", count);
+printf("%s is %d\n", name, age);
+printf("%.2f\n", 3.14159);    // 3.14
+printf("%5d|\n", 42);         //    42|
+printf("%-5d|\n", 42);        // 42   |
+printf("%05d\n", 42);         // 00042
+printf("%+d\n", 42);          // +42
+printf("%%\n");               // a literal %</pre><p>Each <c>%</c> code is filled from the arguments, left to right. The count and the types must match exactly &#8212; nothing checks this at runtime.</p></div></section><section class="sec"><h3>Every conversion<span class="tag">%</span></h3><div class="secbody"><table class="plain"><tr><td>%d %i</td><td>signed int</td></tr><tr><td>%u</td><td>unsigned int</td></tr><tr><td>%ld %lld</td><td>long / long long</td></tr><tr><td>%zu</td><td>size_t &#8212; use for sizeof</td></tr><tr><td>%f</td><td>double, 6 decimals</td></tr><tr><td>%.3f</td><td>double, 3 decimals</td></tr><tr><td>%e %g</td><td>scientific / shortest</td></tr><tr><td>%c</td><td>one character</td></tr><tr><td>%s</td><td>string (char *)</td></tr><tr><td>%p</td><td>pointer address</td></tr><tr><td>%x %X %o</td><td>hex / octal</td></tr><tr><td>%%</td><td>a literal percent sign</td></tr></table></div></section><section class="sec"><h3>Width and flags<span class="tag">%[flags][width][.prec]</span></h3><div class="secbody"><table class="plain"><tr><td><c>-</c></td><td>left align</td></tr><tr><td><c>+</c></td><td>always show sign</td></tr><tr><td><c>0</c></td><td>pad with zeros</td></tr><tr><td><c>*</c></td><td>take the width from an argument</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Escape sequences<span class="tag">inside strings</span></h3><div class="secbody"><table class="plain"><tr><td><c>\n</c></td><td>newline</td></tr><tr><td><c>\t</c></td><td>tab</td></tr><tr><td><c>\r</c></td><td>carriage return</td></tr><tr><td><c>\\</c></td><td>backslash</td></tr><tr><td><c>\"</c></td><td>double quote</td></tr><tr><td><c>\'</c></td><td>single quote</td></tr><tr><td><c>\0</c></td><td>NUL &#8212; ends every string</td></tr><tr><td><c>\a</c></td><td>bell</td></tr><tr><td><c>\x41</c></td><td>hex character code</td></tr></table></div></section><section class="sec"><h3>scanf<span class="tag">input, carefully</span></h3><div class="secbody"><pre class="code">int age;
+scanf("%d", &amp;age);        // &amp; = address of age
+
+char name[50];
+scanf("%49s", name);      // stops at whitespace
+                          // 49 protects the buffer
+
+if (scanf("%d", &amp;n) != 1) {
+    // ALWAYS check the return: it counts
+    // the items successfully read
+}</pre><p class="warn">Forgetting <c>&amp;</c> on a scanf argument corrupts memory instead of failing. Arrays are the exception &#8212; they are already addresses.</p></div></section><section class="sec"><h3>Why scanf hurts<span class="tag">the leftover newline</span></h3><div class="secbody"><pre class="code">scanf("%d", &amp;n);      // leaves the \n in the buffer
+fgets(line, n, stdin);     // instantly reads that \n
+
+// fix: consume the rest of the line
+int c; while ((c = getchar()) != '\n' &amp;&amp; c != EOF);</pre></div></section></div><div class="col"><section class="sec hot"><h3>Read lines properly<span class="tag">fgets</span></h3><div class="secbody"><pre class="code">char line[256];
+if (fgets(line, sizeof line, stdin)) {
+    line[strcspn(line, "\n")] = '\0';   // trim newline
+    printf("you said: %s\n", line);
+}
+
+int n = atoi(line);              // text -&gt; int
+long v = strtol(line, NULL, 10); // better: detects errors</pre><p><c>fgets</c> + <c>strtol</c> is the safe pattern for reading numbers from a person. <c>gets()</c> was removed from the language for being impossible to use safely.</p></div></section><section class="sec"><h3>Other I/O calls<span class="tag">stdio</span></h3><div class="secbody"><table class="wide"><tr><td>putchar(c) getchar()</td><td>one character out / in</td></tr><tr><td>puts(s)</td><td>print a string and a newline</td></tr><tr><td>fputs(s, stdout)</td><td>print without a newline</td></tr><tr><td>fprintf(stderr, ...)</td><td>write to the error stream</td></tr><tr><td>sprintf(buf, ...)</td><td>format into a buffer &#8212; can overflow</td></tr><tr><td>snprintf(buf, n, ...)</td><td>the safe version. Use this one</td></tr><tr><td>sscanf(str, ...)</td><td>parse out of a string</td></tr><tr><td>fflush(stdout)</td><td>force buffered output out now</td></tr></table></div></section><section class="sec"><h3>Streams<span class="tag">three, always open</span></h3><div class="secbody"><pre class="code ref">stdin    // keyboard by default
+stdout   // screen, line buffered
+stderr   // screen, never buffered -&gt; errors</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Operators</h2><div class="sub">Arithmetic, comparison, logic, bits, and the precedence table you will keep coming back to.</div><div class="pn">04</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Arithmetic<span class="tag">maths</span></h3><div class="secbody"><table class="wide"><tr><td><c>+ - * /</c></td><td>int / int truncates: <c>7/2 == 3</c></td></tr><tr><td><c>%</c></td><td>remainder, integers only: <c>7%2 == 1</c></td></tr><tr><td><c>++x --x</c></td><td>change, then use the new value</td></tr><tr><td><c>x++ x--</c></td><td>use the old value, then change</td></tr><tr><td><c>+= -= *= /= %=</c></td><td>compound assignment</td></tr></table><pre class="code">int i = 5;
+int a = i++;   // a=5, i=6
+int b = ++i;   // b=7, i=7
+
+// C has no ** operator:
+#include &lt;math.h&gt;
+pow(2, 10);    // 1024.0  (and link with -lm)</pre></div></section><section class="sec"><h3>Comparison &amp; logic<span class="tag">result is 0 or 1</span></h3><div class="secbody"><table class="plain"><tr><td><c>== !=</c></td><td>equal / not equal</td></tr><tr><td><c>&lt; &lt;= &gt; &gt;=</c></td><td>ordering</td></tr><tr><td><c>&amp;&amp;</c></td><td>AND, short-circuits</td></tr><tr><td><c>||</c></td><td>OR, short-circuits</td></tr><tr><td><c>!</c></td><td>NOT</td></tr></table><pre class="code ref">if (p != NULL &amp;&amp; p-&gt;ready)   // safe: &amp;&amp; stops early
+if (x = 5)     // assigns! compiles! always true!
+if (x == 5)    // what you meant</pre><p class="warn">There is no bool check: <c>if (x)</c> means <c>x != 0</c>. Any non-zero value is true.</p></div></section><section class="sec"><h3>Bitwise<span class="tag">raw bits</span></h3><div class="secbody"><table class="plain"><tr><td><c>&amp;</c></td><td>AND &#8212; mask bits off</td></tr><tr><td><c>|</c></td><td>OR &#8212; turn bits on</td></tr><tr><td><c>^</c></td><td>XOR &#8212; flip where different</td></tr><tr><td><c>~</c></td><td>NOT &#8212; flip every bit</td></tr><tr><td><c>&lt;&lt; n</c></td><td>shift left, &#215;2&#8319;</td></tr><tr><td><c>&gt;&gt; n</c></td><td>shift right, &#247;2&#8319;</td></tr><tr><td><c>&amp;= |= ^= &lt;&lt;= &gt;&gt;=</c></td><td>compound forms</td></tr></table><pre class="code">flags |=  MASK;    // set
+flags &amp;= ~MASK;    // clear
+flags ^=  MASK;    // toggle
+if (flags &amp; MASK)  // test</pre><p class="warn"><c>&amp;&amp;</c> is logic, <c>&amp;</c> is bits. Swapping them compiles silently and gives wrong answers.</p></div></section></div><div class="col"><section class="sec"><h3>Ternary<span class="tag">?:</span></h3><div class="secbody"><pre class="code">int max = (a &gt; b) ? a : b;
+printf("%d item%s\n", n, n == 1 ? "" : "s");</pre></div></section><section class="sec"><h3>Other operators<span class="tag">the rest</span></h3><div class="secbody"><table class="plain"><tr><td><c>sizeof</c></td><td>size in bytes, at compile time</td></tr><tr><td><c>&amp;x</c></td><td>address of x</td></tr><tr><td><c>*p</c></td><td>value at p</td></tr><tr><td><c>a[i]</c></td><td>element &#8212; really <c>*(a+i)</c></td></tr><tr><td><c>s.field</c></td><td>struct member</td></tr><tr><td><c>p-&gt;field</c></td><td>member via pointer</td></tr><tr><td><c>(type)x</c></td><td>cast</td></tr><tr><td><c>a, b</c></td><td>comma: evaluate both, keep the last</td></tr></table></div></section><section class="sec"><h3>Precedence<span class="tag">highest first</span></h3><div class="secbody"><pre class="code ref">()  []  -&gt;  .              left
+!  ~  ++  --  +x  -x       right
+(type)  *p  &amp;x  sizeof     right
+*  /  %                    left
++  -                       left
+&lt;&lt;  &gt;&gt;                     left
+&lt;  &lt;=  &gt;  &gt;=               left
+==  !=                     left
+&amp;                          left
+^                          left
+|                          left
+&amp;&amp;                         left
+||                         left
+?:                         right
+=  +=  -=  *=  /=  %=      right
+&amp;=  ^=  |=  &lt;&lt;=  &gt;&gt;=       right
+,                          left</pre><p class="warn"><c>*p++</c> means <c>*(p++)</c>. <c>a &amp; 1 == 0</c> means <c>a &amp; (1 == 0)</c>. Bracket anything involving bit operators.</p></div></section></div><div class="col"><section class="sec"><h3>Integer promotion<span class="tag">the invisible rule</span></h3><div class="secbody"><pre class="code">char a = 100, b = 100;
+int  c = a + b;      // 200: both promoted to int first
+
+unsigned char x = 250;
+if (x + 10 &gt; 255)    // TRUE: the sum is an int, not a char
+
+unsigned u = 1; int s = -1;
+if (s &lt; u)           // FALSE: s converts to a huge unsigned</pre><p>Anything smaller than <c>int</c> is promoted to <c>int</c> before arithmetic. When the two sides differ after that, the smaller rank converts to the larger, and <b>signed converts to unsigned</b> at equal rank. That last step is the one that bites.</p></div></section><section class="sec"><h3>Evaluation order<span class="tag">undefined</span></h3><div class="secbody"><pre class="code">i = i++ + 1;          // undefined behaviour
+f(i++, i);            // argument order unspecified
+arr[i] = i++;         // undefined</pre><p>Modifying the same variable twice in one statement has <b>no defined meaning</b>. The compiler may do anything at all. Split it into two statements.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Control flow</h2><div class="sub">Branching and looping. Braces group statements; indentation means nothing to the compiler.</div><div class="pn">05</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>if / else<span class="tag">branching</span></h3><div class="secbody"><pre class="code">if (score &gt;= 90) {
+    grade = 'A';
+} else if (score &gt;= 80) {
+    grade = 'B';
+} else {
+    grade = 'F';
+}
+
+if (x &gt; 0)
+    printf("positive\n");   // braces optional for ONE
+                            // statement -- add them anyway</pre><p class="warn"><c>if (x) do_a(); do_b();</c> &#8212; <c>do_b()</c> always runs. Missing braces cause real outages.</p></div></section><section class="sec"><h3>switch<span class="tag">jump on a value</span></h3><div class="secbody"><pre class="code">switch (ch) {
+    case 'a':
+    case 'A':
+        handle_a();
+        break;          // without it, execution
+    case 'b':           // FALLS THROUGH to the next case
+        handle_b();
+        break;
+    default:
+        unknown();
+        break;
+}</pre><p>Only works on integer-like values (int, char, enum) &#8212; not strings, not floats, not ranges.</p></div></section></div><div class="col"><section class="sec"><h3>for<span class="tag">the workhorse</span></h3><div class="secbody"><pre class="code">for (int i = 0; i &lt; 10; i++) {
+    printf("%d\n", i);
+}
+//    setup    test       step
+
+for (int i = 10; i &gt; 0; i--)         // count down
+for (int i = 0; i &lt; n; i += 2)       // step by 2
+for (int i = 0, j = n-1; i &lt; j; i++, j--)
+for (;;) { /* ... */ }                     // forever</pre><p>The test runs before every pass, including the first. Declaring <c>i</c> inside keeps it local to the loop (C99 and later).</p></div></section><section class="sec"><h3>while / do-while<span class="tag">two shapes</span></h3><div class="secbody"><pre class="code">while (count &gt; 0) {       // test FIRST
+    count--;              // may run zero times
+}
+
+do {
+    ch = getchar();       // body runs at least ONCE,
+} while (ch != '\n');     // then tests
+// note the semicolon after while</pre></div></section><section class="sec"><h3>break / continue<span class="tag">inside loops</span></h3><div class="secbody"><pre class="code">for (int i = 0; i &lt; n; i++) {
+    if (skip[i]) continue;   // next iteration
+    if (found)     break;    // leave the loop
+}</pre><p class="note"><c>break</c> leaves one loop or one switch, never two. For nested loops, use a flag or <c>goto</c>.</p></div></section></div><div class="col"><section class="sec"><h3>goto<span class="tag">one honest use</span></h3><div class="secbody"><pre class="code">int load(void) {
+    FILE *f = fopen("a", "r");
+    char *buf = malloc(100);
+    if (!buf)  goto fail_buf;
+    if (!read(f, buf)) goto fail_read;
+    /* ... */
+    return 0;
+
+fail_read:
+    free(buf);
+fail_buf:
+    if (f) fclose(f);
+    return -1;
+}</pre><p>Jumping backwards or into a block is chaos. Jumping <i>forward to a single cleanup label</i> is the standard C idiom for releasing resources on error, used throughout the Linux kernel.</p></div></section><section class="sec"><h3>Common loop shapes<span class="tag">patterns</span></h3><div class="secbody"><pre class="code">// every element
+for (int i = 0; i &lt; n; i++) sum += a[i];
+
+// every character of a string
+for (int i = 0; s[i] != '\0'; i++)
+
+// walk with a pointer
+for (char *p = s; *p; p++)
+
+// read until end of input
+int c;
+while ((c = getchar()) != EOF) putchar(c);
+
+// read lines
+char line[256];
+while (fgets(line, sizeof line, stdin)) { /* ... */ }</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Functions</h2><div class="sub">Declare it, define it, call it. Arguments are always copied.</div><div class="pn">06</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Anatomy<span class="tag">definition</span></h3><div class="secbody"><pre class="code">int add(int a, int b) {     // return type, name, params
+    return a + b;
+}
+
+void greet(const char *name) {   // void = returns nothing
+    printf("hi %s\n", name);
+}
+
+int roll(void) {           // (void) = takes nothing
+    return rand() % 6 + 1;  // () means "unspecified" - avoid
+}</pre></div></section><section class="sec hot"><h3>Prototypes<span class="tag">declare before use</span></h3><div class="secbody"><pre class="code">int add(int, int);      // prototype: no body
+
+int main(void) {
+    printf("%d", add(2, 3));   // now legal
+}
+
+int add(int a, int b) { return a + b; }</pre><p>C reads your file top to bottom and must know a function's shape before the first call. Either define it above, or write a prototype at the top &#8212; which is what header files are for.</p></div></section><section class="sec"><h3>Pass by value<span class="tag">everything is copied</span></h3><div class="secbody"><pre class="code">void broken(int x) { x = 99; }     // changes a copy
+void works(int *x) { *x = 99; }    // changes the original
+
+int n = 1;
+broken(n);   // n is still 1
+works(&amp;n);   // n is now 99</pre><p>To let a function modify your variable, pass its <b>address</b>. This is why <c>scanf</c> needs <c>&amp;</c>.</p></div></section></div><div class="col"><section class="sec"><h3>Returning<span class="tag">one value only</span></h3><div class="secbody"><pre class="code">return;             // from a void function
+return value;       // ends the function immediately
+
+// need several results? use out-parameters:
+void divide(int a, int b, int *q, int *r) {
+    *q = a / b;
+    *r = a % b;
+}
+int q, r;
+divide(7, 2, &amp;q, &amp;r);
+
+// or return a struct
+Point make(int x, int y) {
+    Point p = {x, y};
+    return p;      // the struct is copied out: safe
+}</pre><p class="warn">Never return a pointer to a local variable &#8212; that memory is gone the moment the function returns.</p></div></section><section class="sec"><h3>Arrays as arguments<span class="tag">they decay</span></h3><div class="secbody"><pre class="code">void f(int arr[], int n);   // identical to:
+void f(int *arr, int n);
+
+// sizeof(arr) inside f gives the POINTER size,
+// not the array size. Always pass the length.</pre></div></section></div><div class="col"><section class="sec"><h3>Storage classes<span class="tag">lifetime &amp; visibility</span></h3><div class="secbody"><pre class="code">static int counter = 0;    // at file scope:
+                           // private to this file
+
+void tick(void) {
+    static int calls = 0;  // inside a function:
+    calls++;               // survives between calls,
+}                          // initialised once
+
+extern int shared;         // defined in another file
+
+inline int sq(int x) { return x*x; }   // hint to inline</pre><table class="wide"><tr><td><c>static</c> global</td><td>invisible to other files &#8212; the C way to say private</td></tr><tr><td><c>static</c> local</td><td>one copy, keeps its value, zero-initialised</td></tr><tr><td><c>extern</c></td><td>the definition lives elsewhere; goes in headers</td></tr><tr><td><c>const</c></td><td>read-only after initialisation</td></tr></table></div></section><section class="sec"><h3>Recursion<span class="tag">calling itself</span></h3><div class="secbody"><pre class="code">long fact(int n) {
+    if (n &lt;= 1) return 1;    // base case FIRST
+    return n * fact(n - 1);
+}</pre><p class="warn">No base case, or one you never reach, means stack overflow &#8212; a crash, not an exception.</p></div></section><section class="sec"><h3>main's return value<span class="tag">exit status</span></h3><div class="secbody"><pre class="code">return 0;          // success
+return 1;          // failure
+exit(EXIT_FAILURE) // from anywhere, stdlib.h</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Arrays</h2><div class="sub">A fixed block of identical items, back to back in memory.</div><div class="pn">07</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Declaring<span class="tag">type name[size];</span></h3><div class="secbody"><pre class="code">int nums[5];                    // 5 ints, uninitialised
+int nums[5] = {1, 2, 3, 4, 5};
+int nums[5] = {1, 2};           // rest are 0
+int nums[]  = {1, 2, 3};        // size inferred: 3
+int zeros[100] = {0};           // all zero
+char name[20] = "Ada";          // 3 chars + NUL
+
+nums[0]        // first
+nums[4]        // last of 5
+nums[5]        // OUT OF BOUNDS -- no error, just wrong</pre><p class="warn">C never checks array bounds. Reading or writing past the end silently corrupts other data or crashes later, far from the real bug.</p></div></section><section class="sec"><h3>Size<span class="tag">counting elements</span></h3><div class="secbody"><pre class="code">int n = sizeof(nums) / sizeof(nums[0]);
+
+// works ONLY where the array was declared.
+// Once passed to a function it is a pointer,
+// so pass the length alongside it:
+void print(int *a, size_t n);</pre></div></section></div><div class="col"><section class="sec"><h3>Looping<span class="tag">the standard shape</span></h3><div class="secbody"><pre class="code">for (size_t i = 0; i &lt; n; i++) {
+    printf("%d ", nums[i]);
+}
+
+int sum = 0;
+for (size_t i = 0; i &lt; n; i++) sum += nums[i];
+
+// find
+int idx = -1;
+for (size_t i = 0; i &lt; n; i++)
+    if (nums[i] == target) { idx = i; break; }</pre></div></section><section class="sec"><h3>2D arrays<span class="tag">rows and columns</span></h3><div class="secbody"><pre class="code">int grid[3][4];                   // 3 rows, 4 columns
+int grid[2][3] = {{1,2,3},{4,5,6}};
+grid[1][2] = 9;
+
+for (int r = 0; r &lt; 3; r++)
+    for (int c = 0; c &lt; 4; c++)
+        printf("%d ", grid[r][c]);
+
+void f(int g[][4], int rows);   // all but the first
+                                // dimension required</pre><p>Stored row by row in one flat block. <c>grid[1][2]</c> is really <c>*(base + 1*4 + 2)</c>.</p></div></section><section class="sec"><h3>Variable length arrays<span class="tag">C99, use with care</span></h3><div class="secbody"><pre class="code">void f(int n) {
+    int tmp[n];     // size decided at runtime
+}</pre><p class="note">Lives on the stack, so a large <c>n</c> overflows it. Optional since C11 &#8212; prefer <c>malloc</c>.</p></div></section></div><div class="col"><section class="sec"><h3>Arrays are not pointers<span class="tag">but they act like it</span></h3><div class="secbody"><pre class="code">int a[5];
+a        // decays to &amp;a[0] in almost every context
+*a       // a[0]
+a + 1    // &amp;a[1]  -- pointer maths counts ELEMENTS
+*(a+2)   // a[2]   -- identical to a[2]
+
+sizeof(a)   // 20: the whole array (where declared)
+int *p = a;
+sizeof(p)   // 8: just the pointer</pre><p>An array name is not a variable holding an address &#8212; it <i>is</i> the block, and converts to a pointer to its first element on use. That one distinction explains most array confusion.</p></div></section><section class="sec"><h3>Copying<span class="tag">no assignment</span></h3><div class="secbody"><pre class="code">int b[5] = a;     // illegal
+b = a;            // illegal
+
+memcpy(b, a, sizeof a);       // correct
+for (int i=0;i&lt;5;i++) b[i]=a[i];</pre></div></section><section class="sec"><h3>Sorting and searching<span class="tag">stdlib</span></h3><div class="secbody"><pre class="code">int cmp(const void *x, const void *y) {
+    int a = *(const int *)x, b = *(const int *)y;
+    return (a &gt; b) - (a &lt; b);
+}
+qsort(nums, n, sizeof nums[0], cmp);
+
+int key = 7;
+int *hit = bsearch(&amp;key, nums, n,
+                   sizeof nums[0], cmp);</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Pointers</h2><div class="sub">A variable holding an address. This is the whole language in one idea.</div><div class="pn">08</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>The two operators<span class="tag">&amp; and *</span></h3><div class="secbody"><pre class="code">int x = 42;
+int *p = &amp;x;     // p holds the ADDRESS of x
+
+&amp;x               // "address of x"
+*p               // "the value at p"  -&gt; 42
+*p = 99;         // writes THROUGH p: x is now 99
+p                // the address itself, e.g. 0x7ffd...
+
+printf("%p\n", (void *)p);
+printf("%d\n", *p);</pre><p>Read a declaration right to left: <c>int *p</c> is &#8220;p is a pointer to int&#8221;. The <c>*</c> in a declaration marks the type; the <c>*</c> in an expression fetches the value.</p></div></section><section class="sec"><h3>Why bother<span class="tag">three reasons</span></h3><div class="secbody"><ul><li>Let a function change your variable (<c>scanf("%d", &amp;n)</c>).</li><li>Pass something big without copying it.</li><li>Build structures whose size is not known until the program runs &#8212; lists, trees, buffers.</li></ul></div></section><section class="sec"><h3>NULL<span class="tag">points at nothing</span></h3><div class="secbody"><pre class="code">int *p = NULL;        // the only safe "empty" value
+if (p != NULL) *p = 1;
+if (p) *p = 1;        // same thing, idiomatic
+
+int *q;               // uninitialised: holds garbage,
+                      // NOT null. Always set it.</pre><p class="warn">Dereferencing NULL is an instant crash (segmentation fault). Dereferencing garbage is worse: it may appear to work.</p></div></section></div><div class="col"><section class="sec"><h3>Pointer arithmetic<span class="tag">counts elements</span></h3><div class="secbody"><pre class="code">int a[] = {10, 20, 30};
+int *p = a;
+
+*p        // 10
+p++;      // advances by sizeof(int) = 4 bytes
+*p        // 20
+*(p + 1)  // 30
+p[1]      // 30   -- identical to *(p+1)
+
+int *end = a + 3;
+for (int *q = a; q &lt; end; q++) printf("%d", *q);
+
+end - a   // 3: the distance in elements</pre><p class="note">Adding 1 to a pointer moves by the size of what it points at, not by one byte.</p></div></section><section class="sec"><h3>const and pointers<span class="tag">read right to left</span></h3><div class="secbody"><table class="wide"><tr><td><c>const int *p</c></td><td>pointer to a constant int &#8212; cannot write <c>*p</c></td></tr><tr><td><c>int * const p</c></td><td>constant pointer &#8212; cannot move p</td></tr><tr><td><c>const int * const p</c></td><td>neither</td></tr></table><pre class="code">void print(const char *s);   // promises not to
+                             // modify the string</pre></div></section><section class="sec"><h3>Pointer to pointer<span class="tag">**</span></h3><div class="secbody"><pre class="code">int x = 1;
+int *p = &amp;x;
+int **pp = &amp;p;
+**pp        // 1
+
+// used to let a function replace YOUR pointer:
+void alloc(int **out) { *out = malloc(4); }
+int *mine = NULL;
+alloc(&amp;mine);</pre></div></section></div><div class="col"><section class="sec"><h3>void *<span class="tag">a pointer to anything</span></h3><div class="secbody"><pre class="code">void *raw = malloc(100);   // malloc returns void *
+int *nums = raw;           // no cast needed in C
+
+// cannot dereference a void * directly:
+*raw;                      // error
+*(int *)raw;               // cast first
+
+// this is how qsort takes any type</pre></div></section><section class="sec"><h3>The five ways pointers kill you<span class="tag">learn the names</span></h3><div class="secbody"><table class="wide"><tr><td>Null dereference</td><td>using a pointer that is NULL</td></tr><tr><td>Dangling pointer</td><td>using memory after <c>free</c>, or a pointer to a dead local</td></tr><tr><td>Double free</td><td>calling <c>free</c> twice on the same block</td></tr><tr><td>Buffer overrun</td><td>writing past the end of an array</td></tr><tr><td>Memory leak</td><td>losing the last pointer to a block you allocated</td></tr></table><pre class="code">free(p);
+p = NULL;     // makes a later use fail loudly</pre></div></section><section class="sec"><h3>Swap: the classic<span class="tag">worked example</span></h3><div class="secbody"><pre class="code">void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+int x = 1, y = 2;
+swap(&amp;x, &amp;y);     // x=2, y=1</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Strings</h2><div class="sub">There is no string type. A string is a char array that ends in a zero byte.</div><div class="pn">09</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>What a string is<span class="tag">char + NUL</span></h3><div class="secbody"><pre class="code">char s[] = "hi";     // actually {'h','i','\0'} -- 3 bytes
+char *p = "hi";      // pointer to read-only memory
+
+sizeof(s)    // 3  including the NUL
+strlen(s)    // 2  up to, not including, the NUL</pre><p>Every standard function finds the end by scanning for <c>'\0'</c>. Lose that byte and they run off into whatever follows.</p><p class="warn"><c>char *p = "text"</c> is a string <i>literal</i>: writing to <c>p[0]</c> is undefined and usually crashes. Use <c>char s[] = "text"</c> if you need to modify it.</p></div></section><section class="sec"><h3>Declaring and building<span class="tag">buffers</span></h3><div class="secbody"><pre class="code">char buf[64];              // room for 63 chars + NUL
+buf[0] = '\0';            // start empty
+
+snprintf(buf, sizeof buf, "%s is %d", name, age);
+
+char c = s[0];            // one character
+s[0] = 'H';               // edit in place (arrays only)
+for (int i = 0; s[i]; i++) putchar(s[i]);</pre></div></section></div><div class="col"><section class="sec"><h3>string.h<span class="tag">the whole header</span></h3><div class="secbody"><table class="wide"><tr><td>strlen(s)</td><td>length, not counting NUL</td></tr><tr><td>strcpy(d, s)</td><td>copy &#8212; no bounds check</td></tr><tr><td>strncpy(d, s, n)</td><td>copy at most n; may not NUL-terminate</td></tr><tr><td>strcat(d, s)</td><td>append &#8212; no bounds check</td></tr><tr><td>strncat(d, s, n)</td><td>append at most n</td></tr><tr><td>strcmp(a, b)</td><td>0 if equal, &lt;0 if a sorts first</td></tr><tr><td>strncmp(a, b, n)</td><td>compare first n</td></tr><tr><td>strchr(s, c)</td><td>pointer to first c, or NULL</td></tr><tr><td>strrchr(s, c)</td><td>last occurrence</td></tr><tr><td>strstr(h, n)</td><td>find a substring</td></tr><tr><td>strtok(s, delim)</td><td>split &#8212; modifies s, keeps state</td></tr><tr><td>strspn strcspn</td><td>length of a run of (not) these chars</td></tr><tr><td>strdup(s)</td><td>malloc a copy (POSIX / C23)</td></tr><tr><td>memcpy(d, s, n)</td><td>copy n bytes, regions must not overlap</td></tr><tr><td>memmove(d, s, n)</td><td>copy n bytes, overlap safe</td></tr><tr><td>memset(d, c, n)</td><td>fill n bytes</td></tr><tr><td>memcmp(a, b, n)</td><td>compare n bytes</td></tr></table></div></section><section class="sec"><h3>Comparing<span class="tag">never use ==</span></h3><div class="secbody"><pre class="code ref">if (a == b)              // compares ADDRESSES
+if (strcmp(a, b) == 0)  // compares CONTENT
+if (!strcmp(a, b))      // same, idiomatic</pre><p class="warn"><c>==</c> on strings compiles fine and is almost always wrong.</p></div></section></div><div class="col"><section class="sec"><h3>Safe copying<span class="tag">the rule</span></h3><div class="secbody"><pre class="code">char dst[10];
+strcpy(dst, src);       // overflows if src is longer
+
+snprintf(dst, sizeof dst, "%s", src);   // safe, truncates
+
+size_t n = strlen(src);
+if (n &lt; sizeof dst) strcpy(dst, src);   // or check first</pre><p>Buffer overflow is C's most famous failure mode. Always size the destination and always bound the copy.</p><pre class="code">int n = snprintf(dst, sizeof dst, "%s-%d", s, i);
+if (n &lt; 0 || (size_t)n &gt;= sizeof dst)
+    /* it was TRUNCATED: n is the length it WANTED */;</pre><p class="note"><c>snprintf</c> returns the length it would have written, not the length it wrote. That is how you detect truncation &#8212; and how you size a buffer before allocating it.</p></div></section><section class="sec"><h3>Text to number<span class="tag">stdlib.h</span></h3><div class="secbody"><pre class="code">atoi(s) atol(s) atof(s)   // simple, no error report
+
+char *end;
+long v = strtol(s, &amp;end, 10);
+if (end == s)   // nothing was converted
+if (*end)       // trailing junk
+double d = strtod(s, &amp;end);</pre></div></section><section class="sec"><h3>Characters<span class="tag">ctype.h</span></h3><div class="secbody"><pre class="code">isalpha isdigit isalnum isspace
+isupper islower ispunct isxdigit
+toupper(c) tolower(c)
+
+for (char *p = s; *p; p++) *p = toupper(*p);</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Structs, unions, enums</h2><div class="sub">Building your own types out of the built-in ones.</div><div class="pn">10</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>struct<span class="tag">several fields, one thing</span></h3><div class="secbody"><pre class="code">struct Point {
+    int x;
+    int y;
+};                       // the semicolon is required
+
+struct Point p;           // declare one
+struct Point p = {3, 4};  // initialise in order
+struct Point p = {.y = 4, .x = 3};   // by name, C99
+
+p.x = 10;                 // dot for a value
+struct Point q = p;       // whole struct copied</pre><p>Fields sit in memory in the order you wrote them, with padding inserted so each is aligned. <c>sizeof(struct Point)</c> may be larger than the sum of its parts.</p></div></section><section class="sec hot"><h3>typedef<span class="tag">drop the word struct</span></h3><div class="secbody"><pre class="code">typedef struct {
+    char name[50];
+    int  age;
+} Person;                 // now "Person" is a type
+
+Person a = {"Ada", 36};
+
+typedef struct Node {      // named, so it can
+    int value;             // refer to itself
+    struct Node *next;
+} Node;</pre></div></section><section class="sec"><h3>Pointers to structs<span class="tag">-&gt;</span></h3><div class="secbody"><pre class="code">Person *p = &amp;a;
+(*p).age      // clumsy
+p-&gt;age        // identical, and what everyone writes
+p-&gt;age = 37;</pre><p class="note"><c>-&gt;</c> is just &#8220;dereference, then take the field&#8221;.</p></div></section></div><div class="col"><section class="sec"><h3>Structs and functions<span class="tag">copy or point</span></h3><div class="secbody"><pre class="code">void birthday(Person p)  { p.age++; }   // copy: no effect
+void birthday(Person *p) { p-&gt;age++; }  // works
+
+Person make(const char *n, int a) {
+    Person p;
+    strncpy(p.name, n, sizeof p.name - 1);
+    p.name[sizeof p.name - 1] = '\0';
+    p.age = a;
+    return p;            // copied out: safe
+}</pre><p>Pass big structs by pointer to avoid copying, and mark them <c>const</c> if the function should not modify them.</p></div></section><section class="sec"><h3>Nesting and arrays<span class="tag">combining</span></h3><div class="secbody"><pre class="code">typedef struct {
+    Point  origin;
+    Person owner;
+} Plot;
+
+Plot plots[10];
+plots[0].origin.x = 5;
+plots[0].owner.age = 40;</pre></div></section><section class="sec"><h3>Linked list<span class="tag">the classic structure</span></h3><div class="secbody"><pre class="code">typedef struct Node {
+    int value;
+    struct Node *next;
+} Node;
+
+Node *head = malloc(sizeof *head);
+head-&gt;value = 1;
+head-&gt;next  = NULL;
+
+for (Node *n = head; n; n = n-&gt;next)
+    printf("%d\n", n-&gt;value);</pre></div></section></div><div class="col"><section class="sec"><h3>union<span class="tag">one space, several readings</span></h3><div class="secbody"><pre class="code">union Value {
+    int    i;
+    float  f;
+    char   s[8];
+};                      // size = the largest member
+
+union Value v;
+v.i = 65;
+v.f;                    // garbage: only ONE member
+                        // is valid at a time</pre><p>A union overlays its members in the same bytes. Useful for a tagged value; dangerous when you forget which member you last wrote.</p><pre class="code">typedef struct {
+    enum { INT, STR } kind;   // the tag
+    union { int i; char *s; } as;
+} Var;</pre></div></section><section class="sec"><h3>enum<span class="tag">named integers</span></h3><div class="secbody"><pre class="code">enum Colour { RED, GREEN, BLUE };   // 0, 1, 2
+enum Status { OK = 200, NOTFOUND = 404 };
+
+enum Colour c = RED;
+if (c == BLUE) { /* ... */ }
+
+typedef enum { MON, TUE, WED } Day;</pre><p class="note">An enum value is just an int. It gives readable names and works in a <c>switch</c>.</p></div></section><section class="sec"><h3>Compound literals<span class="tag">a struct with no name</span></h3><div class="secbody"><pre class="code">p = (Point){3, 4};              // assign a fresh one
+draw((Point){.x = 1, .y = 2});   // pass one directly
+int *tmp = (int[]){1, 2, 3};     // an unnamed array</pre><p class="note">C99 and later. The object lives as long as the enclosing block, so never return its address.</p></div></section><section class="sec"><h3>Bit fields<span class="tag">packing flags</span></h3><div class="secbody"><pre class="code">struct Flags {
+    unsigned ready : 1;    // one bit
+    unsigned mode  : 3;    // three bits
+};</pre><p class="note">Saves space in protocol and hardware structs; the exact layout is compiler-dependent.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Memory</h2><div class="sub">Two places to keep data. One is automatic, one is yours to manage.</div><div class="pn">11</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>Stack vs heap<span class="tag">the model</span></h3><div class="secbody"><table class="wide"><tr><td>Stack</td><td>Locals and parameters. Created on entry to a block, destroyed on exit. Fast, automatic, small (a few MB).</td></tr><tr><td>Heap</td><td>Everything from <c>malloc</c>. Lives until you <c>free</c> it. Large, flexible, entirely your responsibility.</td></tr><tr><td>Static</td><td>Globals and <c>static</c> locals. Exist for the whole program, zero-initialised.</td></tr></table><pre class="code">void f(void) {
+    int a[100];               // stack: gone at return
+    int *b = malloc(400);     // heap: yours until freed
+    free(b);
+}</pre></div></section><section class="sec"><h3>malloc and friends<span class="tag">stdlib.h</span></h3><div class="secbody"><pre class="code">#include &lt;stdlib.h&gt;
+
+int *p = malloc(n * sizeof *p);   // uninitialised bytes
+int *q = calloc(n, sizeof *q);    // zeroed
+p = realloc(p, 2 * n * sizeof *p);
+free(p);</pre><p><c>sizeof *p</c> rather than <c>sizeof(int)</c> means the line stays correct if you change the type later.</p></div></section><section class="sec"><h3>Always check<span class="tag">malloc can fail</span></h3><div class="secbody"><pre class="code">int *p = malloc(n * sizeof *p);
+if (p == NULL) {
+    fprintf(stderr, "out of memory\n");
+    return 1;
+}</pre></div></section><section class="sec"><h3>realloc carefully<span class="tag">it can move</span></h3><div class="secbody"><pre class="code">int *tmp = realloc(p, newsize);
+if (!tmp) { free(p); return -1; }   // p still valid
+p = tmp;</pre><p class="warn"><c>p = realloc(p, n)</c> leaks the original block if realloc fails and returns NULL.</p></div></section></div><div class="col"><section class="sec"><h3>Every way to get it wrong<span class="tag">the big five</span></h3><div class="secbody"><table class="wide"><tr><td>Leak</td><td>you lost the pointer without freeing</td></tr><tr><td>Double free</td><td>freeing the same block twice</td></tr><tr><td>Use after free</td><td>reading or writing freed memory</td></tr><tr><td>Buffer overrun</td><td>writing past the end of the block</td></tr><tr><td>Freeing a non-heap pointer</td><td><c>free</c> on a stack array or a literal</td></tr></table><pre class="code">free(p);
+p = NULL;        // cheap insurance: free(NULL) is legal
+                 // and *NULL crashes loudly</pre></div></section><section class="sec"><h3>Padding<span class="tag">why sizeof surprises you</span></h3><div class="secbody"><pre class="code">struct A { char c; int i; char d; };   // sizeof 12, not 6
+struct B { int i; char c, d; };        // sizeof 8
+
+#include &lt;stddef.h&gt;
+offsetof(struct A, i)      // 4, not 1</pre><p>Each member is aligned to its own size, so the compiler inserts padding and rounds the whole struct up. Order members from largest to smallest and the holes mostly vanish.</p></div></section><section class="sec"><h3>Ownership<span class="tag">the discipline C needs</span></h3><div class="secbody"><ul><li>Every <c>malloc</c> has exactly one matching <c>free</c>.</li><li>Write down, in a comment, who frees what.</li><li>Whoever allocates it usually frees it.</li><li>A function that returns heap memory must say so in its header comment.</li></ul></div></section></div><div class="col"><section class="sec"><h3>Growable array<span class="tag">worked example</span></h3><div class="secbody"><pre class="code">typedef struct {
+    int   *data;
+    size_t len, cap;
+} Vec;
+
+int push(Vec *v, int x) {
+    if (v-&gt;len == v-&gt;cap) {
+        size_t cap = v-&gt;cap ? v-&gt;cap * 2 : 8;
+        int *tmp = realloc(v-&gt;data, cap * sizeof *tmp);
+        if (!tmp) return -1;
+        v-&gt;data = tmp;
+        v-&gt;cap  = cap;
+    }
+    v-&gt;data[v-&gt;len++] = x;
+    return 0;
+}
+
+void vec_free(Vec *v) {
+    free(v-&gt;data);
+    v-&gt;data = NULL; v-&gt;len = v-&gt;cap = 0;
+}</pre></div></section><section class="sec"><h3>A 2-D array on the heap<span class="tag">two ways</span></h3><div class="secbody"><pre class="code">// 1. one flat block, index it yourself - preferred
+int *g = malloc((size_t)rows * cols * sizeof *g);
+g[r * cols + c] = 1;
+free(g);
+
+// 2. an array of row pointers
+int **g = malloc(rows * sizeof *g);
+for (int r = 0; r &lt; rows; r++)
+    g[r] = malloc(cols * sizeof *g[r]);
+g[r][c] = 1;
+for (int r = 0; r &lt; rows; r++) free(g[r]);
+free(g);</pre><p class="note">The flat block is one allocation, one free, and contiguous in cache. Use row pointers only when the rows differ in length.</p></div></section><section class="sec"><h3>Finding leaks and overruns<span class="tag">tools</span></h3><div class="secbody"><pre class="code sh">gcc -fsanitize=address,undefined -g prog.c
+./a.out        # reports the exact bad line
+
+valgrind --leak-check=full ./prog</pre><p>Run every C program you write under one of these at least once. They turn silent corruption into a precise message.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Files</h2><div class="sub">Open, work, close. Check every single return value.</div><div class="pn">12</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Open and close<span class="tag">FILE *</span></h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;
+
+FILE *f = fopen("data.txt", "r");
+if (f == NULL) {
+    perror("data.txt");     // prints why
+    return 1;
+}
+/* ... read from f ... */
+fclose(f);</pre><table class="plain"><tr><td><c>"r"</c></td><td>read; must exist</td></tr><tr><td><c>"w"</c></td><td>write; <b>truncates to empty</b> or creates</td></tr><tr><td><c>"a"</c></td><td>append at the end</td></tr><tr><td><c>"r+"</c></td><td>read and write, must exist</td></tr><tr><td><c>"w+"</c></td><td>read and write, truncates</td></tr><tr><td><c>"a+"</c></td><td>read and append</td></tr><tr><td><c>"rb" "wb"</c></td><td>binary &#8212; matters on Windows</td></tr></table></div></section><section class="sec"><h3>Text in and out<span class="tag">line by line</span></h3><div class="secbody"><pre class="code">char line[256];
+while (fgets(line, sizeof line, f) != NULL) {
+    line[strcspn(line, "\n")] = '\0';
+    puts(line);
+}
+
+fprintf(f, "%s,%d\n", name, age);
+fputs("plain text\n", f);
+fputc('x', f);
+
+int c;
+while ((c = fgetc(f)) != EOF) putchar(c);</pre></div></section></div><div class="col"><section class="sec"><h3>Binary in and out<span class="tag">fread / fwrite</span></h3><div class="secbody"><pre class="code">Person people[10];
+
+size_t n = fwrite(people, sizeof people[0], 10, f);
+if (n != 10) { /* short write */ }
+
+size_t got = fread(people, sizeof people[0], 10, f);</pre><p>Both take: destination, size of one item, number of items, stream. They return how many items actually moved &#8212; compare it with what you asked for.</p></div></section><section class="sec"><h3>Moving around<span class="tag">seek / tell</span></h3><div class="secbody"><pre class="code">fseek(f, 0, SEEK_END);    // to the end
+long size = ftell(f);     // current position = size
+rewind(f);                // back to the start
+fseek(f, 20, SEEK_SET);   // 20 bytes from the start
+fseek(f, -4, SEEK_CUR);   // 4 back from here</pre></div></section><section class="sec"><h3>Checking for the end<span class="tag">feof trap</span></h3><div class="secbody"><pre class="code">while (!feof(f)) {        // WRONG: reads once too many
+    fgets(line, n, f);
+}
+
+while (fgets(line, n, f)) { /* ... */ }   // right
+
+if (ferror(f)) { /* ... */ }        // a real I/O error
+clearerr(f);</pre><p class="warn"><c>feof</c> only becomes true <i>after</i> a read has already failed. Test the read itself.</p></div></section></div><div class="col"><section class="sec"><h3>The whole stdio file API<span class="tag">reference</span></h3><div class="secbody"><table class="wide"><tr><td>fopen freopen fclose</td><td>open, reopen, close</td></tr><tr><td>fgetc getc ungetc</td><td>one character</td></tr><tr><td>fputc putc</td><td>write a character</td></tr><tr><td>fgets fputs</td><td>line in / out</td></tr><tr><td>fread fwrite</td><td>raw blocks</td></tr><tr><td>fprintf fscanf</td><td>formatted</td></tr><tr><td>fseek ftell rewind</td><td>position</td></tr><tr><td>fgetpos fsetpos</td><td>position, large files</td></tr><tr><td>feof ferror clearerr</td><td>status</td></tr><tr><td>fflush</td><td>push buffered output out</td></tr><tr><td>setvbuf</td><td>change buffering</td></tr><tr><td>remove rename</td><td>delete / rename a file</td></tr><tr><td>tmpfile tmpnam</td><td>temporary files</td></tr><tr><td>perror</td><td>print the last error with your message</td></tr></table></div></section><section class="sec"><h3>Robust pattern<span class="tag">template</span></h3><div class="secbody"><pre class="code">int load(const char *path) {
+    FILE *f = fopen(path, "r");
+    if (!f) { perror(path); return -1; }
+
+    char line[256];
+    while (fgets(line, sizeof line, f)) {
+        /* work */
+    }
+    int bad = ferror(f);
+    fclose(f);
+    return bad ? -1 : 0;
+}</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Preprocessor &amp; macros</h2><div class="sub">A text substitution pass that runs before the compiler sees anything.</div><div class="pn">13</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>#include<span class="tag">paste a file in</span></h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;      // system: searches the
+                        // compiler include paths
+#include "myheader.h"    // yours: searches here first</pre><p>It literally inserts the file's text. That is why headers hold declarations only &#8212; including a definition twice is an error.</p></div></section><section class="sec"><h3>#define<span class="tag">constants and macros</span></h3><div class="secbody"><pre class="code">#define MAX 100                 // object-like
+#define PI 3.14159
+#define SQUARE(x) ((x) * (x))   // function-like
+
+int arr[MAX];
+SQUARE(3)        // becomes ((3) * (3))
+SQUARE(1 + 2)    // ((1+2)*(1+2)) = 9  thanks to the
+                 // brackets. Without them: 1+2*1+2 = 5</pre><p class="warn">Bracket every parameter and the whole body. A macro is text, not a function &#8212; it obeys no precedence rules of its own.</p><pre class="code ref">#define MAX(a,b) ((a) &gt; (b) ? (a) : (b))
+MAX(i++, j++)     // one of them increments TWICE</pre></div></section><section class="sec"><h3>Prefer const and inline<span class="tag">modern advice</span></h3><div class="secbody"><pre class="code">static const int MAX = 100;       // typed, debuggable
+static inline int sq(int x) {     // real function,
+    return x * x;                 // no surprises
+}</pre></div></section></div><div class="col"><section class="sec"><h3>Conditional compilation<span class="tag">#if</span></h3><div class="secbody"><pre class="code">#ifdef DEBUG
+    printf("x = %d\n", x);
+#endif
+
+#ifndef NDEBUG
+    check();
+#endif
+
+#if defined(_WIN32)
+    #define SEP '\\'
+#elif defined(__linux__)
+    #define SEP '/'
+#else
+    #error unsupported platform
+#endif
+
+#undef MAX</pre><pre class="code sh">gcc -DDEBUG prog.c      // define from the command line
+gcc -DMAX=200 prog.c</pre></div></section><section class="sec hot"><h3>Header guards<span class="tag">never omit these</span></h3><div class="secbody"><pre class="code">// myheader.h
+#ifndef MYHEADER_H
+#define MYHEADER_H
+
+int add(int, int);
+
+#endif  // MYHEADER_H</pre><p>Without a guard, a header included twice declares everything twice and the build fails. <c>#pragma once</c> does the same and is supported everywhere in practice.</p></div></section></div><div class="col"><section class="sec"><h3>Predefined macros<span class="tag">free information</span></h3><div class="secbody"><table class="wide"><tr><td><c>__FILE__</c></td><td>this source file's name</td></tr><tr><td><c>__LINE__</c></td><td>the current line number</td></tr><tr><td><c>__func__</c></td><td>the enclosing function's name</td></tr><tr><td><c>__DATE__ __TIME__</c></td><td>when it was compiled</td></tr><tr><td><c>__STDC_VERSION__</c></td><td>the C standard in use</td></tr><tr><td><c>NDEBUG</c></td><td>defined in release builds; disables <c>assert</c></td></tr></table><pre class="code">#define LOG(fmt, ...) \
+    fprintf(stderr, "%s:%d: " fmt "\n", \
+            __FILE__, __LINE__, __VA_ARGS__)
+
+LOG("x is %d", x);
+// a.c:42: x is 7</pre></div></section><section class="sec"><h3>Stringify and paste<span class="tag"># and ##</span></h3><div class="secbody"><pre class="code ref">#define STR(x) #x            // x -&gt; "x"
+#define CAT(a,b) a##b        // joins tokens
+
+STR(hello)      // "hello"
+CAT(my, var)    // myvar</pre></div></section><section class="sec"><h3>Multi-line macros<span class="tag">the do-while trick</span></h3><div class="secbody"><pre class="code">#define SWAP(a, b) do { \
+    int t = (a); (a) = (b); (b) = t; \
+} while (0)</pre><p class="note"><c>do { } while(0)</c> makes the macro behave like one statement, so it works inside an unbraced <c>if</c>.</p></div></section><section class="sec"><h3>See the result<span class="tag">debugging macros</span></h3><div class="secbody"><pre class="code sh">gcc -E prog.c | less   # the expanded source</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>stdio &amp; stdlib</h2><div class="sub">The two headers you will include in nearly every program.</div><div class="pn">14</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>stdio.h &#8212; output<span class="tag">complete</span></h3><div class="secbody"><table class="wide"><tr><td>printf(fmt, ...)</td><td>formatted, to stdout</td></tr><tr><td>fprintf(f, fmt, ...)</td><td>formatted, to a stream</td></tr><tr><td>sprintf(buf, fmt, ...)</td><td>into a buffer &#8212; unbounded, avoid</td></tr><tr><td>snprintf(buf, n, fmt, ...)</td><td>into a buffer, bounded &#8212; use this</td></tr><tr><td>vprintf vfprintf vsnprintf</td><td>the va_list versions</td></tr><tr><td>puts(s)</td><td>string + newline</td></tr><tr><td>fputs(s, f) fputc(c, f)</td><td>string / char, no newline</td></tr><tr><td>putchar(c)</td><td>one character to stdout</td></tr><tr><td>fflush(f)</td><td>force the buffer out</td></tr></table></div></section><section class="sec"><h3>stdio.h &#8212; input<span class="tag">complete</span></h3><div class="secbody"><table class="wide"><tr><td>scanf(fmt, ...)</td><td>formatted from stdin</td></tr><tr><td>fscanf(f, ...) sscanf(s, ...)</td><td>from a stream / string</td></tr><tr><td>fgets(buf, n, f)</td><td>one line, bounded &#8212; the safe choice</td></tr><tr><td>fgetc(f) getchar()</td><td>one character</td></tr><tr><td>ungetc(c, f)</td><td>push one character back</td></tr><tr><td>fread(p, sz, n, f)</td><td>raw block</td></tr></table><p class="note">Every file function from the Files page lives here too: fopen, fclose, fseek, ftell, feof, ferror, remove, rename, perror.</p></div></section></div><div class="col"><section class="sec"><h3>stdlib.h &#8212; memory &amp; exit<span class="tag">complete</span></h3><div class="secbody"><table class="wide"><tr><td>malloc(n)</td><td>n uninitialised bytes, or NULL</td></tr><tr><td>calloc(n, size)</td><td>n items, zeroed</td></tr><tr><td>realloc(p, n)</td><td>resize; may move the block</td></tr><tr><td>free(p)</td><td>release; <c>free(NULL)</c> is legal</td></tr><tr><td>exit(status)</td><td>end the program, run cleanup</td></tr><tr><td>_Exit(status)</td><td>end immediately, no cleanup</td></tr><tr><td>atexit(fn)</td><td>run fn at exit</td></tr><tr><td>abort()</td><td>crash deliberately</td></tr><tr><td>system(cmd)</td><td>run a shell command</td></tr><tr><td>getenv("PATH")</td><td>read an environment variable</td></tr></table><pre class="code ref">EXIT_SUCCESS   // 0
+EXIT_FAILURE   // 1</pre></div></section><section class="sec"><h3>stdlib.h &#8212; conversion<span class="tag">text to number</span></h3><div class="secbody"><table class="wide"><tr><td>atoi atol atoll atof</td><td>quick, no error reporting</td></tr><tr><td>strtol strtoll strtoul</td><td>with base and error detection</td></tr><tr><td>strtod strtof</td><td>to floating point</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>stdlib.h &#8212; the rest<span class="tag">complete</span></h3><div class="secbody"><table class="wide"><tr><td>rand()</td><td>pseudo-random int, 0..RAND_MAX</td></tr><tr><td>srand(seed)</td><td>seed it once: <c>srand(time(NULL))</c></td></tr><tr><td>qsort(base, n, size, cmp)</td><td>sort anything</td></tr><tr><td>bsearch(key, base, n, size, cmp)</td><td>search a sorted array</td></tr><tr><td>abs labs llabs</td><td>absolute value</td></tr><tr><td>div ldiv</td><td>quotient and remainder together</td></tr></table><pre class="code">int cmp(const void *a, const void *b) {
+    int x = *(const int *)a, y = *(const int *)b;
+    return (x &gt; y) - (x &lt; y);   // never x - y: overflow
+}
+qsort(arr, n, sizeof arr[0], cmp);
+
+srand((unsigned)time(NULL));
+int roll = rand() % 6 + 1;</pre></div></section><section class="sec"><h3>Which header for what<span class="tag">quick index</span></h3><div class="secbody"><table class="wide"><tr><td>stdio.h</td><td>input, output, files</td></tr><tr><td>stdlib.h</td><td>memory, conversion, random, exit, sort</td></tr><tr><td>string.h</td><td>strings and raw bytes</td></tr><tr><td>math.h</td><td>maths &#8212; link with <c>-lm</c></td></tr><tr><td>ctype.h</td><td>character tests</td></tr><tr><td>time.h</td><td>clock and calendar</td></tr><tr><td>stdbool.h</td><td><c>bool true false</c></td></tr><tr><td>stdint.h</td><td>fixed-width integer types</td></tr><tr><td>limits.h float.h</td><td>type ranges</td></tr><tr><td>assert.h</td><td><c>assert</c></td></tr><tr><td>errno.h</td><td><c>errno</c>, error numbers</td></tr><tr><td>stdarg.h</td><td>variadic functions</td></tr><tr><td>stddef.h</td><td><c>size_t NULL offsetof</c></td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>string, math, ctype, time</h2><div class="sub">The remaining standard headers, function by function.</div><div class="pn">15</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>math.h<span class="tag">compile with -lm</span></h3><div class="secbody"><table class="wide"><tr><td>sqrt cbrt pow hypot</td><td>roots and powers</td></tr><tr><td>exp log log10 log2</td><td>exponential and logs</td></tr><tr><td>sin cos tan</td><td>trigonometry, radians</td></tr><tr><td>asin acos atan atan2(y,x)</td><td>inverse trig</td></tr><tr><td>sinh cosh tanh</td><td>hyperbolic</td></tr><tr><td>ceil floor round trunc</td><td>to whole numbers</td></tr><tr><td>fabs</td><td>absolute value of a double</td></tr><tr><td>fmod(a,b) remainder</td><td>floating remainder</td></tr><tr><td>fmin fmax</td><td>smaller / larger</td></tr><tr><td>modf frexp ldexp</td><td>split off parts</td></tr><tr><td>isnan isinf isfinite</td><td>classify a value</td></tr><tr><td>M_PI</td><td>&#960; (POSIX, not standard C)</td></tr></table><pre class="code">double h = sqrt(a*a + b*b);
+if (fabs(x - y) &lt; 1e-9) { /* ... */ } // float equality</pre></div></section><section class="sec"><h3>ctype.h<span class="tag">one character at a time</span></h3><div class="secbody"><table class="wide"><tr><td>isalpha isdigit isalnum</td><td>letter / digit / either</td></tr><tr><td>isspace ispunct</td><td>whitespace / punctuation</td></tr><tr><td>isupper islower</td><td>case tests</td></tr><tr><td>isxdigit iscntrl isprint isgraph</td><td>the rest</td></tr><tr><td>toupper tolower</td><td>convert case</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>time.h<span class="tag">clock and calendar</span></h3><div class="secbody"><pre class="code">#include &lt;time.h&gt;
+
+time_t now = time(NULL);          // seconds since 1970
+printf("%s", ctime(&amp;now));        // readable text
+
+struct tm *t = localtime(&amp;now);   // broken into fields
+t-&gt;tm_year + 1900;                // years since 1900
+t-&gt;tm_mon + 1;                    // 0 = January
+t-&gt;tm_mday, t-&gt;tm_hour, t-&gt;tm_min, t-&gt;tm_sec;
+
+char buf[64];
+strftime(buf, sizeof buf, "%Y-%m-%d %H:%M", t);
+
+clock_t c0 = clock();
+double secs = (double)(clock()-c0) / CLOCKS_PER_SEC;
+difftime(end, start);             // seconds between</pre><p class="note"><c>gmtime</c> for UTC, <c>mktime</c> to go back from a <c>struct tm</c>, <c>asctime</c> for a fixed text form.</p></div></section><section class="sec"><h3>assert.h &amp; errno.h<span class="tag">checks and errors</span></h3><div class="secbody"><pre class="code">#include &lt;assert.h&gt;
+assert(n &gt; 0);       // aborts with file and line
+                     // removed when -DNDEBUG
+
+static_assert(sizeof(int) == 4, "needs 32-bit int");
+// checked at COMPILE time; C23, or &lt;assert.h&gt; in C11
+
+#include &lt;errno.h&gt;
+#include &lt;string.h&gt;
+errno = 0;
+FILE *f = fopen(p, "r");
+if (!f) {
+    printf("%s: %s\n", p, strerror(errno));
+    perror(p);       // same, straight to stderr
+}</pre></div></section></div><div class="col"><section class="sec"><h3>limits.h &amp; float.h<span class="tag">how big can it get</span></h3><div class="secbody"><table class="wide"><tr><td>CHAR_BIT</td><td>bits in a char, always 8 in practice</td></tr><tr><td>SCHAR_MIN SCHAR_MAX UCHAR_MAX</td><td>char ranges</td></tr><tr><td>SHRT_MIN SHRT_MAX USHRT_MAX</td><td>short</td></tr><tr><td>INT_MIN INT_MAX UINT_MAX</td><td>int</td></tr><tr><td>LONG_MIN LONG_MAX ULONG_MAX</td><td>long</td></tr><tr><td>LLONG_MIN LLONG_MAX</td><td>long long</td></tr><tr><td>DBL_MAX DBL_MIN DBL_EPSILON</td><td>double</td></tr><tr><td>FLT_MAX FLT_EPSILON</td><td>float</td></tr></table></div></section><section class="sec"><h3>stdint.h<span class="tag">exact sizes</span></h3><div class="secbody"><pre class="code">int8_t  int16_t  int32_t  int64_t
+uint8_t uint16_t uint32_t uint64_t
+intptr_t uintptr_t    // big enough for a pointer
+SIZE_MAX INT32_MAX UINT64_MAX
+
+#include &lt;inttypes.h&gt;
+printf("%" PRId64 "\n", big);   // portable format</pre></div></section><section class="sec"><h3>string.h recap<span class="tag">see the Strings page</span></h3><div class="secbody"><p class="note">strlen strcpy strncpy strcat strncat strcmp strncmp strchr strrchr strstr strtok strspn strcspn strerror memcpy memmove memset memcmp memchr.</p></div></section><section class="sec"><h3>Headers you will meet later<span class="tag">beyond standard C</span></h3><div class="secbody"><table class="wide"><tr><td>unistd.h</td><td>POSIX: read, write, fork, sleep</td></tr><tr><td>pthread.h</td><td>threads</td></tr><tr><td>sys/socket.h</td><td>networking</td></tr><tr><td>dirent.h</td><td>directory listing</td></tr><tr><td>signal.h</td><td>Ctrl-C and friends</td></tr><tr><td>stdatomic.h threads.h</td><td>C11 concurrency</td></tr></table></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Function pointers &amp; variadics</h2><div class="sub">Passing behaviour around, and functions that take any number of arguments.</div><div class="pn">16</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>A pointer to code<span class="tag">the syntax</span></h3><div class="secbody"><pre class="code">int add(int a, int b) { return a + b; }
+
+int (*op)(int, int) = add;    // declare and assign
+//   ^ name  ^ parameter types
+
+op(2, 3);        // 5
+(*op)(2, 3);     // identical, older style
+
+typedef int (*BinOp)(int, int);   // much clearer
+BinOp op = add;</pre><p>Read it inside out: <c>op</c> is a pointer, to a function, taking two ints, returning int. The brackets around <c>*op</c> are what make it a function pointer rather than a function returning a pointer.</p></div></section><section class="sec"><h3>Callbacks<span class="tag">why they exist</span></h3><div class="secbody"><pre class="code">void each(int *a, size_t n, void (*fn)(int)) {
+    for (size_t i = 0; i &lt; n; i++) fn(a[i]);
+}
+
+void show(int x) { printf("%d ", x); }
+each(nums, n, show);</pre><p>This is how <c>qsort</c> sorts anything: you supply the comparison, it supplies the algorithm.</p></div></section></div><div class="col"><section class="sec"><h3>Tables of functions<span class="tag">dispatch</span></h3><div class="secbody"><pre class="code">typedef int (*BinOp)(int, int);
+
+int add(int a,int b){return a+b;}
+int sub(int a,int b){return a-b;}
+
+struct { char sym; BinOp fn; } ops[] = {
+    {'+', add}, {'-', sub},
+};
+
+for (size_t i = 0; i &lt; 2; i++)
+    if (ops[i].sym == c)
+        printf("%d\n", ops[i].fn(a, b));</pre><p class="note">A function-pointer table replaces a long switch, and is how C programs fake objects with methods.</p></div></section><section class="sec"><h3>Struct with methods<span class="tag">hand-made objects</span></h3><div class="secbody"><pre class="code">typedef struct Shape {
+    double (*area)(const struct Shape *);
+    double w, h;
+} Shape;
+
+double rect_area(const Shape *s) {
+    return s-&gt;w * s-&gt;h;
+}
+
+Shape r = {rect_area, 3, 4};
+r.area(&amp;r);     // 12</pre></div></section></div><div class="col"><section class="sec"><h3>Variadic functions<span class="tag">stdarg.h</span></h3><div class="secbody"><pre class="code">#include &lt;stdarg.h&gt;
+
+int sum(int count, ...) {
+    va_list args;
+    va_start(args, count);      // last NAMED parameter
+    int total = 0;
+    for (int i = 0; i &lt; count; i++)
+        total += va_arg(args, int);   // type required
+    va_end(args);
+    return total;
+}
+
+sum(3, 10, 20, 30);    // 60</pre><p>There is no way to discover how many arguments arrived or what type they are &#8212; that is why <c>printf</c> needs a format string, and why a wrong format code reads nonsense off the stack.</p></div></section><section class="sec"><h3>Wrapping printf<span class="tag">the common use</span></h3><div class="secbody"><pre class="code">void logf_(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);   // the v* versions
+    va_end(ap);                  // take a va_list
+}</pre></div></section><section class="sec"><h3>Returning functions<span class="tag">reading hard declarations</span></h3><div class="secbody"><pre class="code">int (*get(void))(int, int);
+// get is a function taking void,
+// returning a pointer to a function
+// taking (int,int) returning int
+
+typedef int (*BinOp)(int, int);
+BinOp get(void);          // the same thing, readable</pre></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Bits &amp; undefined behaviour</h2><div class="sub">Working at the level of individual bits, and the rules that make C dangerous.</div><div class="pn">17</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Bit recipes<span class="tag">the five moves</span></h3><div class="secbody"><pre class="code ref">x |   (1u &lt;&lt; n)     // set bit n
+x &amp;= ~(1u &lt;&lt; n)     // clear bit n
+x ^=  (1u &lt;&lt; n)     // toggle bit n
+(x &gt;&gt; n) &amp; 1u       // test bit n
+x &amp;   (x - 1)       // clear the lowest set bit
+x &amp;   -x            // isolate the lowest set bit</pre><pre class="code ref">#define SET(x,n)    ((x) |=  (1u &lt;&lt; (n)))
+#define CLR(x,n)    ((x) &amp;= ~(1u &lt;&lt; (n)))
+#define GET(x,n)    (((x) &gt;&gt; (n)) &amp; 1u)</pre></div></section><section class="sec"><h3>Masks and flags<span class="tag">packing booleans</span></h3><div class="secbody"><pre class="code">#define READ  (1u &lt;&lt; 0)   // 0001
+#define WRITE (1u &lt;&lt; 1)   // 0010
+#define EXEC  (1u &lt;&lt; 2)   // 0100
+
+unsigned perms = READ | WRITE;
+if (perms &amp; WRITE) { /* ... */ }
+perms &amp;= ~WRITE;</pre></div></section><section class="sec"><h3>Counting bits<span class="tag">useful tricks</span></h3><div class="secbody"><pre class="code">int count(unsigned x) {
+    int n = 0;
+    while (x) { x &amp;= x - 1; n++; }   // one pass per set bit
+    return n;
+}
+
+__builtin_popcount(x)   // gcc/clang, one instruction</pre></div></section></div><div class="col"><section class="sec"><h3>Shift rules<span class="tag">careful</span></h3><div class="secbody"><pre class="code ref">1u &lt;&lt; 31        // fine
+1  &lt;&lt; 31        // overflow: undefined
+1u &lt;&lt; 32        // undefined: shift &gt;= width
+x &gt;&gt; 1          // on a NEGATIVE signed int:
+                // implementation-defined</pre><p>Always shift <b>unsigned</b> values, and never by more than the width minus one.</p></div></section><section class="sec hot"><h3>Undefined behaviour<span class="tag">the sharp edge</span></h3><div class="secbody"><p>If your program does any of these, the standard places <i>no limit</i> on what happens. The compiler may assume it never occurs and delete your checks. It is not &#8220;whatever the machine does&#8221;.</p><table class="wide"><tr><td>Out-of-bounds access</td><td>reading or writing past an array</td></tr><tr><td>Use after free / dangling</td><td>touching dead memory</td></tr><tr><td>Signed overflow</td><td><c>INT_MAX + 1</c></td></tr><tr><td>Divide by zero</td><td>integer division or modulo</td></tr><tr><td>Null dereference</td><td><c>*p</c> where p is NULL</td></tr><tr><td>Uninitialised read</td><td>using a variable you never set</td></tr><tr><td>Bad shift</td><td>negative or too-large shift count</td></tr><tr><td>Modifying twice</td><td><c>i = i++ + 1</c></td></tr><tr><td>Missing return</td><td>falling off the end of a non-void function</td></tr><tr><td>Wrong printf type</td><td><c>%d</c> given a double</td></tr><tr><td>Strict aliasing</td><td>reading one type through a pointer to another</td></tr></table></div></section><section class="sec"><h3>Unspecified and implementation-defined<span class="tag">the milder cousins</span></h3><div class="secbody"><table class="wide"><tr><td>Unspecified</td><td>several outcomes are legal &#8212; argument evaluation order</td></tr><tr><td>Implementation-defined</td><td>the compiler must document it &#8212; <c>sizeof(int)</c>, whether <c>char</c> is signed</td></tr><tr><td>Undefined</td><td>no rules at all</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>Integer traps<span class="tag">silent wrongness</span></h3><div class="secbody"><pre class="code">unsigned u = 1;
+int s = -1;
+if (s &lt; u)        // FALSE: s converts to a huge unsigned
+
+size_t n = 0;
+for (size_t i = n - 1; i &gt;= 0; i--)   // never ends:
+                                      // unsigned is never &lt; 0
+
+char c = 200;     // may be negative: char signedness varies
+int x = 50000 * 50000;    // signed overflow, UB</pre><p>Mixing signed and unsigned in a comparison converts the signed value to unsigned. This is a genuine source of security bugs.</p></div></section><section class="sec"><h3>Defend yourself<span class="tag">practice</span></h3><div class="secbody"><ul><li>Compile with <c>-Wall -Wextra -Wconversion</c>.</li><li>Run tests under <c>-fsanitize=address,undefined</c>.</li><li>Use <c>unsigned</c> for bit work, signed for arithmetic.</li><li>Use <c>size_t</c> for sizes and indices.</li><li>Never rely on what your machine happens to do today.</li></ul></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Multi-file projects</h2><div class="sub">Splitting code into headers and source files, and building them with one command.</div><div class="pn">18</div></div><div class="body"><div class="grid"><div class="col"><section class="sec hot"><h3>The header<span class="tag">the interface</span></h3><div class="secbody"><pre class="code">/* math_utils.h -- the interface */
+#ifndef MATH_UTILS_H
+#define MATH_UTILS_H
+
+int  add(int a, int b);        // declarations
+extern int call_count;         // shared variable
+typedef struct { int x, y; } Point;
+
+#endif</pre></div></section><section class="sec"><h3>The source files<span class="tag">the implementation</span></h3><div class="secbody"><pre class="code">/* math_utils.c -- the implementation */
+#include "math_utils.h"
+
+int call_count = 0;            // the definition
+
+int add(int a, int b) {
+    call_count++;
+    return a + b;
+}
+
+static int helper(void) { return 0; } // private to this file</pre><pre class="code">/* main.c */
+#include &lt;stdio.h&gt;
+#include "math_utils.h"
+
+int main(void) {
+    printf("%d\n", add(2, 3));
+    return 0;
+}</pre></div></section></div><div class="col"><section class="sec"><h3>The rule<span class="tag">declare vs define</span></h3><div class="secbody"><table class="wide"><tr><td>Header <c>.h</c></td><td>declarations, macros, typedefs, <c>extern</c> variables, <c>static inline</c> functions</td></tr><tr><td>Source <c>.c</c></td><td>definitions: function bodies and real variables</td></tr><tr><td><c>static</c></td><td>makes a function or global private to its <c>.c</c> file</td></tr></table><p class="warn">A definition in a header that is included twice causes &#8220;multiple definition&#8221; at link time.</p></div></section><section class="sec"><h3>Building it<span class="tag">by hand</span></h3><div class="secbody"><pre class="code sh">gcc -Wall -c math_utils.c -o math_utils.o
+gcc -Wall -c main.c       -o main.o
+gcc math_utils.o main.o   -o prog
+
+# or all at once
+gcc -Wall main.c math_utils.c -o prog</pre></div></section><section class="sec"><h3>Include paths and libraries<span class="tag">flags</span></h3><div class="secbody"><pre class="code sh">gcc -I./include  ...     # where to find headers
+gcc -L./lib -lfoo ...    # where to find libfoo
+gcc ... -lm              # the maths library</pre></div></section></div><div class="col"><section class="sec"><h3>A minimal Makefile<span class="tag">make</span></h3><div class="secbody"><pre class="code ref">CC      = gcc
+CFLAGS  = -Wall -Wextra -g -std=c17
+OBJ     = main.o math_utils.o
+
+prog: $(OBJ)
+	$(CC) $(OBJ) -o prog
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $&lt; -o $@
+
+clean:
+	rm -f $(OBJ) prog
+
+.PHONY: clean</pre><p class="warn">Recipe lines must start with a real TAB, not spaces. This is the single most common Makefile error.</p><pre class="code sh">make          # build
+make clean    # tidy up</pre></div></section><section class="sec"><h3>Project layout<span class="tag">convention</span></h3><div class="secbody"><pre class="code ref">myprog/
+  Makefile
+  README.md
+  include/
+    math_utils.h
+  src/
+    main.c
+    math_utils.c
+  tests/
+    test_math.c</pre></div></section><section class="sec"><h3>Beyond make<span class="tag">what teams use</span></h3><div class="secbody"><p class="note"><c>cmake</c> generates build files for any platform; <c>ninja</c> runs them fast. Learn <c>make</c> first &#8212; everything else is built on the same idea of targets and dependencies.</p></div></section></div></div></div></div></section><section class="page" data-mode="full"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>Debugging, gotchas, style</h2><div class="sub">Finding the bug, the traps that cause it, and how to write code that has fewer.</div><div class="pn">19</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>gdb<span class="tag">the debugger</span></h3><div class="secbody"><pre class="code sh">gcc -g -O0 prog.c -o prog
+gdb ./prog</pre><table class="wide"><tr><td><c>run</c> / <c>run args</c></td><td>start it</td></tr><tr><td><c>break main</c> / <c>break f.c:42</c></td><td>set a breakpoint</td></tr><tr><td><c>next</c> (n)</td><td>run the next line</td></tr><tr><td><c>step</c> (s)</td><td>step into a call</td></tr><tr><td><c>continue</c> (c)</td><td>run to the next breakpoint</td></tr><tr><td><c>print x</c> / <c>p *p</c></td><td>inspect a value</td></tr><tr><td><c>backtrace</c> (bt)</td><td>how did I get here</td></tr><tr><td><c>info locals</c></td><td>all local variables</td></tr><tr><td><c>watch x</c></td><td>stop when x changes</td></tr><tr><td><c>quit</c></td><td>leave</td></tr></table><pre class="code sh">./prog            # Segmentation fault
+gdb ./prog
+(gdb) run
+(gdb) bt          # the exact line that crashed</pre></div></section><section class="sec"><h3>The sanitizers<span class="tag">fastest route to the bug</span></h3><div class="secbody"><pre class="code sh">gcc -g -fsanitize=address,undefined prog.c
+./a.out
+# prints the file, line and kind of error
+
+valgrind --leak-check=full ./prog</pre></div></section></div><div class="col"><section class="sec"><h3>Printf debugging<span class="tag">still effective</span></h3><div class="secbody"><pre class="code">fprintf(stderr, "here: x=%d p=%p\n", x, (void *)p);
+
+#define TRACE(fmt, ...) \
+  fprintf(stderr, "%s:%d " fmt "\n", \
+          __func__, __LINE__, __VA_ARGS__)</pre><p class="note">Use <c>stderr</c>: it is unbuffered, so the message appears even if the program crashes immediately after.</p></div></section><section class="sec"><h3>Crash decoder<span class="tag">what it means</span></h3><div class="secbody"><table class="wide"><tr><td>Segmentation fault</td><td>touched memory you do not own &#8212; NULL, dangling, or past an array</td></tr><tr><td>Bus error</td><td>misaligned or invalid address</td></tr><tr><td>Aborted</td><td><c>assert</c> failed, or the allocator found corruption</td></tr><tr><td>Stack smashing detected</td><td>wrote past a local array</td></tr><tr><td>Illegal instruction</td><td>jumped into data, often via a bad function pointer</td></tr><tr><td>Silent wrong answer</td><td>uninitialised variable or undefined behaviour</td></tr></table></div></section><section class="sec"><h3>Compiler errors decoded<span class="tag">common messages</span></h3><div class="secbody"><table class="wide"><tr><td>implicit declaration of function</td><td>missing <c>#include</c> or prototype</td></tr><tr><td>undefined reference to</td><td>linker: missing <c>.c</c> file or <c>-l</c> library</td></tr><tr><td>expected &#8216;;&#8217; before</td><td>look at the line <i>above</i></td></tr><tr><td>multiple definition of</td><td>a definition in a header</td></tr><tr><td>dereferencing pointer to incomplete type</td><td>the struct is only forward declared</td></tr></table></div></section></div><div class="col"><section class="sec hot"><h3>The traps, collected<span class="tag">learn these once</span></h3><div class="secbody"><table class="wide"><tr><td><c>=</c> vs <c>==</c></td><td><c>if (x = 5)</c> assigns and is always true</td></tr><tr><td>Missing <c>break</c></td><td>switch cases fall through</td></tr><tr><td>Missing braces</td><td>only the next statement belongs to the <c>if</c></td></tr><tr><td><c>;</c> after <c>if</c> or <c>for</c></td><td>an empty body; the block always runs</td></tr><tr><td><c>==</c> on strings</td><td>compares addresses &#8212; use <c>strcmp</c></td></tr><tr><td>Integer division</td><td><c>7/2</c> is 3; cast one side</td></tr><tr><td>Off-by-one</td><td><c>i &lt;= n</c> walks one past the end</td></tr><tr><td>Forgetting <c>&amp;</c> in scanf</td><td>corrupts memory</td></tr><tr><td>Buffer with no room for NUL</td><td><c>char b[3]</c> cannot hold <c>"abc"</c></td></tr><tr><td>Returning a local's address</td><td>that memory is gone</td></tr><tr><td>Uninitialised variables</td><td>garbage, not zero</td></tr><tr><td>Leaked or double-freed memory</td><td>see the Memory page</td></tr><tr><td><c>sizeof</c> on a parameter</td><td>gives the pointer size</td></tr></table></div></section><section class="sec"><h3>Style that prevents bugs<span class="tag">habits</span></h3><div class="secbody"><ul><li>Always brace the body of <c>if</c>, <c>for</c> and <c>while</c>.</li><li>Initialise every variable where you declare it.</li><li>One job per function; keep them short enough to see whole.</li><li><c>const</c> everything you do not intend to modify.</li><li>Check every return value: <c>malloc</c>, <c>fopen</c>, <c>scanf</c>, <c>fread</c>.</li><li>Free what you allocate, and set the pointer to NULL.</li><li>Compile with warnings on, and keep the output clean.</li></ul></div></section><section class="sec"><h3>Where to look things up<span class="tag">sources</span></h3><div class="secbody"><p class="note"><c>man 3 printf</c> on mac or linux &#183; cppreference.com &#183; the C standard drafts (N1570 for C11) &#183; <c>gcc -E</c> to see what the preprocessor did.</p></div></section></div></div></div></div></section><section class="page" data-mode="dense"><div class="stage"><div class="spine"><span>C</span></div><div class="head"><h2>C &#8212; one sheet</h2><div class="sub">Everything on a single screen. Press F for the full manual with explanations.</div><div class="pn">1 / 1</div></div><div class="body"><div class="grid"><div class="col"><section class="sec"><h3>Compile<span class="tag">gcc</span></h3><div class="secbody"><pre class="code sh">gcc -Wall -Wextra -g \
+    -std=c17 p.c -o p
+./p
+-lm   math   -O2 fast
+-fsanitize=address,undefined</pre></div></section><section class="sec"><h3>Skeleton</h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#define MAX 100
+
+int add(int, int);   // proto
+
+int main(void) {
+    printf("%d\n", add(1,2));
+    return 0;
+}
+int add(int a, int b) {
+    return a + b;
+}
+// comment   /* block */</pre></div></section><section class="sec"><h3>Types</h3><div class="secbody"><table class="plain"><tr><td>char</td><td>1 byte</td></tr><tr><td>short</td><td>2</td></tr><tr><td>int</td><td>4</td></tr><tr><td>long long</td><td>8</td></tr><tr><td>float</td><td>4 ~7 digits</td></tr><tr><td>double</td><td>8 ~15</td></tr><tr><td>unsigned X</td><td>no negatives</td></tr><tr><td>void</td><td>nothing / any</td></tr><tr><td>bool</td><td>stdbool.h</td></tr><tr><td>size_t</td><td>sizes, unsigned</td></tr></table><pre class="code">int x = 0;      // ALWAYS init
+const int M = 10;
+sizeof(int)  sizeof x
+sizeof a/sizeof a[0]
+int32_t u8 = 0; //stdint.h</pre></div></section><section class="sec"><h3>Casting</h3><div class="secbody"><pre class="code">int a=7,b=2;
+double r = a/b;       // 3.0!
+double r = (double)a/b; // 3.5
+int n = (int)3.9;     // 3</pre></div></section><section class="sec"><h3>Storage</h3><div class="secbody"><table class="plain"><tr><td>static</td><td>keeps value / file-private</td></tr><tr><td>extern</td><td>defined elsewhere</td></tr><tr><td>const</td><td>read only</td></tr><tr><td>volatile</td><td>may change outside</td></tr></table></div></section></div><div class="col"><section class="sec"><h3>printf<span class="tag">stdio.h</span></h3><div class="secbody"><pre class="code">printf("%s is %d\n", s, n);
+printf("%.2f %5d %-5d %05d",
+       f, n, n, n);</pre><table class="plain"><tr><td>%d %i</td><td>int</td></tr><tr><td>%u</td><td>unsigned</td></tr><tr><td>%ld %lld</td><td>long</td></tr><tr><td>%zu</td><td>size_t</td></tr><tr><td>%f %.3f</td><td>double</td></tr><tr><td>%e %g</td><td>sci/short</td></tr><tr><td>%c</td><td>char</td></tr><tr><td>%s</td><td>string</td></tr><tr><td>%p</td><td>pointer</td></tr><tr><td>%x %o</td><td>hex/octal</td></tr><tr><td>%%</td><td>percent</td></tr></table></div></section><section class="sec"><h3>Escapes</h3><div class="secbody"><pre class="code ref">\n \t \r \\ \" \' \0 \a \x41</pre></div></section><section class="sec"><h3>Input<span class="tag">safely</span></h3><div class="secbody"><pre class="code">int n;
+if (scanf("%d", &amp;n) != 1) err();
+char b[64];
+fgets(b, sizeof b, stdin);
+b[strcspn(b,"\n")] = 0;
+long v = strtol(b, NULL, 10);
+int c;
+while ((c=getchar())!=EOF) { }</pre><p class="note">&amp; on scanf args. Never <c>gets</c>. <c>snprintf</c> not <c>sprintf</c>.</p></div></section><section class="sec"><h3>Streams</h3><div class="secbody"><pre class="code">stdin stdout stderr
+fprintf(stderr, "err\n");
+putchar(c) puts(s) fflush(f)</pre></div></section><section class="sec"><h3>Operators</h3><div class="secbody"><table class="plain"><tr><td>+ - * /</td><td>7/2=3 int!</td></tr><tr><td>%</td><td>remainder</td></tr><tr><td>++ --</td><td>pre/post</td></tr><tr><td>== != &lt; &gt;</td><td>compare</td></tr><tr><td>&amp;&amp; || !</td><td>logic</td></tr><tr><td>&amp; | ^ ~ &lt;&lt; &gt;&gt;</td><td>bits</td></tr><tr><td>?:</td><td>ternary</td></tr><tr><td>&amp;x *p</td><td>address / value</td></tr><tr><td>a[i]</td><td>*(a+i)</td></tr><tr><td>s.f p-&gt;f</td><td>member</td></tr><tr><td>sizeof</td><td>bytes</td></tr></table><p class="note"><c>=</c> assigns, <c>==</c> compares. <c>&amp;&amp;</c> is logic, <c>&amp;</c> is bits. Bracket bit ops.</p></div></section></div><div class="col"><section class="sec"><h3>Control flow</h3><div class="secbody"><pre class="code">if (a) { } else if (b) { }
+else { }
+
+switch (c) {
+  case 1:
+  case 2: f(); break;
+  default: g();
+}   // no break = fallthrough
+
+for (int i=0; i&lt;n; i++) { }
+for (;;) { }
+while (c) { }
+do { } while (c);
+break continue goto fail;</pre><p class="note">Always brace bodies. A stray <c>;</c> after <c>if(x)</c> empties the body.</p></div></section><section class="sec"><h3>Functions</h3><div class="secbody"><pre class="code">int f(int a, double b);  //proto
+void g(void) { return; }
+// args are COPIED
+void bad(int x){x=9;}   //no
+void ok(int *x){*x=9;}  //yes
+ok(&amp;n);
+// never return &amp;local
+static int priv(void);
+long fact(int n){
+  return n&lt;=1?1:n*fact(n-1);
+}</pre></div></section><section class="sec"><h3>Arrays</h3><div class="secbody"><pre class="code">int a[5] = {1,2};  // rest 0
+int a[] = {1,2,3};
+int z[100] = {0};
+int g[2][3] = {{1,2,3},{4,5,6}};
+size_t n = sizeof a/sizeof a[0];
+// NO bounds checking
+// b = a; illegal -&gt; memcpy
+void f(int *a, size_t n);
+qsort(a,n,sizeof a[0],cmp);</pre></div></section></div><div class="col"><section class="sec"><h3>Pointers<span class="tag">the core</span></h3><div class="secbody"><pre class="code">int x = 42;
+int *p = &amp;x;   // address of
+*p             // value at -&gt; 42
+*p = 99;       // x is now 99
+int *q = NULL;
+if (p) *p = 1;
+
+p++            // += sizeof(int)
+*(p+1) == p[1]
+end - start    // elements
+
+int **pp = &amp;p;
+void *raw;  *(int *)raw
+const char *s; // no write *s
+char * const c; // no move c</pre><p class="note">Kills: NULL deref &#183; dangling &#183; double free &#183; overrun &#183; leak. <c>free(p); p=NULL;</c></p></div></section><section class="sec"><h3>Strings<span class="tag">char[] + '\0'</span></h3><div class="secbody"><pre class="code">char s[] = "hi";  // 3 bytes
+char *p = "hi";   // read only
+strlen(s)  // 2
+sizeof s   // 3
+s[0]='H';  // array only</pre><table class="plain"><tr><td>strcpy strncpy</td><td>copy</td></tr><tr><td>strcat strncat</td><td>append</td></tr><tr><td>strcmp</td><td>0 = equal</td></tr><tr><td>strchr strstr</td><td>find</td></tr><tr><td>strtok</td><td>split</td></tr><tr><td>memcpy memmove</td><td>bytes</td></tr><tr><td>memset memcmp</td><td>fill/compare</td></tr><tr><td>atoi strtol</td><td>to number</td></tr></table><p class="warn"><c>==</c> compares addresses. Use <c>strcmp(a,b)==0</c>.</p></div></section><section class="sec"><h3>Structs</h3><div class="secbody"><pre class="code">typedef struct {
+    char name[50];
+    int  age;
+} Person;
+
+Person a = {"Ada", 36};
+Person b = {.age = 36};
+a.age = 37;
+Person *p = &amp;a;
+p-&gt;age = 38;
+
+struct Node {
+    int v;
+    struct Node *next;
+};
+union U { int i; float f; };
+enum C { RED, GREEN=5 };</pre></div></section></div><div class="col"><section class="sec"><h3>Memory<span class="tag">stdlib.h</span></h3><div class="secbody"><pre class="code">int *p = malloc(n*sizeof *p);
+if (!p) return 1;    // CHECK
+int *z = calloc(n, sizeof *z);
+int *t = realloc(p, m*sizeof *t);
+if (!t) { free(p); return 1; }
+p = t;
+free(p);  p = NULL;
+
+// stack: locals, auto, small
+// heap:  malloc, yours to free</pre><p class="note">One malloc, one free. Test with <c>valgrind</c> or <c>-fsanitize=address</c>.</p></div></section><section class="sec"><h3>Files</h3><div class="secbody"><pre class="code">FILE *f = fopen("d.txt","r");
+if (!f) { perror("d.txt"); }
+char line[256];
+while (fgets(line,sizeof line,f))
+    puts(line);
+fprintf(f, "%d\n", n);
+fread(buf,sz,n,f)  fwrite(b,sz,n,f)
+fseek(f,0,SEEK_END); ftell(f);
+fclose(f);
+// r w a r+ w+ a+ rb wb
+// w TRUNCATES. !feof -&gt; wrong</pre></div></section><section class="sec"><h3>Preprocessor</h3><div class="secbody"><pre class="code">#include &lt;stdio.h&gt;
+#include "mine.h"
+#define MAX 100
+#define SQ(x) ((x)*(x))
+#ifdef DEBUG
+  puts("dbg");
+#endif
+#if defined(_WIN32)
+#elif defined(__linux__)
+#else
+#error nope
+#endif
+
+// header guard
+#ifndef H_H
+#define H_H
+int add(int, int);
+#endif
+__FILE__ __LINE__ __func__</pre><p class="warn">Bracket every macro parameter. <c>SQ(1+2)</c> breaks without them.</p></div></section></div><div class="col"><section class="sec"><h3>Headers</h3><div class="secbody"><table class="plain"><tr><td>stdio.h</td><td>printf files</td></tr><tr><td>stdlib.h</td><td>malloc exit qsort rand</td></tr><tr><td>string.h</td><td>str* mem*</td></tr><tr><td>math.h</td><td>sqrt pow (-lm)</td></tr><tr><td>ctype.h</td><td>isdigit toupper</td></tr><tr><td>time.h</td><td>time strftime clock</td></tr><tr><td>stdbool.h</td><td>bool</td></tr><tr><td>stdint.h</td><td>int32_t</td></tr><tr><td>limits.h</td><td>INT_MAX</td></tr><tr><td>assert.h</td><td>assert</td></tr><tr><td>errno.h</td><td>errno strerror</td></tr><tr><td>stdarg.h</td><td>va_list</td></tr></table></div></section><section class="sec"><h3>Function pointers</h3><div class="secbody"><pre class="code">typedef int (*Op)(int,int);
+Op f = add;  f(2,3);
+void each(int*,size_t,
+          void(*fn)(int));
+int cmp(const void*a,const void*b)
+{ return (*(int*)a &gt; *(int*)b)
+       - (*(int*)a &lt; *(int*)b); }</pre></div></section><section class="sec"><h3>Build</h3><div class="secbody"><pre class="code sh">gcc -c a.c -o a.o
+gcc a.o b.o -o prog
+# Makefile recipes need TABs
+prog: a.o b.o
+	gcc a.o b.o -o prog</pre></div></section><section class="sec"><h3>Undefined behaviour</h3><div class="secbody"><p class="note">Out of bounds &#183; use after free &#183; signed overflow &#183; /0 &#183; NULL deref &#183; uninitialised read &#183; <c>i=i++</c> &#183; bad printf type &#183; missing return. Anything may happen.</p></div></section><section class="sec"><h3>Debug</h3><div class="secbody"><pre class="code sh">gdb ./p   run  bt  p x
+break f.c:42  n  s  c
+valgrind --leak-check=full ./p</pre></div></section></div></div></div></div></section></div>
+<script>var LANG_DEFAULT="c";
+var PY_KW="False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case self cls";
+var PY_BI="print len range int str float list dict set tuple bool abs all any enumerate zip map filter sorted sum min max open input type isinstance issubclass super round pow divmod repr format reversed next iter id hash dir vars getattr setattr hasattr delattr callable chr ord bin hex oct complex bytes bytearray memoryview frozenset slice staticmethod classmethod property object exec eval globals locals ascii breakpoint compile help aiter anext";
+var C_KW="auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while _Bool bool true false NULL";
+var C_BI="printf scanf puts putchar getchar fgets fputs fopen fclose fread fwrite fprintf fscanf sprintf snprintf sscanf malloc calloc realloc free exit atoi atof strtol rand srand qsort bsearch abs strlen strcpy strncpy strcat strncat strcmp strncmp strchr strstr strtok memcpy memmove memset memcmp size_t FILE int8_t int16_t int32_t int64_t uint8_t uint32_t uint64_t va_list va_start va_arg va_end assert";
+function setOf(s){var o={},a=s.split(" "),i;for(i=0;i<a.length;i++)o[a[i]]=1;return o}
+var S={py:{kw:setOf(PY_KW),bi:setOf(PY_BI)},c:{kw:setOf(C_KW),bi:setOf(C_BI)}};
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function highlight(src,lang){
+  var re=lang==="c"
+    ?/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(^[ \t]*#[a-zA-Z]+)|("(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*')|(\b\d[\w.]*\b)|([A-Za-z_]\w*)/gm
+    :/(#[^\n]*)|(\x22{3}[\s\S]*?\x22{3}|'{3}[\s\S]*?'{3}|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*')|(@[A-Za-z_]\w*)|(\b\d[\w.]*\b)|([A-Za-z_]\w*)/g;
+  var out="",last=0,m,t=S[lang]||S.py;
+  while((m=re.exec(src))!==null){
+    out+=esc(src.slice(last,m.index));last=re.lastIndex;
+    if(m[1])out+='<span class="cm">'+esc(m[1])+"</span>";
+    else if(m[2])out+='<span class="'+(lang==="c"?"pp":"st")+'">'+esc(m[2])+"</span>";
+    else if(m[3])out+='<span class="'+(lang==="c"?"st":"pp")+'">'+esc(m[3])+"</span>";
+    else if(m[4])out+='<span class="nu">'+esc(m[4])+"</span>";
+    else if(m[5]){var w=m[5];
+      if(t.kw[w])out+='<span class="kw">'+w+"</span>";
+      else if(t.bi[w])out+='<span class="bi">'+w+"</span>";
+      else out+=esc(w);}
+  }
+  out+=esc(src.slice(last));
+  return out;
+}
+var pages=[],cur=0,zoom=1,dense=false,LANG="py";
+function vis(){return pages.filter(function(p){return p.dataset.mode===(dense?"dense":"full")})}
+function layout(){
+  var bar=document.querySelector(".bar").offsetHeight;
+  var vw=window.innerWidth-24,vh=window.innerHeight-bar-46;
+  var s=Math.min(vw/1600,vh/900);
+  if(!isFinite(s)||s<=0)s=.5;
+  document.documentElement.style.setProperty("--s",(s*zoom).toFixed(4));
+}
+function autofit(){
+  pages.forEach(function(p){
+    var g=p.querySelector(".grid"),b=p.querySelector(".body");
+    if(!g||!b)return;
+    g.style.setProperty("--k",1);
+    var avail=b.clientHeight-2,need=g.scrollHeight;
+    var k=need>avail?Math.max(.55,avail/need):1;
+    g.style.setProperty("--k",k.toFixed(4));
+  });
+}
+function show(i){
+  var v=vis();if(!v.length)return;
+  cur=Math.max(0,Math.min(i,v.length-1));
+  pages.forEach(function(p){p.classList.remove("on")});
+  v[cur].classList.add("on");
+  document.getElementById("count").textContent=(cur+1)+" / "+v.length;
+  window.scrollTo(0,0);
+}
+function setMode(d){
+  dense=d;document.body.classList.toggle("dense",d);
+  document.getElementById("mDense").classList.toggle("on",d);
+  document.getElementById("mFull").classList.toggle("on",!d);
+  zoom=1;cur=0;layout();show(0);autofit();
+  try{localStorage.setItem("refmode",d?"dense":"full")}catch(e){}
+}
+function setZoom(z){zoom=Math.max(.5,Math.min(4,z));layout()}
+function toggleIdx(){
+  var b=document.getElementById("idx");
+  b.classList.toggle("on");
+  if(b.classList.contains("on"))document.getElementById("q").focus();
+  else{var q=document.getElementById("q");q.value="";search("")}
+}
+function goto_(i){document.getElementById("idx").classList.remove("on");if(dense)setMode(false);show(i)}
+var INDEX=[],HITS=[],TOC="";
+function buildIndex(){
+  INDEX=[];
+  pages.forEach(function(p,i){
+    if(p.dataset.mode!=="full")return;
+    var h2=p.querySelector(".head h2"), pt=h2?h2.textContent:"Start here";
+    p.querySelectorAll(".sec").forEach(function(sec){
+      var h3=sec.querySelector("h3");
+      INDEX.push({page:i,pageTitle:pt,
+        title:h3?h3.childNodes[0].textContent.trim():"",
+        text:sec.textContent.toLowerCase(),el:sec});
+    });
+  });
+}
+function esc2(t){return t.replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function search(q){
+  var box=document.getElementById("idx"), out=document.getElementById("idxbody");
+  q=(q||"").trim().toLowerCase();
+  if(!q){out.innerHTML=TOC;box.querySelector("h4").textContent="Contents";HITS=[];return}
+  var term=q,note="";
+  HITS=INDEX.filter(function(r){return r.text.indexOf(term)>-1});
+  while(!HITS.length&&term.length>4){
+    term=term.slice(0,-1);note=" (broadened to \u201c"+term+"\u201d)";
+    HITS=INDEX.filter(function(r){return r.text.indexOf(term)>-1});
+  }
+  HITS=HITS.slice(0,40);
+  box.querySelector("h4").textContent=HITS.length+" match"+(HITS.length===1?"":"es")+
+    " for \u201c"+q+"\u201d"+note;
+  out.innerHTML='<div class="hits">'+(HITS.length?HITS.map(function(r,n){
+    return '<button class="hit" type="button" data-hit="'+n+'"><b>'+esc2(r.title)+
+           '</b> <i>&#183; '+esc2(r.pageTitle)+'</i></button>'}).join("")
+    :'<div class="none">Nothing matches. Try a shorter word.</div>')+'</div>';
+}
+function openHit(n){
+  var r=HITS[n];if(!r)return;
+  document.getElementById("idx").classList.remove("on");
+  if(dense)setMode(false);
+  show(r.page);
+  r.el.classList.add("flash");
+  setTimeout(function(){r.el.classList.remove("flash")},2200);
+}
+function init(){
+  pages=[].slice.call(document.querySelectorAll(".page"));
+  TOC=document.getElementById("idxbody").innerHTML;
+  document.querySelectorAll("pre.code").forEach(function(el){
+    el.innerHTML=highlight(el.textContent,el.dataset.lang||LANG);
+    var raw=el.textContent;
+    var b=document.createElement("button");
+    b.className="cp";b.type="button";b.textContent="copy";
+    b.setAttribute("aria-label","Copy this code");
+    b.onclick=function(ev){
+      ev.stopPropagation();
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(raw).then(function(){
+          b.textContent="copied";setTimeout(function(){b.textContent="copy"},1200);
+        },function(){b.textContent="failed";setTimeout(function(){b.textContent="copy"},1200)});
+      }
+    };
+    el.appendChild(b);
+  });
+  buildIndex();
+  document.getElementById("mDense").onclick=function(){setMode(true)};
+  document.getElementById("mFull").onclick=function(){setMode(false)};
+  document.getElementById("bPrev").onclick=function(){show(cur-1)};
+  document.getElementById("bNext").onclick=function(){show(cur+1)};
+  document.getElementById("bIdx").onclick=function(){toggleIdx()};
+  var qbox=document.getElementById("q");
+  qbox.addEventListener("input",function(){
+    if(this.value)document.getElementById("idx").classList.add("on");
+    search(this.value);
+  });
+  qbox.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){openHit(0);this.blur()}
+    else if(e.key==="Escape"){this.value="";search("");this.blur();
+      document.getElementById("idx").classList.remove("on")}
+    e.stopPropagation();
+  });
+  document.getElementById("bInk").onclick=function(){
+    document.body.classList.toggle("paper");this.classList.toggle("on");
+    try{localStorage.setItem("refink",document.body.classList.contains("paper")?"1":"0")}catch(e){}
+  };
+  document.getElementById("bPrint").onclick=function(){window.print()};
+  document.getElementById("idx").onclick=function(e){if(e.target===this)this.classList.remove("on")};
+  document.addEventListener("click",function(e){
+    if(!e.target.closest)return;
+    var a=e.target.closest("[data-go]");
+    if(a){e.preventDefault();goto_(parseInt(a.getAttribute("data-go"),10));return}
+    var h=e.target.closest("[data-hit]");
+    if(h){e.preventDefault();openHit(parseInt(h.getAttribute("data-hit"),10))}
+  });
+  document.addEventListener("keydown",function(e){
+    if((e.key!=="Enter"&&e.key!==" ")||!e.target.closest)return;
+    var a=e.target.closest("[data-go]");
+    if(a){e.preventDefault();goto_(parseInt(a.getAttribute("data-go"),10))}
+  });
+  document.addEventListener("keydown",function(e){
+    var k=e.key, tag=(e.target.tagName||"").toLowerCase();
+    if(tag==="input"||tag==="textarea")return;
+    if(k==="/"){e.preventDefault();document.getElementById("idx").classList.add("on");
+      document.getElementById("q").focus();return}
+    if(document.getElementById("idx").classList.contains("on")
+       &&k!=="Escape"&&k!=="m"&&k!=="M")return;
+    if(k==="ArrowRight"||k==="PageDown"||k===" "){show(cur+1);e.preventDefault()}
+    else if(k==="ArrowLeft"||k==="PageUp"){show(cur-1);e.preventDefault()}
+    else if(k==="Home")show(0);
+    else if(k==="End")show(999);
+    else if(k==="d"||k==="D")setMode(true);
+    else if(k==="f"||k==="F")setMode(false);
+    else if(k==="m"||k==="M")toggleIdx();
+    else if(k==="Escape"){document.getElementById("idx").classList.remove("on");
+      var qq=document.getElementById("q");qq.value="";search("")}
+    else if(k==="+"||k==="=")setZoom(zoom+.25);
+    else if(k==="-"||k==="_")setZoom(zoom-.25);
+    else if(k==="0")setZoom(1);
+  });
+  window.addEventListener("resize",function(){layout();autofit()});
+  var m="full",ink=null;
+  try{m=localStorage.getItem("refmode")||"full";ink=localStorage.getItem("refink")}catch(e){}
+  if(ink===null)
+    ink=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)?"1":"0";
+  if(ink==="1"){document.body.classList.add("paper");document.getElementById("bInk").classList.add("on")}
+  setMode(m==="dense");
+  layout();show(0);autofit();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){layout();autofit()});
+  setTimeout(function(){layout();autofit()},350);
+}
+document.addEventListener("DOMContentLoaded",init);
+
+LANG="c";
+</script>
+</body></html>
