@@ -530,7 +530,24 @@ JS = """
 
   var state;
   try { state = migrate(JSON.parse(localStorage.getItem(KEY))); }
-  catch (e) { state = blank(); }
+  catch (e) {
+    state = blank();
+    /* Unreadable is not empty. Copy it aside before the first save writes a
+       blank profile over it, and say where it went. */
+    try {
+      var unreadRaw = localStorage.getItem(KEY);
+      if (unreadRaw) {
+        var unreadKey = KEY + ".unreadable-" + Date.now();
+        localStorage.setItem(unreadKey, unreadRaw);
+        var uw = document.getElementById("storeWarn");
+        if (uw) {
+          uw.textContent = "Saved progress could not be read. It was kept under " + unreadKey +
+            " in this browser's storage, and this page started fresh.";
+          uw.classList.remove("hide");
+        }
+      }
+    } catch (e2) {}
+  }
 
   var storageOK = true;
   function save() {

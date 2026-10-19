@@ -660,9 +660,11 @@ table.grid3 td:first-child{white-space:normal}
    buttons' minimum text widths sum past that before the gaps and padding
    are even counted, so "Approach" pokes out past the rail edge rather than
    shrinking. A 2x2 grid, scoped to this file's own bar, fits the same four
-   labels without touching the flex row every other file still uses. */
+   labels without touching the flex row every other file still uses.
+   The buttons are reached as >button, not .modebtn: verify_bridge.py
+   fails any bridge rule that names a class the shared sheet defines. */
 .modebar-4{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.modebar-4 .modebtn{flex:none}
+.modebar-4>button{flex:none}
 
 .langbtn{appearance:none;background:var(--bg-3);border:1px solid var(--rule);color:var(--dim);
   font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;

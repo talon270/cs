@@ -164,6 +164,9 @@ def check_css(fails: list) -> int:
     import shell
 
     def classes(css: str) -> set[str]:
+        # Comments are not rules: a note explaining an override names the
+        # class it avoids, and that used to fail this check on its own.
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
         return set(re.findall(r"\.([A-Za-z][\w-]*)", css))
 
     # What matters is a bare rule the shared sheet applies to the class itself:
